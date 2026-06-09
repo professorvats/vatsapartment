@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Location — Vats Apartment</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#111111',
+          'on-primary': '#ffffff',
+          secondary: '#546255',
+          'on-secondary': '#ffffff',
+          'sec-container': '#d7e7d6',
+          'on-sec-container': '#5a685b',
+          background: '#f9f9f8',
+          'on-background': '#1a1c1c',
+          surface: '#f9f9f8',
+          'on-surface': '#1a1c1c',
+          'sf-variant': '#e2e2e2',
+          'on-sf-variant': '#444748',
+          outline: '#747878',
+          'ol-variant': '#c4c7c7',
+          'sf-low': '#f3f4f3',
+          'sf-lowest': '#ffffff',
+        }
+      }
+    }
+  }
+</script>
+<link rel="icon" href="/static/favicon.ico">
+</head>
+<body class="bg-background text-on-surface">
+
+<nav class="sticky top-0 z-50 bg-primary shadow-sm border-b border-white/10">
+  <div class="max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between h-24 md:h-28">
+    <a href="/" class="flex-shrink-0">
+      <img src="/static/white-logo.webp" alt="Vats Apartment" class="h-20 md:h-[120px] w-auto">
+    </a>
+    <div class="hidden md:flex items-center gap-1">
+      <a href="/" class="text-sm text-white/65 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 font-medium">Home</a>
+      <a href="/blog" class="text-sm text-white/65 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 font-medium">Blog</a>
+      <a href="/room-showcase" class="text-sm text-white/65 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 font-medium">3D Tour</a>
+      <a href="/location" class="text-sm text-white px-4 py-2 rounded-lg bg-white/10 font-medium">Location</a>
+      <a href="/contact-us" class="text-sm text-white/65 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 font-medium">Contact</a>
+    </div>
+    <div class="flex items-center gap-3 md:gap-4">
+      <a href="/login" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5 hidden md:inline-flex items-center gap-1.5 font-medium">Login</a>
+      <a href="/book-now" class="bg-white text-primary px-5 md:px-7 py-2.5 md:py-3 rounded-lg text-sm font-semibold hover:bg-white/90">Book Now</a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-6xl mx-auto px-4 py-8 md:py-12">
+  <section class="mb-8 md:mb-12 grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-center">
+    <div class="lg:col-span-5">
+      <span class="text-xs text-secondary uppercase tracking-widest mb-2 block font-semibold">Neighborhood</span>
+      <h1 class="text-2xl md:text-4xl font-bold mb-2">Location</h1>
+      <h2 class="text-base md:text-xl text-on-sf-variant mb-3">Positioned for Convenience.</h2>
+      <p class="text-sm md:text-base text-on-sf-variant mb-5 leading-relaxed">
+        Located in the heart of LPU, offering seamless access to major transport hubs and essential amenities. The perfect balance of connectivity and residential calm.
+      </p>
+      <div class="bg-sf-lowest border border-ol-variant p-4 md:p-5 rounded-lg flex items-start gap-3">
+        <svg class="w-8 h-8 shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1116 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <div>
+          <p class="font-semibold text-sm">Vats Apartment</p>
+          <p class="text-xs md:text-sm text-on-sf-variant">Near Apna Chai Wala, LPU, Jalandhar, Punjab</p>
+        </div>
+      </div>
+    </div>
+    <div class="lg:col-span-7 h-[300px] md:h-[400px] w-full rounded-lg overflow-hidden border border-ol-variant relative">
+      <iframe src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3410.816564762285!2d75.69165307560091!3d31.25350097433727!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMzHCsDE1JzEyLjYiTiA3NcKwNDEnMzkuMiJF!5e0!3m2!1sen!2sin!4v1780852640346!5m2!1sen!2sin" class="absolute inset-0 w-full h-full border-0" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="text-xl md:text-2xl font-bold mb-6">Proximity & Access</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+      <div class="bg-sf-lowest p-5 md:p-6 rounded-lg border border-ol-variant hover:-translate-y-1 transition-transform duration-300">
+        <div class="w-10 h-10 md:w-12 md:h-12 bg-sec-container text-on-sec-container rounded-full flex items-center justify-center mb-3 md:mb-4">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 10.5l-10-5.5L2 10.5l10 5.5 10-5.5z"/><path d="M6 12.5v4l6 3 6-3v-4"/></svg>
+        </div>
+        <h3 class="text-base md:text-lg font-semibold mb-2">10 mins from LPU Campus</h3>
+        <p class="text-xs md:text-sm text-on-sf-variant">A short, straightforward commute ensuring you're never late for classes or campus events.</p>
+      </div>
+      <div class="bg-sf-lowest p-5 md:p-6 rounded-lg border border-ol-variant hover:-translate-y-1 transition-transform duration-300">
+        <div class="w-10 h-10 md:w-12 md:h-12 bg-sec-container text-on-sec-container rounded-full flex items-center justify-center mb-3 md:mb-4">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 16H9m10 0h3v-3.15a1 1 0 00-.84-.99L16 11l-2.7-3.6a1 1 0 00-.81-.4H5.24a2 2 0 00-1.82 1.18L2 11v5h3m14 0a2 2 0 01-2 2h-2a2 2 0 01-2-2m6 0a2 2 0 00-2-2h-2a2 2 0 00-2 2m-8 0a2 2 0 01-2 2H7a2 2 0 01-2-2m6 0a2 2 0 00-2-2H7a2 2 0 00-2 2"/></svg>
+        </div>
+        <h3 class="text-base md:text-lg font-semibold mb-2">200m from Auto Stand</h3>
+        <p class="text-xs md:text-sm text-on-sf-variant">Immediate access to local transportation networks, making city navigation effortless.</p>
+      </div>
+      <div class="bg-sf-lowest p-5 md:p-6 rounded-lg border border-ol-variant hover:-translate-y-1 transition-transform duration-300">
+        <div class="w-10 h-10 md:w-12 md:h-12 bg-sec-container text-on-sec-container rounded-full flex items-center justify-center mb-3 md:mb-4">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 002 1.58h9.78a2 2 0 001.95-1.57l1.65-7.43H5.12"/></svg>
+        </div>
+        <h3 class="text-base md:text-lg font-semibold mb-2">Groceries within 200m</h3>
+        <p class="text-xs md:text-sm text-on-sf-variant">Daily essentials and fresh produce available just a few steps from your front door.</p>
+      </div>
+    </div>
+
+    <div class="mt-8 w-full h-[300px] md:h-[400px] rounded-lg overflow-hidden border border-ol-variant relative">
+      <iframe src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3410.816564762285!2d75.69165307560091!3d31.25350097433727!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMzHCsDE1JzEyLjYiTiA3NcKwNDEnMzkuMiJF!5e0!3m2!1sen!2sin!4v1780852640346!5m2!1sen!2sin" class="absolute inset-0 w-full h-full border-0" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+  </section>
+</main>
+
+<footer class="bg-primary border-t border-white/10 py-12 px-4 mt-16">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+    <div class="flex items-center">
+      <img src="/static/white-logo.webp" alt="Vats Apartment" class="h-28 w-auto opacity-90">
+    </div>
+    <div class="flex gap-4 text-xs text-white/40 uppercase tracking-wider">
+      <a href="/privacy" class="hover:text-white underline underline-offset-4 transition-colors">Privacy</a>
+      <a href="/terms" class="hover:text-white underline underline-offset-4 transition-colors">Terms</a>
+      <a href="/support" class="hover:text-white underline underline-offset-4 transition-colors">Support</a>
+    </div>
+    <div class="text-xs text-white/30 text-center md:text-right">
+      &copy; 2026 Vats Apartment.
+    </div>
+  </div>
+</footer>
+</body>
+</html>

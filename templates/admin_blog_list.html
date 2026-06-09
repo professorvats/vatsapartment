@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Blog — Vats Apartment Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#111111',
+          'on-primary': '#ffffff',
+          secondary: '#546255',
+          'on-secondary': '#ffffff',
+          'sec-container': '#d7e7d6',
+          'on-sec-container': '#5a685b',
+          background: '#f9f9f8',
+          'on-background': '#1a1c1c',
+          surface: '#f9f9f8',
+          'on-surface': '#1a1c1c',
+          'sf-variant': '#e2e2e2',
+          'on-sf-variant': '#444748',
+          outline: '#747878',
+          'ol-variant': '#c4c7c7',
+          'sf-low': '#f3f4f3',
+          'sf-high': '#e8e8e7',
+          'sf-lowest': '#ffffff',
+          error: '#ba1a1a',
+        }
+      }
+    }
+  }
+</script>
+<link rel="icon" href="/static/favicon.ico">
+</head>
+<body class="bg-background text-on-surface min-h-screen">
+
+<nav class="bg-primary shadow-sm border-b border-white/10">
+  <div class="max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between h-16">
+    <div class="flex items-center gap-6">
+      <a href="/"><img src="/static/white-logo.webp" alt="Vats Apartment" class="h-12 w-auto"></a>
+      <span class="text-white/40 text-sm">Admin Panel</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="/admin/blog/new" class="bg-secondary text-on-secondary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-secondary/90">+ New Post</a>
+      <a href="/" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">View Site</a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-4xl mx-auto px-4 py-8">
+  <h1 class="text-xl font-bold mb-6">Blog Posts</h1>
+
+  {{if .Posts}}
+  <div class="bg-sf-lowest border border-ol-variant rounded-lg overflow-hidden">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-ol-variant bg-sf-low">
+          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Title</th>
+          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant w-24">Status</th>
+          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant w-28">Date</th>
+          <th class="text-right px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant w-24">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Posts}}
+        <tr class="border-b border-ol-variant last:border-0 hover:bg-sf-low/50">
+          <td class="px-4 py-3">
+            <div class="font-medium">{{.Title}}</div>
+            <div class="text-xs text-on-sf-variant">/{{.Slug}}</div>
+          </td>
+          <td class="px-4 py-3">
+            {{if eq .Status "published"}}
+            <span class="inline-flex items-center gap-1 text-xs text-secondary font-medium"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>Published</span>
+            {{else}}
+            <span class="inline-flex items-center gap-1 text-xs text-on-sf-variant"><span class="w-1.5 h-1.5 rounded-full bg-on-sf-variant"></span>Draft</span>
+            {{end}}
+          </td>
+          <td class="px-4 py-3 text-xs text-on-sf-variant">{{.CreatedAt}}</td>
+          <td class="px-4 py-3 text-right">
+            <a href="/admin/blog/new?id={{.ID}}" class="text-xs text-primary hover:underline mr-3">Edit</a>
+            <form method="POST" action="/admin/blog/save" class="inline" onsubmit="return confirm('Delete this post?')">
+              <input type="hidden" name="id" value="{{.ID}}">
+              <input type="hidden" name="action" value="delete">
+              <button class="text-xs text-error hover:underline">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-lg">
+    <p class="text-on-sf-variant mb-4">No blog posts yet.</p>
+    <a href="/admin/blog/new" class="bg-primary text-on-primary px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-primary/90">Create Your First Post</a>
+  </div>
+  {{end}}
+</main>
+
+</body>
+</html>

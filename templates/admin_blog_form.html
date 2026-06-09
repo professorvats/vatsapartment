@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{.FormTitle}} — Vats Apartment Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#111111',
+          'on-primary': '#ffffff',
+          secondary: '#546255',
+          'on-secondary': '#ffffff',
+          'sec-container': '#d7e7d6',
+          'on-sec-container': '#5a685b',
+          background: '#f9f9f8',
+          'on-background': '#1a1c1c',
+          surface: '#f9f9f8',
+          'on-surface': '#1a1c1c',
+          'sf-variant': '#e2e2e2',
+          'on-sf-variant': '#444748',
+          outline: '#747878',
+          'ol-variant': '#c4c7c7',
+          'sf-low': '#f3f4f3',
+          'sf-high': '#e8e8e7',
+          'sf-lowest': '#ffffff',
+          error: '#ba1a1a',
+        }
+      }
+    }
+  }
+</script>
+<link rel="icon" href="/static/favicon.ico">
+</head>
+<body class="bg-background text-on-surface min-h-screen">
+
+<nav class="bg-primary shadow-sm border-b border-white/10">
+  <div class="max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between h-16">
+    <div class="flex items-center gap-6">
+      <a href="/"><img src="/static/white-logo.webp" alt="Vats Apartment" class="h-12 w-auto"></a>
+      <a href="/admin/blog" class="text-sm text-white/65 hover:text-white">← Back to Blog List</a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-3xl mx-auto px-4 py-8">
+  <h1 class="text-xl font-bold mb-6">{{.FormTitle}}</h1>
+
+  {{if .Error}}
+  <div class="bg-red-50 border border-red-200 text-error text-sm p-3 rounded-lg mb-6">{{.Error}}</div>
+  {{end}}
+
+  <form method="POST" action="/admin/blog/save" class="space-y-5">
+    {{if .Post}}
+    <input type="hidden" name="id" value="{{.Post.ID}}">
+    {{end}}
+
+    <div>
+      <label class="block text-xs font-semibold uppercase tracking-wider text-on-sf-variant mb-1.5">Title *</label>
+      <input type="text" name="title" value="{{if .Post}}{{.Post.Title}}{{end}}" required
+        class="w-full border border-ol-variant rounded-lg px-4 py-2.5 text-sm bg-sf-lowest focus:border-primary focus:ring-1 focus:ring-primary">
+    </div>
+
+    <div>
+      <label class="block text-xs font-semibold uppercase tracking-wider text-on-sf-variant mb-1.5">Slug</label>
+      <input type="text" name="slug" value="{{if .Post}}{{.Post.Slug}}{{end}}" placeholder="auto-generated-from-title"
+        class="w-full border border-ol-variant rounded-lg px-4 py-2.5 text-sm bg-sf-lowest focus:border-primary focus:ring-1 focus:ring-primary">
+    </div>
+
+    <div>
+      <label class="block text-xs font-semibold uppercase tracking-wider text-on-sf-variant mb-1.5">Excerpt</label>
+      <textarea name="excerpt" rows="2" placeholder="Brief summary shown in blog listing..."
+        class="w-full border border-ol-variant rounded-lg px-4 py-2.5 text-sm bg-sf-lowest focus:border-primary focus:ring-1 focus:ring-primary">{{if .Post}}{{.Post.Excerpt}}{{end}}</textarea>
+    </div>
+
+    <div>
+      <label class="block text-xs font-semibold uppercase tracking-wider text-on-sf-variant mb-1.5">Content * (HTML)</label>
+      <textarea name="content" rows="16" required placeholder="<p>Write your blog post content in HTML...</p>"
+        class="w-full border border-ol-variant rounded-lg px-4 py-2.5 text-sm bg-sf-lowest focus:border-primary focus:ring-1 focus:ring-primary font-mono">{{if .Post}}{{.Post.Content}}{{end}}</textarea>
+    </div>
+
+    <div>
+      <label class="block text-xs font-semibold uppercase tracking-wider text-on-sf-variant mb-1.5">Image URL</label>
+      <input type="text" name="image_url" value="{{if .Post}}{{.Post.ImageURL}}{{end}}" placeholder="https://..."
+        class="w-full border border-ol-variant rounded-lg px-4 py-2.5 text-sm bg-sf-lowest focus:border-primary focus:ring-1 focus:ring-primary">
+    </div>
+
+    <div>
+      <label class="block text-xs font-semibold uppercase tracking-wider text-on-sf-variant mb-1.5">Status</label>
+      <select name="status" class="w-full border border-ol-variant rounded-lg px-4 py-2.5 text-sm bg-sf-lowest focus:border-primary focus:ring-1 focus:ring-primary">
+        <option value="draft" {{if .Post}}{{if eq .Post.Status "draft"}}selected{{end}}{{end}}>Draft</option>
+        <option value="published" {{if .Post}}{{if eq .Post.Status "published"}}selected{{end}}{{end}}>Published</option>
+      </select>
+    </div>
+
+    <div class="flex gap-3 pt-2">
+      <button type="submit" class="bg-primary text-on-primary px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-primary/90">Save Post</button>
+      <a href="/admin/blog" class="border border-ol-variant text-on-surface px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-sf-low">Cancel</a>
+    </div>
+  </form>
+</main>
+
+</body>
+</html>

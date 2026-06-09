@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Us — Vats Apartment</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#111111',
+          'on-primary': '#ffffff',
+          secondary: '#546255',
+          'on-secondary': '#ffffff',
+          'sec-container': '#d7e7d6',
+          'on-sec-container': '#5a685b',
+          background: '#f9f9f8',
+          'on-background': '#1a1c1c',
+          surface: '#f9f9f8',
+          'on-surface': '#1a1c1c',
+          'sf-variant': '#e2e2e2',
+          'on-sf-variant': '#444748',
+          outline: '#747878',
+          'ol-variant': '#c4c7c7',
+          'sf-low': '#f3f4f3',
+          'sf-high': '#e8e8e7',
+          'sf-lowest': '#ffffff',
+        }
+      }
+    }
+  }
+</script>
+<link rel="icon" href="/static/favicon.ico">
+</head>
+<body class="bg-background text-on-surface">
+
+<nav class="sticky top-0 z-50 bg-primary shadow-sm border-b border-white/10">
+  <div class="max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between h-24 md:h-28">
+    <a href="/" class="flex-shrink-0">
+      <img src="/static/white-logo.webp" alt="Vats Apartment" class="h-20 md:h-[120px] w-auto">
+    </a>
+    <div class="hidden md:flex items-center gap-1">
+      <a href="/" class="text-sm text-white/65 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 font-medium">Home</a>
+      <a href="/blog" class="text-sm text-white/65 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 font-medium">Blog</a>
+      <a href="/room-showcase" class="text-sm text-white/65 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 font-medium">3D Tour</a>
+      <a href="/location" class="text-sm text-white/65 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 font-medium">Location</a>
+      <a href="/contact-us" class="text-sm text-white px-4 py-2 rounded-lg bg-white/10 font-medium">Contact</a>
+    </div>
+    <div class="flex items-center gap-3 md:gap-4">
+      <a href="/login" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5 hidden md:inline-flex items-center gap-1.5 font-medium">Login</a>
+      <a href="/book-now" class="bg-white text-primary px-5 md:px-7 py-2.5 md:py-3 rounded-lg text-sm font-semibold hover:bg-white/90">Book Now</a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-6xl mx-auto px-4 py-8 md:py-12">
+  <header class="mb-8 md:mb-12 max-w-3xl">
+    <h1 class="text-2xl md:text-5xl font-bold tracking-tight mb-2 md:mb-4">Get in Touch</h1>
+    <p class="text-sm md:text-base text-on-sf-variant">We are here to assist you with inquiries regarding availability, leasing terms, or scheduling a private viewing of our spaces.</p>
+  </header>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start">
+    <section class="lg:col-span-7">
+      <form id="contact-form" class="space-y-5 md:space-y-6" action="/api/contact" method="POST" onsubmit="handleContactSubmit(event)">
+        <div class="flex flex-col space-y-1.5">
+          <label class="text-xs text-on-sf-variant font-semibold uppercase tracking-wider" for="name">Full Name</label>
+          <input id="name" name="name" type="text" placeholder="Enter your full name" required
+            class="w-full border-0 border-b border-ol-variant focus:border-primary focus:ring-0 py-2.5 px-0 text-sm bg-transparent transition-colors placeholder:text-on-sf-variant/40">
+        </div>
+        <div class="flex flex-col space-y-1.5">
+          <label class="text-xs text-on-sf-variant font-semibold uppercase tracking-wider" for="email">Email Address</label>
+          <input id="email" name="email" type="email" placeholder="Enter your email address" required
+            class="w-full border-0 border-b border-ol-variant focus:border-primary focus:ring-0 py-2.5 px-0 text-sm bg-transparent transition-colors placeholder:text-on-sf-variant/40">
+        </div>
+        <div class="flex flex-col space-y-1.5">
+          <label class="text-xs text-on-sf-variant font-semibold uppercase tracking-wider" for="message">Message</label>
+          <textarea id="message" name="message" placeholder="How can we help you?" required rows="5"
+            class="w-full border-0 border-b border-ol-variant focus:border-primary focus:ring-0 py-2.5 px-0 text-sm bg-transparent transition-colors resize-none placeholder:text-on-sf-variant/40"></textarea>
+        </div>
+        <div class="pt-3">
+          <button type="submit" class="w-full flex justify-center items-center gap-2 py-3 px-6 rounded-lg text-sm font-semibold bg-primary text-on-primary hover:bg-primary/90 transition-colors">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            Send Message
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <aside class="lg:col-span-5 flex flex-col space-y-5 md:space-y-6">
+      <div class="w-full h-48 md:h-64 rounded-lg overflow-hidden border border-ol-variant relative">
+        <iframe src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3410.816564762285!2d75.69165307560091!3d31.25350097433727!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMzHCsDE1JzEyLjYiTiA3NcKwNDEnMzkuMiJF!5e0!3m2!1sen!2sin!4v1780852640346!5m2!1sen!2sin" class="absolute inset-0 w-full h-full border-0" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+
+      <div class="bg-sf-lowest border border-ol-variant p-5 md:p-6 rounded-lg flex flex-col space-y-5">
+        <div>
+          <h3 class="text-xs text-on-sf-variant font-semibold uppercase tracking-wider mb-2">Location</h3>
+          <p class="text-sm flex items-start gap-2.5">
+            <svg class="w-8 h-8 shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1116 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>Near Apna Chai Wala, LPU,<br>Jalandhar, Punjab</span>
+          </p>
+        </div>
+        <div>
+          <h3 class="text-xs text-on-sf-variant font-semibold uppercase tracking-wider mb-2">Contact Information</h3>
+          <div class="space-y-3">
+            <p class="text-sm flex items-center gap-2.5">
+              <svg class="w-5 h-5 shrink-0 text-on-sf-variant" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              <a href="tel:+919992937447" class="hover:text-primary transition-colors">+91 99929 37447</a>
+            </p>
+            <p class="text-sm flex items-center gap-2.5">
+              <svg class="w-5 h-5 shrink-0 text-on-sf-variant" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4l-10 8L2 4"/></svg>
+              <a href="mailto:hament.mailbox@gmail.com" class="hover:text-primary transition-colors">hament.mailbox@gmail.com</a>
+            </p>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-xs text-on-sf-variant font-semibold uppercase tracking-wider mb-2">Office Hours</h3>
+          <p class="text-sm flex items-start gap-2.5">
+            <svg class="w-5 h-5 shrink-0 text-on-sf-variant" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span>
+              Monday - Friday: 9:00 AM - 6:00 PM<br>
+              Saturday: 10:00 AM - 4:00 PM<br>
+              Sunday: Closed
+            </span>
+          </p>
+        </div>
+        <div class="pt-2">
+          <a href="https://wa.me/919992937447?text=Hi%2C%20I%27m%20interested%20in%20Vats%20Apartment" target="_blank"
+            class="inline-flex items-center gap-2 bg-secondary text-on-secondary px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-secondary/90 transition-colors">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            Chat on WhatsApp
+          </a>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer class="bg-primary border-t border-white/10 py-12 px-4 mt-16">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+    <div class="flex items-center">
+      <img src="/static/white-logo.webp" alt="Vats Apartment" class="h-28 w-auto opacity-90">
+    </div>
+    <div class="flex gap-4 text-xs text-white/40 uppercase tracking-wider">
+      <a href="/privacy" class="hover:text-white underline underline-offset-4 transition-colors">Privacy</a>
+      <a href="/terms" class="hover:text-white underline underline-offset-4 transition-colors">Terms</a>
+      <a href="/support" class="hover:text-white underline underline-offset-4 transition-colors">Support</a>
+    </div>
+    <div class="text-xs text-white/30 text-center md:text-right">
+      &copy; 2026 Vats Apartment.
+    </div>
+  </div>
+</footer>
+
+<script>
+function handleContactSubmit(e) {
+  e.preventDefault();
+  var f = e.target;
+  var msg = encodeURIComponent(
+    "Contact Form Submission from Vats Apartment Website:\n\n" +
+    "Name: " + f.name.value + "\n" +
+    "Email: " + f.email.value + "\n\n" +
+    "Message:\n" + f.message.value
+  );
+
+  var formData = new FormData();
+  formData.append("name", f.name.value);
+  formData.append("email", f.email.value);
+  formData.append("message", f.message.value);
+
+  fetch("/api/contact", { method: "POST", body: formData })
+    .then(function(r) { return r.text(); })
+    .then(function() {
+      window.open("https://wa.me/919992937447?text=" + msg, "_blank");
+    })
+    .catch(function() {
+      window.open("https://wa.me/919992937447?text=" + msg, "_blank");
+    });
+}
+</script>
+</body>
+</html>

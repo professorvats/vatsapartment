@@ -1,0 +1,276 @@
+package db
+
+import (
+	"database/sql"
+	"log"
+	"os"
+
+	_ "github.com/lib/pq"
+	"golang.org/x/crypto/bcrypt"
+)
+
+var DB *sql.DB
+
+func Init() error {
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		dsn = "postgresql://neondb_owner:npg_rIeMGo3CVYF9@ep-tiny-resonance-abne6jfo-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require"
+	}
+
+	var err error
+	DB, err = sql.Open("postgres", dsn)
+	if err != nil {
+		return err
+	}
+	DB.SetMaxOpenConns(5)
+	if err = DB.Ping(); err != nil {
+		return err
+	}
+	return createTables()
+}
+
+func createTables() error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS users (
+		id TEXT PRIMARY KEY,
+		username TEXT NOT NULL UNIQUE,
+		password_hash TEXT NOT NULL,
+		role TEXT DEFAULT 'admin',
+		created_at TIMESTAMPTZ DEFAULT NOW(),
+		updated_at TIMESTAMPTZ DEFAULT NOW()
+	);
+	CREATE TABLE IF NOT EXISTS rooms (
+		id TEXT PRIMARY KEY,
+		room_number TEXT NOT NULL,
+		floor INTEGER NOT NULL,
+		type TEXT NOT NULL,
+		price DOUBLE PRECISION NOT NULL,
+		images TEXT,
+		created_at TIMESTAMPTZ DEFAULT NOW(),
+		updated_at TIMESTAMPTZ DEFAULT NOW()
+	);
+	CREATE TABLE IF NOT EXISTS tenants (
+		id TEXT PRIMARY KEY,
+		name TEXT NOT NULL,
+		email TEXT UNIQUE,
+		phone TEXT NOT NULL UNIQUE,
+		aadhaar_number TEXT,
+		alternate_contact TEXT,
+		emergency_contact TEXT,
+		address TEXT,
+		status TEXT DEFAULT 'active',
+		agreement_document TEXT,
+		document_photo TEXT,
+		college_id TEXT,
+		check_in_date TEXT,
+		security_deposit DOUBLE PRECISION,
+		security_lock_in_period INTEGER,
+		created_at TIMESTAMPTZ DEFAULT NOW(),
+		updated_at TIMESTAMPTZ DEFAULT NOW()
+	);
+	CREATE TABLE IF NOT EXISTS payments (
+		id TEXT PRIMARY KEY,
+		tenant_id TEXT NOT NULL REFERENCES tenants(id),
+		amount DOUBLE PRECISION NOT NULL,
+		payment_date TEXT NOT NULL,
+		payment_method TEXT,
+		transaction_id TEXT UNIQUE,
+		status TEXT DEFAULT 'pending',
+		late_fee DOUBLE PRECISION DEFAULT 0,
+		month_covered TEXT,
+		notes TEXT,
+		receipt_url TEXT,
+		created_at TIMESTAMPTZ DEFAULT NOW(),
+		updated_at TIMESTAMPTZ DEFAULT NOW()
+	);
+	CREATE TABLE IF NOT EXISTS bookings (
+		id TEXT PRIMARY KEY,
+		room_id TEXT NOT NULL REFERENCES rooms(id),
+		rent_amount DOUBLE PRECISION NOT NULL,
+		security_deposit DOUBLE PRECISION,
+		security_lock_in_period INTEGER,
+		check_in_date TEXT NOT NULL,
+		check_out_date TEXT,
+		status TEXT DEFAULT 'active',
+		notes TEXT,
+		created_at TIMESTAMPTZ DEFAULT NOW(),
+		updated_at TIMESTAMPTZ DEFAULT NOW()
+	);
+	CREATE TABLE IF NOT EXISTS people (
+		id TEXT PRIMARY KEY,
+		booking_id TEXT NOT NULL REFERENCES bookings(id),
+		name TEXT NOT NULL,
+		phone TEXT NOT NULL,
+		email TEXT,
+		aadhaar_number TEXT,
+		document_photo TEXT,
+		college_id TEXT,
+		is_primary INTEGER DEFAULT 0,
+		created_at TIMESTAMPTZ DEFAULT NOW(),
+		updated_at TIMESTAMPTZ DEFAULT NOW()
+	);
+	CREATE TABLE IF NOT EXISTS room_assignments (
+		id TEXT PRIMARY KEY,
+		tenant_id TEXT NOT NULL REFERENCES tenants(id),
+		room_id TEXT NOT NULL REFERENCES rooms(id),
+		rent_amount DOUBLE PRECISION NOT NULL,
+		start_date TEXT NOT NULL,
+		end_date TEXT,
+		is_active INTEGER DEFAULT 1,
+		share_percentage DOUBLE PRECISION,
+		notes TEXT,
+		created_at TIMESTAMPTZ DEFAULT NOW(),
+		updated_at TIMESTAMPTZ DEFAULT NOW()
+	);
+	CREATE TABLE IF NOT EXISTS meters (
+		id TEXT PRIMARY KEY,
+		room_id TEXT NOT NULL REFERENCES rooms(id),
+		meter_type TEXT NOT NULL,
+		meter_number TEXT NOT NULL,
+		meter_name TEXT,
+		initial_reading INTEGER DEFAULT 0,
+		current_reading INTEGER DEFAULT 0,
+		installation_date TEXT,
+		is_active INTEGER DEFAULT 1,
+		notes TEXT,
+		created_at TIMESTAMPTZ DEFAULT NOW(),
+		updated_at TIMESTAMPTZ DEFAULT NOW()
+	);
+	CREATE TABLE IF NOT EXISTS meter_readings (
+		id TEXT PRIMARY KEY,
+		meter_id TEXT NOT NULL REFERENCES meters(id),
+		reading INTEGER NOT NULL,
+		reading_date TEXT NOT NULL,
+		photo_url TEXT,
+		extracted_by_ai INTEGER DEFAULT 0,
+		ai_provider TEXT,
+		ai_confidence TEXT,
+		billing_period TEXT,
+		notes TEXT,
+		created_at TIMESTAMPTZ DEFAULT NOW()
+	);
+	CREATE TABLE IF NOT EXISTS settings (
+		key TEXT PRIMARY KEY,
+		value TEXT NOT NULL,
+		description TEXT,
+		updated_at TIMESTAMPTZ DEFAULT NOW()
+		);
+		CREATE TABLE IF NOT EXISTS media (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL UNIQUE,
+			content_type TEXT NOT NULL,
+			data BYTEA NOT NULL,
+			created_at TIMESTAMPTZ DEFAULT NOW()
+	);
+	CREATE TABLE IF NOT EXISTS blog_posts (
+		id TEXT PRIMARY KEY,
+		title TEXT NOT NULL,
+		slug TEXT NOT NULL UNIQUE,
+		excerpt TEXT,
+		content TEXT NOT NULL,
+		image_url TEXT,
+		author TEXT DEFAULT 'Vats Apartment',
+		status TEXT DEFAULT 'draft',
+		created_at TIMESTAMPTZ DEFAULT NOW(),
+		updated_at TIMESTAMPTZ DEFAULT NOW()
+	);
+	CREATE TABLE IF NOT EXISTS api_keys (
+		id TEXT PRIMARY KEY,
+		key TEXT NOT NULL UNIQUE,
+		name TEXT NOT NULL,
+		permissions TEXT DEFAULT 'blog',
+		created_at TIMESTAMPTZ DEFAULT NOW(),
+		last_used_at TIMESTAMPTZ
+	);
+	`
+	_, err := DB.Exec(schema)
+	return err
+}
+
+func SeedRooms() error {
+	rooms := []struct {
+		id, roomNumber, roomType string
+		floor                    int
+		price                    float64
+	}{
+		{"R101", "R101", "Standard Single", 1, 9000},
+		{"R102", "R102", "Deluxe Single", 1, 10000},
+		{"R301", "R301", "Standard Single", 3, 9000},
+	}
+	for _, r := range rooms {
+		_, err := DB.Exec(
+			`INSERT INTO rooms (id, room_number, floor, type, price) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO UPDATE SET room_number=$2, floor=$3, type=$4, price=$5`,
+			r.id, r.roomNumber, r.floor, r.roomType, r.price,
+		)
+		if err != nil {
+			return err
+		}
+	}
+	// Delete rooms that are no longer available
+	_, err := DB.Exec(`DELETE FROM rooms WHERE id NOT IN ('R101', 'R102', 'R301')`)
+	return err
+}
+
+func SeedAdmin() error {
+	var count int
+	if err := DB.QueryRow("SELECT COUNT(*) FROM users WHERE username = 'admin'").Scan(&count); err != nil {
+		return err
+	}
+	if count > 0 {
+		log.Println("Admin user already exists, skipping seed")
+		return nil
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte("Vats@2024"), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	_, err = DB.Exec(
+		`INSERT INTO users (id, username, password_hash, role) VALUES ($1, $2, $3, 'admin')`,
+		"usr_admin", "admin", string(hash),
+	)
+	if err != nil {
+		return err
+	}
+	log.Println("Admin user seeded: admin / Vats@2024")
+	return nil
+}
+
+func SeedMedia() error {
+	media := []struct {
+		id, name, ctype, path string
+	}{
+		{"med_logo", "logo.png", "image/png", "static/logo.png"},
+		{"med_white_logo", "white-logo.png", "image/png", "static/white-logo.png"},
+		{"med_hero", "hero-2.png", "image/png", "static/hero-2.png"},
+		{"med_favicon", "favicon.ico", "image/x-icon", "static/favicon.ico"},
+		{"med_photo360", "photo360.webp", "image/webp", "static/photo360.webp"},
+		{"med_video", "vats-apartment-tour.mp4", "video/mp4", "static/vats-apartment-tour.mp4"},
+	}
+
+	for _, m := range media {
+		var count int
+		DB.QueryRow("SELECT COUNT(*) FROM media WHERE name = $1", m.name).Scan(&count)
+		if count > 0 {
+			log.Printf("Media %s already exists, skipping", m.name)
+			continue
+		}
+
+		data, err := os.ReadFile(m.path)
+		if err != nil {
+			log.Printf("WARNING: Cannot read %s: %v", m.path, err)
+			continue
+		}
+
+		_, err = DB.Exec(
+			`INSERT INTO media (id, name, content_type, data) VALUES ($1, $2, $3, $4)`,
+			m.id, m.name, m.ctype, data,
+		)
+		if err != nil {
+			return err
+		}
+		log.Printf("Media seeded: %s (%d bytes)", m.name, len(data))
+	}
+	return nil
+}

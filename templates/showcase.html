@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>360 Room Tour — Vats Apartment</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#111111',
+          'on-primary': '#ffffff',
+          secondary: '#546255',
+        }
+      }
+    }
+  }
+</script>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
+<link rel="icon" href="/static/favicon.ico">
+<style>body{margin:0}canvas{display:block}</style>
+</head>
+<body class="bg-black">
+
+<nav class="sticky top-0 z-50 bg-primary shadow-sm border-b border-white/10">
+  <div class="max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between h-24 md:h-28">
+    <a href="/" class="flex-shrink-0">
+      <img src="/static/white-logo.webp" alt="Vats Apartment" class="h-20 md:h-[120px] w-auto">
+    </a>
+    <div class="hidden md:flex items-center gap-1">
+      <a href="/" class="text-sm text-white/65 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 font-medium">Home</a>
+      <a href="/blog" class="text-sm text-white/65 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 font-medium">Blog</a>
+      <a href="/room-showcase" class="text-sm text-white px-4 py-2 rounded-lg bg-white/10 font-medium">3D Tour</a>
+      <a href="/location" class="text-sm text-white/65 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 font-medium">Location</a>
+      <a href="/contact-us" class="text-sm text-white/65 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 font-medium">Contact</a>
+    </div>
+    <div class="flex items-center gap-3 md:gap-4">
+      <a href="/login" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5 hidden md:inline-flex items-center gap-1.5 font-medium">Login</a>
+      <a href="/book-now" class="bg-white text-primary px-5 md:px-7 py-2.5 md:py-3 rounded-lg text-sm font-semibold hover:bg-white/90">Book Now</a>
+    </div>
+  </div>
+</nav>
+
+<div id="viewer" class="relative" style="height:calc(100vh - 7rem)">
+  <div id="loading" class="absolute inset-0 flex items-center justify-center bg-black/90 z-10">
+    <div class="text-center text-white">
+      <div class="w-10 h-10 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-3"></div>
+      <p class="text-sm text-white/70">Loading 360 view...</p>
+    </div>
+  </div>
+
+  <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-4 text-white/50 text-xs">
+    <span class="inline-flex items-center gap-1.5">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="2" width="12" height="20" rx="6"/><path d="M12 6v4"/></svg>
+      Drag to look around
+    </span>
+    <span class="inline-flex items-center gap-1.5">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+      Scroll to zoom
+    </span>
+  </div>
+
+  <a href="/book-now" class="absolute bottom-4 right-4 z-10 px-5 py-3 rounded-xl bg-white/90 backdrop-blur text-primary font-semibold text-sm shadow-lg hover:bg-white">Schedule a Viewing</a>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+
+const container = document.getElementById('viewer');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(65, container.clientWidth/container.clientHeight, 0.1, 1000);
+camera.position.set(0, 0, 0.1);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(container.clientWidth, container.clientHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+container.prepend(renderer.domElement);
+renderer.domElement.style.position = 'absolute';
+renderer.domElement.style.top = '0';
+renderer.domElement.style.left = '0';
+
+const geom = new THREE.SphereGeometry(50, 64, 32);
+const mat = new THREE.MeshBasicMaterial({side: THREE.BackSide});
+const sphere = new THREE.Mesh(geom, mat);
+scene.add(sphere);
+
+new THREE.TextureLoader().load('/static/photo360.webp', tex => {
+  mat.map = tex; mat.needsUpdate = true;
+  document.getElementById('loading').style.display = 'none';
+});
+
+let lon = 0, lat = 0, isDown = false, px = 0, py = 0, plon = 0, plat = 0, fov = 65;
+
+container.addEventListener('pointerdown', e => { isDown = true; px = e.clientX; py = e.clientY; plon = lon; plat = lat; });
+container.addEventListener('pointermove', e => { if(!isDown) return; lon = (px - e.clientX)*0.15 + plon; lat = (e.clientY - py)*0.15 + plat; lat = Math.max(-85, Math.min(85, lat)); });
+container.addEventListener('pointerup', () => { isDown = false; });
+container.addEventListener('wheel', e => { e.preventDefault(); fov = Math.max(30, Math.min(100, fov + e.deltaY*0.05)); }, {passive:false});
+
+(function anim() {
+  requestAnimationFrame(anim);
+  if (!isDown) lon += 0.03;
+  camera.fov += (fov - camera.fov)*0.2;
+  camera.updateProjectionMatrix();
+  const phi = THREE.MathUtils.degToRad(90 - lat);
+  const theta = THREE.MathUtils.degToRad(lon);
+  camera.lookAt(50*Math.sin(phi)*Math.cos(theta), 50*Math.cos(phi), 50*Math.sin(phi)*Math.sin(theta));
+  renderer.render(scene, camera);
+})();
+
+window.addEventListener('resize', () => {
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  camera.aspect = w/h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+});
+</script>
+<footer class="bg-primary border-t border-white/10 py-12 px-4 mt-16">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+    <div class="flex items-center">
+      <img src="/static/white-logo.webp" alt="Vats Apartment" class="h-28 w-auto opacity-90">
+    </div>
+    <div class="flex gap-4 text-xs text-white/40 uppercase tracking-wider">
+      <a href="/privacy" class="hover:text-white underline underline-offset-4 transition-colors">Privacy</a>
+      <a href="/terms" class="hover:text-white underline underline-offset-4 transition-colors">Terms</a>
+      <a href="/support" class="hover:text-white underline underline-offset-4 transition-colors">Support</a>
+    </div>
+    <div class="text-xs text-white/30 text-center md:text-right">
+      &copy; 2026 Vats Apartment.
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

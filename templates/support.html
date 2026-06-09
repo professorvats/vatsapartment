@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Support — Vats Apartment</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#111111',
+          'on-primary': '#ffffff',
+          secondary: '#546255',
+          'on-secondary': '#ffffff',
+          'sec-container': '#d7e7d6',
+          'on-sec-container': '#5a685b',
+          background: '#f9f9f8',
+          'on-background': '#1a1c1c',
+          surface: '#f9f9f8',
+          'on-surface': '#1a1c1c',
+          'sf-variant': '#e2e2e2',
+          'on-sf-variant': '#444748',
+          outline: '#747878',
+          'ol-variant': '#c4c7c7',
+          'sf-low': '#f3f4f3',
+          'sf-high': '#e8e8e7',
+          'sf-lowest': '#ffffff',
+        }
+      }
+    }
+  }
+</script>
+<link rel="icon" href="/static/favicon.ico">
+</head>
+<body class="bg-background text-on-surface">
+
+<nav class="sticky top-0 z-50 bg-primary shadow-sm border-b border-white/10">
+  <div class="max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between h-24 md:h-28">
+    <a href="/" class="flex-shrink-0">
+      <img src="/static/white-logo.webp" alt="Vats Apartment" class="h-20 md:h-[120px] w-auto">
+    </a>
+    <div class="hidden md:flex items-center gap-1">
+      <a href="/" class="text-sm text-white/65 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 font-medium">Home</a>
+      <a href="/blog" class="text-sm text-white/65 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 font-medium">Blog</a>
+      <a href="/room-showcase" class="text-sm text-white/65 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 font-medium">3D Tour</a>
+      <a href="/location" class="text-sm text-white/65 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 font-medium">Location</a>
+      <a href="/contact-us" class="text-sm text-white/65 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 font-medium">Contact</a>
+    </div>
+    <div class="flex items-center gap-3 md:gap-4">
+      <a href="/login" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5 hidden md:inline-flex items-center gap-1.5 font-medium">Login</a>
+      <a href="/book-now" class="bg-white text-primary px-5 md:px-7 py-2.5 md:py-3 rounded-lg text-sm font-semibold hover:bg-white/90">Book Now</a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-4xl mx-auto px-4 py-8 md:py-12">
+  <h1 class="text-2xl md:text-4xl font-bold mb-2">Support</h1>
+  <p class="text-sm md:text-base text-on-sf-variant mb-8">We're here to help. Reach out through any of the channels below.</p>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+    <a href="https://wa.me/919992937447" target="_blank" class="bg-sf-lowest border border-ol-variant rounded-lg p-6 hover:border-primary transition-colors group">
+      <div class="w-12 h-12 bg-sec-container rounded-lg flex items-center justify-center mb-4 group-hover:bg-secondary group-hover:text-on-secondary transition-colors">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      </div>
+      <h3 class="font-semibold mb-1">WhatsApp</h3>
+      <p class="text-xs text-on-sf-variant">Chat with us directly on WhatsApp for quick responses.</p>
+      <p class="text-sm text-primary mt-2 font-medium">+91 9992937447</p>
+    </a>
+
+    <a href="tel:+919992937447" class="bg-sf-lowest border border-ol-variant rounded-lg p-6 hover:border-primary transition-colors group">
+      <div class="w-12 h-12 bg-sec-container rounded-lg flex items-center justify-center mb-4 group-hover:bg-secondary group-hover:text-on-secondary transition-colors">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+      </div>
+      <h3 class="font-semibold mb-1">Call Us</h3>
+      <p class="text-xs text-on-sf-variant">Give us a call during office hours.</p>
+      <p class="text-sm text-primary mt-2 font-medium">+91 9992937447</p>
+    </a>
+
+    <a href="/contact-us" class="bg-sf-lowest border border-ol-variant rounded-lg p-6 hover:border-primary transition-colors group">
+      <div class="w-12 h-12 bg-sec-container rounded-lg flex items-center justify-center mb-4 group-hover:bg-secondary group-hover:text-on-secondary transition-colors">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4l-10 8L2 4"/></svg>
+      </div>
+      <h3 class="font-semibold mb-1">Email / Contact Form</h3>
+      <p class="text-xs text-on-sf-variant">Send us a message and we'll get back to you.</p>
+      <p class="text-sm text-primary mt-2 font-medium">hament.mailbox@gmail.com</p>
+    </a>
+  </div>
+
+  <div class="bg-sf-lowest border border-ol-variant rounded-lg p-6 md:p-8">
+    <h2 class="text-lg font-semibold mb-4">Frequently Asked Questions</h2>
+    <div class="space-y-6">
+
+      <div>
+        <h3 class="text-sm font-semibold mb-1">How do I book a room?</h3>
+        <p class="text-xs text-on-sf-variant">Visit our <a href="/book-now" class="text-primary underline">Book Now</a> page, select your preferred room, and fill in your details. Our team will confirm your booking via phone or WhatsApp.</p>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-semibold mb-1">What is the security deposit?</h3>
+        <p class="text-xs text-on-sf-variant">The security deposit is 10 months' rent, fully refundable. It is adjusted only against outstanding electricity bills when you vacate. There is NO lock-in period.</p>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-semibold mb-1">Are electricity charges included in rent?</h3>
+        <p class="text-xs text-on-sf-variant">No. Electricity is charged separately at ₹12 per unit based on individual sub-meter readings for each room.</p>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-semibold mb-1">What is the minimum rental period?</h3>
+        <p class="text-xs text-on-sf-variant">Our rentals are month-to-month. Either party can terminate with 30 days' written notice.</p>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-semibold mb-1">Where are you located?</h3>
+        <p class="text-xs text-on-sf-variant">We are near Apna Chai Wala, Lawgate, Jalandhar, Punjab - 144001. <a href="/location" class="text-primary underline">View on map</a>.</p>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-semibold mb-1">What documents do I need to bring?</h3>
+        <p class="text-xs text-on-sf-variant">You'll need a government-issued ID proof (Aadhaar), college/university ID, and a passport-size photograph for tenant verification.</p>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<footer class="bg-primary border-t border-white/10 py-12 px-4 mt-16">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+    <div class="flex items-center">
+      <img src="/static/white-logo.webp" alt="Vats Apartment" class="h-28 w-auto opacity-90">
+    </div>
+    <div class="flex gap-4 text-xs text-white/40 uppercase tracking-wider">
+      <a href="/privacy" class="hover:text-white underline underline-offset-4 transition-colors">Privacy</a>
+      <a href="/terms" class="hover:text-white underline underline-offset-4 transition-colors">Terms</a>
+      <a href="/support" class="hover:text-white underline underline-offset-4 transition-colors">Support</a>
+    </div>
+    <div class="text-xs text-white/30 text-center md:text-right">
+      &copy; 2026 Vats Apartment.
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
