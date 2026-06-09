@@ -55,7 +55,7 @@ func handleAdminRooms(w http.ResponseWriter, r *http.Request) {
 	if !requireAdmin(w, r) {
 		return
 	}
-	rows, err := db.DB.Query(`SELECT r.id, r.room_number, r.floor, r.type, r.price, r.images,
+	rows, err := db.DB.Query(`SELECT r.id, r.room_number, r.floor, r.type, r.price,
 		COALESCE(b.status, 'available') as status
 		FROM rooms r
 		LEFT JOIN bookings b ON r.id = b.room_id AND b.status = 'active'
@@ -67,14 +67,14 @@ func handleAdminRooms(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	type RoomAdmin struct {
-		ID, RoomNumber, RoomType, Status, Images string
-		Floor                                    int
-		Price                                    float64
+		ID, RoomNumber, RoomType, Status string
+		Floor                            int
+		Price                            float64
 	}
 	var rooms []RoomAdmin
 	for rows.Next() {
 		var r RoomAdmin
-		rows.Scan(&r.ID, &r.RoomNumber, &r.Floor, &r.RoomType, &r.Price, &r.Images, &r.Status)
+		rows.Scan(&r.ID, &r.RoomNumber, &r.Floor, &r.RoomType, &r.Price, &r.Status)
 		rooms = append(rooms, r)
 	}
 	render(w, "admin_rooms.html", map[string]interface{}{"Rooms": rooms})
@@ -133,7 +133,7 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 		t.security_deposit, t.security_lock_in_period,
 		COALESCE(ra.room_id, '') as room_id, COALESCE(r.room_number, '') as room_number
 		FROM tenants t
-		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active = 1
+		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active IS TRUE
 		LEFT JOIN rooms r ON ra.room_id = r.id
 		ORDER BY t.name`)
 	if err != nil {
@@ -197,10 +197,10 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 		startDate := r.FormValue("start_date")
 		if roomID != "" {
 			// First end any active assignments
-			db.DB.Exec("UPDATE room_assignments SET is_active=0, updated_at=NOW() WHERE tenant_id=$1 AND is_active=1", id)
+			db.DB.Exec("UPDATE room_assignments SET is_active=false, updated_at=NOW() WHERE tenant_id=$1 AND is_active IS TRUE", id)
 			assignID := fmt.Sprintf("RA%d", time.Now().UnixNano())
 			db.DB.Exec(`INSERT INTO room_assignments (id, tenant_id, room_id, rent_amount, start_date, is_active)
-				VALUES ($1, $2, $3, $4, $5, 1)`, assignID, id, roomID, rent, startDate)
+				VALUES ($1, $2, $3, $4, $5, true)`, assignID, id, roomID, rent, startDate)
 		}
 	}
 	http.Redirect(w, r, "/admin/tenants", http.StatusSeeOther)
@@ -311,9 +311,9 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 	var meters []MeterAdmin
 	for rows.Next() {
 		var m MeterAdmin
-		var active int
+		var active bool
 		rows.Scan(&m.ID, &m.RoomID, &m.RoomNumber, &m.MeterType, &m.MeterNumber, &m.CurrentReading, &m.InitialReading, &active, &m.BookingStatus)
-		m.IsActive = active == 1
+		m.IsActive = active
 		meters = append(meters, m)
 	}
 	if meters == nil {
@@ -373,7 +373,7 @@ func handleAdminMetersSave(w http.ResponseWriter, r *http.Request) {
 		initial, _ := strconv.Atoi(r.FormValue("initial_reading"))
 		id := fmt.Sprintf("MTR%d", time.Now().UnixNano())
 		db.DB.Exec(`INSERT INTO meters (id, room_id, meter_type, meter_number, initial_reading, current_reading, is_active)
-			VALUES ($1, $2, $3, $4, $5, $5, 1)`, id, roomID, meterType, meterNumber, initial)
+			VALUES ($1, $2, $3, $4, $5, $5, true)`, id, roomID, meterType, meterNumber, initial)
 	} else if action == "add_reading" {
 		meterID := r.FormValue("meter_id")
 		reading, _ := strconv.Atoi(r.FormValue("reading"))
