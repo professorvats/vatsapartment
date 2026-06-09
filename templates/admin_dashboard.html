@@ -1,106 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard — Vats Apartment Admin</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          primary: '#111111',
-          'on-primary': '#ffffff',
-          secondary: '#546255',
-          'on-secondary': '#ffffff',
-          'sec-container': '#d7e7d6',
-          background: '#f9f9f8',
-          'on-background': '#1a1c1c',
-          surface: '#f9f9f8',
-          'on-surface': '#1a1c1c',
-          'sf-variant': '#e2e2e2',
-          'on-sf-variant': '#444748',
-          outline: '#747878',
-          'ol-variant': '#c4c7c7',
-          'sf-low': '#f3f4f3',
-          'sf-lowest': '#ffffff',
-        }
-      }
-    }
-  }
-</script>
-<link rel="icon" href="/static/favicon.ico">
-</head>
-<body class="bg-background text-on-surface min-h-screen">
+{{template "admin_header" .}}
+<h1 class="text-2xl font-bold mb-8">Management Console</h1>
 
-<nav class="bg-primary shadow-sm border-b border-white/10">
-  <div class="max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between h-16">
-    <div class="flex items-center gap-6">
-      <a href="/"><img src="/static/white-logo.webp" alt="Vats Apartment" class="h-12 w-auto"></a>
-      <span class="text-white/40 text-sm">Admin Panel</span>
-    </div>
-    <div class="flex items-center gap-3">
-      <a href="/admin/blog" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">Blog</a>
-      <a href="/admin/api-keys" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">API Keys</a>
-      <a href="/logout" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">Logout</a>
-      <a href="/" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">View Site</a>
-    </div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+  <div class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant">
+    <div class="text-xs text-on-sf-variant uppercase tracking-wider mb-2">Total Rooms</div>
+    <div class="text-3xl font-bold text-primary">{{.Stats.TotalRooms}}</div>
+    <div class="text-xs text-on-sf-variant mt-1">{{.Stats.OccupiedRooms}} occupied</div>
   </div>
-</nav>
-
-<main class="max-w-6xl mx-auto px-4 py-8">
-  <h1 class="text-2xl font-bold mb-8">Management Console</h1>
-
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-    <div class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant">
-      <div class="text-xs text-on-sf-variant uppercase tracking-wider mb-2">Total Rooms</div>
-      <div class="text-3xl font-bold text-primary">{{.Stats.TotalRooms}}</div>
-      <div class="text-xs text-on-sf-variant mt-1">{{.Stats.OccupiedRooms}} occupied</div>
-    </div>
-    <div class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant">
-      <div class="text-xs text-on-sf-variant uppercase tracking-wider mb-2">Tenants</div>
-      <div class="text-3xl font-bold text-secondary">{{.Stats.TotalTenants}}</div>
-      <div class="text-xs text-on-sf-variant mt-1">{{.Stats.ActiveTenants}} active</div>
-    </div>
-    <div class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant">
-      <div class="text-xs text-on-sf-variant uppercase tracking-wider mb-2">Monthly Revenue</div>
-      <div class="text-3xl font-bold" style="color:#2d6a2e">₹{{printf "%.0f" .Stats.MonthlyRevenue}}</div>
-      <div class="text-xs text-on-sf-variant mt-1">this month</div>
-    </div>
-    <div class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant">
-      <div class="text-xs text-on-sf-variant uppercase tracking-wider mb-2">Pending Payments</div>
-      <div class="text-3xl font-bold" style="color:#ba1a1a">{{.Stats.PendingPayments}}</div>
-      <div class="text-xs text-on-sf-variant mt-1">{{printf "%.0f" .Stats.CollectionRate}}% collected</div>
-    </div>
+  <div class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant">
+    <div class="text-xs text-on-sf-variant uppercase tracking-wider mb-2">Tenants</div>
+    <div class="text-3xl font-bold text-secondary">{{.Stats.TotalTenants}}</div>
+    <div class="text-xs text-on-sf-variant mt-1">{{.Stats.ActiveTenants}} active</div>
   </div>
-
-  <h2 class="text-lg font-semibold mb-4">Quick Actions</h2>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <a href="/admin/rooms" class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant hover:border-primary transition-colors">
-      <h3 class="font-semibold mb-2">Manage Rooms</h3>
-      <p class="text-sm text-on-sf-variant">Update availability, pricing, and room status.</p>
-    </a>
-    <a href="/admin/tenants" class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant hover:border-primary transition-colors">
-      <h3 class="font-semibold mb-2">Manage Tenants</h3>
-      <p class="text-sm text-on-sf-variant">View tenant info, assign rooms, manage contacts.</p>
-    </a>
-    <a href="/admin/payments" class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant hover:border-primary transition-colors">
-      <h3 class="font-semibold mb-2">Record Payments</h3>
-      <p class="text-sm text-on-sf-variant">Track rent, late fees, and payment history.</p>
-    </a>
-    <a href="/admin/meters" class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant hover:border-primary transition-colors">
-      <h3 class="font-semibold mb-2">Electricity Meters</h3>
-      <p class="text-sm text-on-sf-variant">Manage meter readings and electricity billing rate.</p>
-    </a>
-    <a href="/admin/blog" class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant hover:border-primary transition-colors">
-      <h3 class="font-semibold mb-2">Blog & Content</h3>
-      <p class="text-sm text-on-sf-variant">Write blog posts, manage website content.</p>
-    </a>
-    <a href="/admin/api-keys" class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant hover:border-primary transition-colors">
-      <h3 class="font-semibold mb-2">API Keys</h3>
-      <p class="text-sm text-on-sf-variant">Manage API access for blog and integrations.</p>
-    </a>
+  <div class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant">
+    <div class="text-xs text-on-sf-variant uppercase tracking-wider mb-2">Monthly Revenue</div>
+    <div class="text-3xl font-bold" style="color:#2d6a2e">₹{{printf "%.0f" .Stats.MonthlyRevenue}}</div>
+    <div class="text-xs text-on-sf-variant mt-1">this month</div>
   </div>
-</main>
-</body>
-</html>
+  <div class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant">
+    <div class="text-xs text-on-sf-variant uppercase tracking-wider mb-2">Pending Payments</div>
+    <div class="text-3xl font-bold" style="color:#ba1a1a">{{.Stats.PendingPayments}}</div>
+    <div class="text-xs text-on-sf-variant mt-1">{{printf "%.0f" .Stats.CollectionRate}}% collected</div>
+  </div>
+</div>
+
+<h2 class="text-lg font-semibold mb-4">Quick Actions</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <a href="/admin/rooms" class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant hover:border-primary transition-colors">
+    <h3 class="font-semibold mb-2">Manage Rooms</h3>
+    <p class="text-sm text-on-sf-variant">Update availability, pricing, and room status.</p>
+  </a>
+  <a href="/admin/tenants" class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant hover:border-primary transition-colors">
+    <h3 class="font-semibold mb-2">Manage Tenants</h3>
+    <p class="text-sm text-on-sf-variant">View tenant info, assign rooms, manage contacts.</p>
+  </a>
+  <a href="/admin/payments" class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant hover:border-primary transition-colors">
+    <h3 class="font-semibold mb-2">Record Payments</h3>
+    <p class="text-sm text-on-sf-variant">Track rent, late fees, and payment history.</p>
+  </a>
+  <a href="/admin/meters" class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant hover:border-primary transition-colors">
+    <h3 class="font-semibold mb-2">Electricity Meters</h3>
+    <p class="text-sm text-on-sf-variant">Manage meter readings and electricity billing rate.</p>
+  </a>
+  <a href="/admin/blog" class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant hover:border-primary transition-colors">
+    <h3 class="font-semibold mb-2">Blog & Content</h3>
+    <p class="text-sm text-on-sf-variant">Write blog posts, manage website content.</p>
+  </a>
+  <a href="/admin/api-keys" class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant hover:border-primary transition-colors">
+    <h3 class="font-semibold mb-2">API Keys</h3>
+    <p class="text-sm text-on-sf-variant">Manage API access for blog and integrations.</p>
+  </a>
+</div>
+{{template "admin_footer" .}}

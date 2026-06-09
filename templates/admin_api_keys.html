@@ -1,114 +1,60 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>API Keys — Vats Apartment Admin</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          primary: '#111111',
-          'on-primary': '#ffffff',
-          secondary: '#546255',
-          'on-secondary': '#ffffff',
-          'sec-container': '#d7e7d6',
-          'on-sec-container': '#5a685b',
-          background: '#f9f9f8',
-          'on-background': '#1a1c1c',
-          surface: '#f9f9f8',
-          'on-surface': '#1a1c1c',
-          'sf-variant': '#e2e2e2',
-          'on-sf-variant': '#444748',
-          outline: '#747878',
-          'ol-variant': '#c4c7c7',
-          'sf-low': '#f3f4f3',
-          'sf-high': '#e8e8e7',
-          'sf-lowest': '#ffffff',
-          error: '#ba1a1a',
-        }
-      }
-    }
-  }
-</script>
-<link rel="icon" href="/static/favicon.ico">
-</head>
-<body class="bg-background text-on-surface min-h-screen">
+{{template "admin_header" .}}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-xl font-bold">API Keys</h1>
+  <form method="POST" action="/admin/api-keys" class="flex gap-2">
+    <input type="hidden" name="action" value="create">
+    <input type="text" name="name" placeholder="Key name (e.g. N8n, Zapier)"
+      class="border border-ol-variant rounded-lg px-3 py-2 text-sm bg-sf-lowest focus:border-primary focus:ring-1 focus:ring-primary w-48">
+    <button type="submit" class="bg-primary text-on-primary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90">Generate Key</button>
+  </form>
+</div>
 
-<nav class="bg-primary shadow-sm border-b border-white/10">
-  <div class="max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between h-16">
-    <div class="flex items-center gap-6">
-      <a href="/"><img src="/static/white-logo.webp" alt="Vats Apartment" class="h-12 w-auto"></a>
-      <span class="text-white/40 text-sm">Admin Panel</span>
-    </div>
-    <div class="flex items-center gap-3">
-      <a href="/admin/blog" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">Blog Posts</a>
-      <a href="/" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">View Site</a>
-    </div>
+{{if .NewKey}}
+<div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+  <p class="text-sm font-semibold text-green-800 mb-2">New API key generated! Copy it now — you won't see it again.</p>
+  <div class="flex items-center gap-2">
+    <code class="bg-white border border-green-200 rounded px-3 py-2 text-sm font-mono break-all flex-1">{{.NewKey}}</code>
+    <button onclick="navigator.clipboard.writeText('{{.NewKey}}')" class="bg-white border border-green-200 rounded px-3 py-2 text-xs text-green-700 hover:bg-green-50">Copy</button>
   </div>
-</nav>
+  <p class="text-xs text-green-600 mt-2">Use this key in the <code class="bg-green-100 px-1 rounded">X-API-Key</code> header: <br>
+  <code class="bg-white border border-green-200 rounded px-2 py-1 text-xs mt-1 inline-block">curl -X POST http://localhost:3001/api/blog -H "X-API-Key: {{.NewKey}}" -H "Content-Type: application/json" -d '{"title":"My Post","content":"&lt;p&gt;Hello&lt;/p&gt;"}'</code></p>
+</div>
+{{end}}
 
-<main class="max-w-4xl mx-auto px-4 py-8">
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-xl font-bold">API Keys</h1>
-    <form method="POST" action="/admin/api-keys" class="flex gap-2">
-      <input type="hidden" name="action" value="create">
-      <input type="text" name="name" placeholder="Key name (e.g. N8n, Zapier)" 
-        class="border border-ol-variant rounded-lg px-3 py-2 text-sm bg-sf-lowest focus:border-primary focus:ring-1 focus:ring-primary w-48">
-      <button type="submit" class="bg-primary text-on-primary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90">Generate Key</button>
-    </form>
-  </div>
-
-  {{if .NewKey}}
-  <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-    <p class="text-sm font-semibold text-green-800 mb-2">New API key generated! Copy it now — you won't see it again.</p>
-    <div class="flex items-center gap-2">
-      <code class="bg-white border border-green-200 rounded px-3 py-2 text-sm font-mono break-all flex-1">{{.NewKey}}</code>
-      <button onclick="navigator.clipboard.writeText('{{.NewKey}}')" class="bg-white border border-green-200 rounded px-3 py-2 text-xs text-green-700 hover:bg-green-50">Copy</button>
-    </div>
-    <p class="text-xs text-green-600 mt-2">Use this key in the <code class="bg-green-100 px-1 rounded">X-API-Key</code> header: <br>
-    <code class="bg-white border border-green-200 rounded px-2 py-1 text-xs mt-1 inline-block">curl -X POST http://localhost:3001/api/blog -H "X-API-Key: {{.NewKey}}" -H "Content-Type: application/json" -d '{"title":"My Post","content":"&lt;p&gt;Hello&lt;/p&gt;"}'</code></p>
-  </div>
-  {{end}}
-
-  {{if .Keys}}
-  <div class="bg-sf-lowest border border-ol-variant rounded-lg overflow-hidden">
-    <table class="w-full text-sm">
-      <thead>
-        <tr class="border-b border-ol-variant bg-sf-low">
-          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Name</th>
-          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Key</th>
-          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant w-28">Created</th>
-          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant w-28">Last Used</th>
-          <th class="text-right px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant w-20">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{range .Keys}}
-        <tr class="border-b border-ol-variant last:border-0 hover:bg-sf-low/50">
-          <td class="px-4 py-3 font-medium">{{.Name}}</td>
-          <td class="px-4 py-3"><code class="text-xs bg-sf-high px-1.5 py-0.5 rounded">{{.KeyPreview}}</code></td>
-          <td class="px-4 py-3 text-xs text-on-sf-variant">{{.CreatedAt}}</td>
-          <td class="px-4 py-3 text-xs text-on-sf-variant">{{.LastUsed}}</td>
-          <td class="px-4 py-3 text-right">
-            <form method="POST" action="/admin/api-keys" class="inline" onsubmit="return confirm('Revoke this key?')">
-              <input type="hidden" name="action" value="delete">
-              <input type="hidden" name="id" value="{{.ID}}">
-              <button class="text-xs text-error hover:underline">Revoke</button>
-            </form>
-          </td>
-        </tr>
-        {{end}}
-      </tbody>
-    </table>
-  </div>
-  {{else}}
-  <div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-lg">
-    <p class="text-on-sf-variant">No API keys yet. Generate one above.</p>
-  </div>
-  {{end}}
-</main>
-
-</body>
-</html>
+{{if .Keys}}
+<div class="bg-sf-lowest border border-ol-variant rounded-lg overflow-hidden">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b border-ol-variant bg-sf-low">
+        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Name</th>
+        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Key</th>
+        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant w-28">Created</th>
+        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant w-28">Last Used</th>
+        <th class="text-right px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant w-20">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .Keys}}
+      <tr class="border-b border-ol-variant last:border-0 hover:bg-sf-low/50">
+        <td class="px-4 py-3 font-medium">{{.Name}}</td>
+        <td class="px-4 py-3"><code class="text-xs bg-sf-high px-1.5 py-0.5 rounded">{{.KeyPreview}}</code></td>
+        <td class="px-4 py-3 text-xs text-on-sf-variant">{{.CreatedAt}}</td>
+        <td class="px-4 py-3 text-xs text-on-sf-variant">{{.LastUsed}}</td>
+        <td class="px-4 py-3 text-right">
+          <form method="POST" action="/admin/api-keys" class="inline" onsubmit="return confirm('Revoke this key?')">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="id" value="{{.ID}}">
+            <button class="text-xs text-error hover:underline">Revoke</button>
+          </form>
+        </td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+</div>
+{{else}}
+<div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-lg">
+  <p class="text-on-sf-variant">No API keys yet. Generate one above.</p>
+</div>
+{{end}}
+{{template "admin_footer" .}}

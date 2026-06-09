@@ -18,7 +18,7 @@ func handleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	stats := getDashboardStats()
-	render(w, "admin_dashboard.html", map[string]interface{}{"Stats": stats})
+	render(w, "admin_dashboard.html", map[string]interface{}{"Stats": stats, "Active": "dashboard", "Title": "Dashboard"})
 }
 
 type DashboardStats struct {
@@ -77,7 +77,7 @@ func handleAdminRooms(w http.ResponseWriter, r *http.Request) {
 		rows.Scan(&r.ID, &r.RoomNumber, &r.Floor, &r.RoomType, &r.Price, &r.Status)
 		rooms = append(rooms, r)
 	}
-	render(w, "admin_rooms.html", map[string]interface{}{"Rooms": rooms})
+	render(w, "admin_rooms.html", map[string]interface{}{"Rooms": rooms, "Active": "rooms", "Title": "Manage Rooms"})
 }
 
 func handleAdminRoomsSave(w http.ResponseWriter, r *http.Request) {
@@ -173,6 +173,8 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 	render(w, "admin_tenants.html", map[string]interface{}{
 		"Tenants": tenants,
 		"Rooms":   roomOpts,
+		"Active":  "tenants",
+		"Title":   "Manage Tenants",
 	})
 }
 
@@ -251,6 +253,8 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 	render(w, "admin_payments.html", map[string]interface{}{
 		"Payments": payments,
 		"Tenants":  tenantOpts,
+		"Active":   "payments",
+		"Title":    "Payments",
 	})
 }
 
@@ -336,8 +340,7 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 				RoomID:     m.RoomID,
 				RoomNumber: m.RoomNumber,
 				Occupied:   m.BookingStatus == "active",
-				Meters:     []MeterAdmin{},
-			})
+				Meters:     []MeterAdmin{}})
 			seen[m.RoomNumber] = idx
 		}
 		roomGroups[idx].Meters = append(roomGroups[idx].Meters, m)
@@ -356,6 +359,8 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 		"RoomMeters":  roomGroups,
 		"Meters":      meters,
 		"RatePerUnit": ratePerUnit,
+		"Active":      "meters",
+		"Title":       "Electricity Meters",
 	})
 }
 

@@ -133,7 +133,13 @@ func withLogging(next http.Handler) http.Handler {
 
 func render(w http.ResponseWriter, name string, data interface{}) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := tmpl.ExecuteTemplate(w, name, data); err != nil {
+	t, err := tmpl.Clone()
+	if err != nil {
+		log.Printf("Template clone error: %v", err)
+		http.Error(w, "Render error", 500)
+		return
+	}
+	if err := t.ExecuteTemplate(w, name, data); err != nil {
 		log.Printf("Template error (%s): %v", name, err)
 		http.Error(w, "Render error", 500)
 	}

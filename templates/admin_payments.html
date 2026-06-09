@@ -1,123 +1,86 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Payments — Vats Apartment Admin</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: { extend: { colors: {
-      primary: '#111111', 'on-primary': '#ffffff', secondary: '#546255',
-      background: '#f9f9f8', 'on-surface': '#1a1c1c', 'sf-variant': '#e2e2e2',
-      'on-sf-variant': '#444748', outline: '#747878', 'ol-variant': '#c4c7c7',
-      'sf-low': '#f3f4f3', 'sf-lowest': '#ffffff', error: '#ba1a1a',
-    }}}
-  }
-</script>
-<link rel="icon" href="/static/favicon.ico">
-</head>
-<body class="bg-background text-on-surface min-h-screen">
+{{template "admin_header" .}}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-xl font-bold">Record Payments</h1>
+  <button onclick="document.getElementById('add-form').classList.toggle('hidden')" class="bg-primary text-on-primary px-4 py-2 rounded-lg text-sm font-semibold">+ Record Payment</button>
+</div>
 
-<nav class="bg-primary shadow-sm border-b border-white/10">
-  <div class="max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between h-16">
-    <div class="flex items-center gap-6">
-      <a href="/"><img src="/static/white-logo.webp" alt="Vats Apartment" class="h-12 w-auto"></a>
-      <span class="text-white/40 text-sm">Admin Panel</span>
-    </div>
-    <div class="flex items-center gap-3">
-      <a href="/admin/dashboard" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">Dashboard</a>
-      <a href="/admin/tenants" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">Tenants</a>
-      <a href="/admin/meters" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">Meters</a>
-      <a href="/logout" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">Logout</a>
-    </div>
-  </div>
-</nav>
-
-<main class="max-w-5xl mx-auto px-4 py-8">
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-xl font-bold">Record Payments</h1>
-    <button onclick="document.getElementById('add-form').classList.toggle('hidden')" class="bg-primary text-on-primary px-4 py-2 rounded-lg text-sm font-semibold">+ Record Payment</button>
-  </div>
-
-  <div id="add-form" class="hidden bg-sf-lowest border border-ol-variant rounded-lg p-6 mb-6">
-    <h3 class="font-semibold mb-4">Record New Payment</h3>
-    <form method="POST" action="/admin/payments/save" class="space-y-4">
-      <input type="hidden" name="action" value="add">
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <div>
-          <label class="block text-xs text-on-sf-variant mb-1">Tenant</label>
-          <select name="tenant_id" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
-            <option value="">Select Tenant</option>
-            {{range .Tenants}}<option value="{{.ID}}">{{.Name}}</option>{{end}}
-          </select>
-        </div>
-        <div><label class="block text-xs text-on-sf-variant mb-1">Amount</label><input name="amount" type="number" placeholder="9000" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
-        <div><label class="block text-xs text-on-sf-variant mb-1">Date</label><input name="date" type="date" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
-        <div><label class="block text-xs text-on-sf-variant mb-1">Method</label>
-          <select name="method" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
-            <option>Cash</option><option>UPI</option><option>Bank Transfer</option>
-          </select>
-        </div>
-        <div><label class="block text-xs text-on-sf-variant mb-1">Month</label><input name="month_covered" placeholder="e.g. 2026-06" class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
-        <div><label class="block text-xs text-on-sf-variant mb-1">Late Fee</label><input name="late_fee" type="number" value="0" class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
+<div id="add-form" class="hidden bg-sf-lowest border border-ol-variant rounded-lg p-6 mb-6">
+  <h3 class="font-semibold mb-4">Record New Payment</h3>
+  <form method="POST" action="/admin/payments/save" class="space-y-4">
+    <input type="hidden" name="action" value="add">
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-xs text-on-sf-variant mb-1">Tenant</label>
+        <select name="tenant_id" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+          <option value="">Select Tenant</option>
+          {{range .Tenants}}<option value="{{.ID}}">{{.Name}}</option>{{end}}
+        </select>
       </div>
-      <div><label class="block text-xs text-on-sf-variant mb-1">Notes</label><input name="notes" class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
-      <button type="submit" class="bg-secondary text-white px-6 py-2 rounded-lg text-sm font-semibold">Save Payment</button>
-    </form>
-  </div>
+      <div><label class="block text-xs text-on-sf-variant mb-1">Amount</label><input name="amount" type="number" placeholder="9000" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
+      <div><label class="block text-xs text-on-sf-variant mb-1">Date</label><input name="date" type="date" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
+      <div><label class="block text-xs text-on-sf-variant mb-1">Method</label>
+        <select name="method" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+          <option>Cash</option><option>UPI</option><option>Bank Transfer</option>
+        </select>
+      </div>
+      <div><label class="block text-xs text-on-sf-variant mb-1">Month</label><input name="month_covered" placeholder="e.g. 2026-06" class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
+      <div><label class="block text-xs text-on-sf-variant mb-1">Late Fee</label><input name="late_fee" type="number" value="0" class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
+    </div>
+    <div><label class="block text-xs text-on-sf-variant mb-1">Notes</label><input name="notes" class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
+    <button type="submit" class="bg-secondary text-white px-6 py-2 rounded-lg text-sm font-semibold">Save Payment</button>
+  </form>
+</div>
 
-  {{if .Payments}}
-  <div class="bg-sf-lowest border border-ol-variant rounded-lg overflow-hidden">
-    <table class="w-full text-sm">
-      <thead>
-        <tr class="border-b border-ol-variant bg-sf-low">
-          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Tenant</th>
-          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Amount</th>
-          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Date</th>
-          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Month</th>
-          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Status</th>
-          <th class="text-right px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{range .Payments}}
-        <tr class="border-b border-ol-variant last:border-0 hover:bg-sf-low/50">
-          <td class="px-4 py-3 font-medium">{{.TenantName}}</td>
-          <td class="px-4 py-3">₹{{printf "%.0f" .Amount}}</td>
-          <td class="px-4 py-3 text-xs text-on-sf-variant">{{.Date}}</td>
-          <td class="px-4 py-3 text-xs text-on-sf-variant">{{.MonthCovered}}</td>
-          <td class="px-4 py-3">
-            {{if eq .Status "completed"}}
-            <span class="inline-flex items-center gap-1 text-xs text-secondary font-medium"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>Paid</span>
-            {{else}}
-            <span class="inline-flex items-center gap-1 text-xs text-on-sf-variant"><span class="w-1.5 h-1.5 rounded-full bg-on-sf-variant"></span>{{.Status}}</span>
-            {{end}}
-          </td>
-          <td class="px-4 py-3 text-right">
-            {{if eq .Status "pending"}}
-            <form method="POST" action="/admin/payments/save" class="inline">
-              <input type="hidden" name="action" value="update_status">
-              <input type="hidden" name="id" value="{{.ID}}">
-              <input type="hidden" name="status" value="completed">
-              <button class="text-xs text-secondary font-semibold hover:underline">Mark Paid</button>
-            </form>
-            {{end}}
-            <form method="POST" action="/admin/payments/save" class="inline ml-2" onsubmit="return confirm('Delete?')">
-              <input type="hidden" name="action" value="delete">
-              <input type="hidden" name="id" value="{{.ID}}">
-              <button class="text-xs text-error hover:underline">Delete</button>
-            </form>
-          </td>
-        </tr>
-        {{end}}
-      </tbody>
-    </table>
-  </div>
-  {{else}}
-  <div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-lg">
-    <p class="text-on-sf-variant">No payments recorded yet.</p>
-  </div>
-  {{end}}
-</main>
-</body>
-</html>
+{{if .Payments}}
+<div class="bg-sf-lowest border border-ol-variant rounded-lg overflow-hidden">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b border-ol-variant bg-sf-low">
+        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Tenant</th>
+        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Amount</th>
+        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Date</th>
+        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Month</th>
+        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Status</th>
+        <th class="text-right px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .Payments}}
+      <tr class="border-b border-ol-variant last:border-0 hover:bg-sf-low/50">
+        <td class="px-4 py-3 font-medium">{{.TenantName}}</td>
+        <td class="px-4 py-3">₹{{printf "%.0f" .Amount}}</td>
+        <td class="px-4 py-3 text-xs text-on-sf-variant">{{.Date}}</td>
+        <td class="px-4 py-3 text-xs text-on-sf-variant">{{.MonthCovered}}</td>
+        <td class="px-4 py-3">
+          {{if eq .Status "completed"}}
+          <span class="inline-flex items-center gap-1 text-xs text-secondary font-medium"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>Paid</span>
+          {{else}}
+          <span class="inline-flex items-center gap-1 text-xs text-on-sf-variant"><span class="w-1.5 h-1.5 rounded-full bg-on-sf-variant"></span>{{.Status}}</span>
+          {{end}}
+        </td>
+        <td class="px-4 py-3 text-right">
+          {{if eq .Status "pending"}}
+          <form method="POST" action="/admin/payments/save" class="inline">
+            <input type="hidden" name="action" value="update_status">
+            <input type="hidden" name="id" value="{{.ID}}">
+            <input type="hidden" name="status" value="completed">
+            <button class="text-xs text-secondary font-semibold hover:underline">Mark Paid</button>
+          </form>
+          {{end}}
+          <form method="POST" action="/admin/payments/save" class="inline ml-2" onsubmit="return confirm('Delete?')">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="id" value="{{.ID}}">
+            <button class="text-xs text-error hover:underline">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+</div>
+{{else}}
+<div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-lg">
+  <p class="text-on-sf-variant">No payments recorded yet.</p>
+</div>
+{{end}}
+{{template "admin_footer" .}}
