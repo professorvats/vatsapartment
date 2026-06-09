@@ -19,6 +19,7 @@ type Room struct {
 	Floor      int
 	Type       string
 	Price      float64
+	Status     string
 }
 
 type FloorGroup struct {
@@ -112,7 +113,11 @@ func handleLoginPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func getRooms() ([]Room, error) {
-	rows, err := db.DB.Query("SELECT id, room_number, floor, type, price FROM rooms ORDER BY floor, id")
+	rows, err := db.DB.Query(`SELECT r.id, r.room_number, r.floor, r.type, r.price,
+		COALESCE(b.status, 'available') as status
+		FROM rooms r
+		LEFT JOIN bookings b ON r.id = b.room_id AND b.status = 'active'
+		ORDER BY r.floor, r.id`)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +126,7 @@ func getRooms() ([]Room, error) {
 	var rooms []Room
 	for rows.Next() {
 		var r Room
-		if err := rows.Scan(&r.ID, &r.RoomNumber, &r.Floor, &r.Type, &r.Price); err != nil {
+		if err := rows.Scan(&r.ID, &r.RoomNumber, &r.Floor, &r.Type, &r.Price, &r.Status); err != nil {
 			return nil, err
 		}
 		rooms = append(rooms, r)
