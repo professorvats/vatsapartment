@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 
@@ -20,171 +21,201 @@ func Init() error {
 	var err error
 	DB, err = sql.Open("postgres", dsn)
 	if err != nil {
-		return err
+		return fmt.Errorf("sql.Open: %w", err)
 	}
 	DB.SetMaxOpenConns(5)
 	if err = DB.Ping(); err != nil {
-		return err
+		return fmt.Errorf("db ping: %w", err)
 	}
-	return createTables()
+
+	log.Println("DB connected, running migrations...")
+	if err := runMigrations(); err != nil {
+		return fmt.Errorf("migrations: %w", err)
+	}
+
+	log.Println("Migrations complete")
+	return nil
 }
 
-func createTables() error {
-	schema := `
-	CREATE TABLE IF NOT EXISTS users (
-		id TEXT PRIMARY KEY,
-		username TEXT NOT NULL UNIQUE,
-		password_hash TEXT NOT NULL,
-		role TEXT DEFAULT 'admin',
-		created_at TIMESTAMPTZ DEFAULT NOW(),
-		updated_at TIMESTAMPTZ DEFAULT NOW()
-	);
-	CREATE TABLE IF NOT EXISTS rooms (
-		id TEXT PRIMARY KEY,
-		room_number TEXT NOT NULL,
-		floor INTEGER NOT NULL,
-		type TEXT NOT NULL,
-		price DOUBLE PRECISION NOT NULL,
-		images TEXT,
-		created_at TIMESTAMPTZ DEFAULT NOW(),
-		updated_at TIMESTAMPTZ DEFAULT NOW()
-	);
-	CREATE TABLE IF NOT EXISTS tenants (
-		id TEXT PRIMARY KEY,
-		name TEXT NOT NULL,
-		email TEXT UNIQUE,
-		phone TEXT NOT NULL UNIQUE,
-		aadhaar_number TEXT,
-		alternate_contact TEXT,
-		emergency_contact TEXT,
-		address TEXT,
-		status TEXT DEFAULT 'active',
-		agreement_document TEXT,
-		document_photo TEXT,
-		college_id TEXT,
-		check_in_date TEXT,
-		security_deposit DOUBLE PRECISION,
-		security_lock_in_period INTEGER,
-		created_at TIMESTAMPTZ DEFAULT NOW(),
-		updated_at TIMESTAMPTZ DEFAULT NOW()
-	);
-	CREATE TABLE IF NOT EXISTS payments (
-		id TEXT PRIMARY KEY,
-		tenant_id TEXT NOT NULL REFERENCES tenants(id),
-		amount DOUBLE PRECISION NOT NULL,
-		payment_date TEXT NOT NULL,
-		payment_method TEXT,
-		transaction_id TEXT UNIQUE,
-		status TEXT DEFAULT 'pending',
-		late_fee DOUBLE PRECISION DEFAULT 0,
-		month_covered TEXT,
-		notes TEXT,
-		receipt_url TEXT,
-		created_at TIMESTAMPTZ DEFAULT NOW(),
-		updated_at TIMESTAMPTZ DEFAULT NOW()
-	);
-	CREATE TABLE IF NOT EXISTS bookings (
-		id TEXT PRIMARY KEY,
-		room_id TEXT NOT NULL REFERENCES rooms(id),
-		rent_amount DOUBLE PRECISION NOT NULL,
-		security_deposit DOUBLE PRECISION,
-		security_lock_in_period INTEGER,
-		check_in_date TEXT NOT NULL,
-		check_out_date TEXT,
-		status TEXT DEFAULT 'active',
-		notes TEXT,
-		created_at TIMESTAMPTZ DEFAULT NOW(),
-		updated_at TIMESTAMPTZ DEFAULT NOW()
-	);
-	CREATE TABLE IF NOT EXISTS people (
-		id TEXT PRIMARY KEY,
-		booking_id TEXT NOT NULL REFERENCES bookings(id),
-		name TEXT NOT NULL,
-		phone TEXT NOT NULL,
-		email TEXT,
-		aadhaar_number TEXT,
-		document_photo TEXT,
-		college_id TEXT,
-		is_primary INTEGER DEFAULT 0,
-		created_at TIMESTAMPTZ DEFAULT NOW(),
-		updated_at TIMESTAMPTZ DEFAULT NOW()
-	);
-	CREATE TABLE IF NOT EXISTS room_assignments (
-		id TEXT PRIMARY KEY,
-		tenant_id TEXT NOT NULL REFERENCES tenants(id),
-		room_id TEXT NOT NULL REFERENCES rooms(id),
-		rent_amount DOUBLE PRECISION NOT NULL,
-		start_date TEXT NOT NULL,
-		end_date TEXT,
-		is_active INTEGER DEFAULT 1,
-		share_percentage DOUBLE PRECISION,
-		notes TEXT,
-		created_at TIMESTAMPTZ DEFAULT NOW(),
-		updated_at TIMESTAMPTZ DEFAULT NOW()
-	);
-	CREATE TABLE IF NOT EXISTS meters (
-		id TEXT PRIMARY KEY,
-		room_id TEXT NOT NULL REFERENCES rooms(id),
-		meter_type TEXT NOT NULL,
-		meter_number TEXT NOT NULL,
-		meter_name TEXT,
-		initial_reading INTEGER DEFAULT 0,
-		current_reading INTEGER DEFAULT 0,
-		installation_date TEXT,
-		is_active INTEGER DEFAULT 1,
-		notes TEXT,
-		created_at TIMESTAMPTZ DEFAULT NOW(),
-		updated_at TIMESTAMPTZ DEFAULT NOW()
-	);
-	CREATE TABLE IF NOT EXISTS meter_readings (
-		id TEXT PRIMARY KEY,
-		meter_id TEXT NOT NULL REFERENCES meters(id),
-		reading INTEGER NOT NULL,
-		reading_date TEXT NOT NULL,
-		photo_url TEXT,
-		extracted_by_ai INTEGER DEFAULT 0,
-		ai_provider TEXT,
-		ai_confidence TEXT,
-		billing_period TEXT,
-		notes TEXT,
-		created_at TIMESTAMPTZ DEFAULT NOW()
-	);
-	CREATE TABLE IF NOT EXISTS settings (
-		key TEXT PRIMARY KEY,
-		value TEXT NOT NULL,
-		description TEXT,
-		updated_at TIMESTAMPTZ DEFAULT NOW()
-		);
-		CREATE TABLE IF NOT EXISTS media (
-			id TEXT PRIMARY KEY,
-			name TEXT NOT NULL UNIQUE,
-			content_type TEXT NOT NULL,
-			data BYTEA NOT NULL,
-			created_at TIMESTAMPTZ DEFAULT NOW()
-	);
-	CREATE TABLE IF NOT EXISTS blog_posts (
-		id TEXT PRIMARY KEY,
-		title TEXT NOT NULL,
-		slug TEXT NOT NULL UNIQUE,
-		excerpt TEXT,
-		content TEXT NOT NULL,
-		image_url TEXT,
-		author TEXT DEFAULT 'Vats Apartment',
-		status TEXT DEFAULT 'draft',
-		created_at TIMESTAMPTZ DEFAULT NOW(),
-		updated_at TIMESTAMPTZ DEFAULT NOW()
-	);
-	CREATE TABLE IF NOT EXISTS api_keys (
-		id TEXT PRIMARY KEY,
-		key TEXT NOT NULL UNIQUE,
-		name TEXT NOT NULL,
-		permissions TEXT DEFAULT 'blog',
-		created_at TIMESTAMPTZ DEFAULT NOW(),
-		last_used_at TIMESTAMPTZ
-	);
-	`
-	_, err := DB.Exec(schema)
-	return err
+func runMigrations() error {
+	migrations := []struct {
+		name string
+		sql  string
+	}{
+		{"users", `
+			CREATE TABLE IF NOT EXISTS users (
+				id TEXT PRIMARY KEY,
+				username TEXT NOT NULL UNIQUE,
+				password_hash TEXT NOT NULL,
+				role TEXT DEFAULT 'admin',
+				created_at TIMESTAMPTZ DEFAULT NOW(),
+				updated_at TIMESTAMPTZ DEFAULT NOW()
+			)`},
+		{"rooms", `
+			CREATE TABLE IF NOT EXISTS rooms (
+				id TEXT PRIMARY KEY,
+				room_number TEXT NOT NULL,
+				floor INTEGER NOT NULL,
+				type TEXT NOT NULL,
+				price DOUBLE PRECISION NOT NULL,
+				images TEXT,
+				created_at TIMESTAMPTZ DEFAULT NOW(),
+				updated_at TIMESTAMPTZ DEFAULT NOW()
+			)`},
+		{"tenants", `
+			CREATE TABLE IF NOT EXISTS tenants (
+				id TEXT PRIMARY KEY,
+				name TEXT NOT NULL,
+				email TEXT UNIQUE,
+				phone TEXT NOT NULL UNIQUE,
+				aadhaar_number TEXT,
+				alternate_contact TEXT,
+				emergency_contact TEXT,
+				address TEXT,
+				status TEXT DEFAULT 'active',
+				agreement_document TEXT,
+				document_photo TEXT,
+				college_id TEXT,
+				check_in_date TEXT,
+				security_deposit DOUBLE PRECISION,
+				security_lock_in_period INTEGER,
+				created_at TIMESTAMPTZ DEFAULT NOW(),
+				updated_at TIMESTAMPTZ DEFAULT NOW()
+			)`},
+		{"payments", `
+			CREATE TABLE IF NOT EXISTS payments (
+				id TEXT PRIMARY KEY,
+				tenant_id TEXT NOT NULL,
+				amount DOUBLE PRECISION NOT NULL,
+				payment_date TEXT NOT NULL,
+				payment_method TEXT,
+				transaction_id TEXT UNIQUE,
+				status TEXT DEFAULT 'pending',
+				late_fee DOUBLE PRECISION DEFAULT 0,
+				month_covered TEXT,
+				notes TEXT,
+				receipt_url TEXT,
+				created_at TIMESTAMPTZ DEFAULT NOW(),
+				updated_at TIMESTAMPTZ DEFAULT NOW()
+			)`},
+		{"bookings", `
+			CREATE TABLE IF NOT EXISTS bookings (
+				id TEXT PRIMARY KEY,
+				room_id TEXT NOT NULL,
+				rent_amount DOUBLE PRECISION NOT NULL,
+				security_deposit DOUBLE PRECISION,
+				security_lock_in_period INTEGER,
+				check_in_date TEXT NOT NULL,
+				check_out_date TEXT,
+				status TEXT DEFAULT 'active',
+				notes TEXT,
+				created_at TIMESTAMPTZ DEFAULT NOW(),
+				updated_at TIMESTAMPTZ DEFAULT NOW()
+			)`},
+		{"people", `
+			CREATE TABLE IF NOT EXISTS people (
+				id TEXT PRIMARY KEY,
+				booking_id TEXT NOT NULL,
+				name TEXT NOT NULL,
+				phone TEXT NOT NULL,
+				email TEXT,
+				aadhaar_number TEXT,
+				document_photo TEXT,
+				college_id TEXT,
+				is_primary INTEGER DEFAULT 0,
+				created_at TIMESTAMPTZ DEFAULT NOW(),
+				updated_at TIMESTAMPTZ DEFAULT NOW()
+			)`},
+		{"room_assignments", `
+			CREATE TABLE IF NOT EXISTS room_assignments (
+				id TEXT PRIMARY KEY,
+				tenant_id TEXT NOT NULL,
+				room_id TEXT NOT NULL,
+				rent_amount DOUBLE PRECISION NOT NULL,
+				start_date TEXT NOT NULL,
+				end_date TEXT,
+				is_active INTEGER DEFAULT 1,
+				share_percentage DOUBLE PRECISION,
+				notes TEXT,
+				created_at TIMESTAMPTZ DEFAULT NOW(),
+				updated_at TIMESTAMPTZ DEFAULT NOW()
+			)`},
+		{"meters", `
+			CREATE TABLE IF NOT EXISTS meters (
+				id TEXT PRIMARY KEY,
+				room_id TEXT NOT NULL,
+				meter_type TEXT NOT NULL,
+				meter_number TEXT NOT NULL,
+				meter_name TEXT,
+				initial_reading INTEGER DEFAULT 0,
+				current_reading INTEGER DEFAULT 0,
+				installation_date TEXT,
+				is_active INTEGER DEFAULT 1,
+				notes TEXT,
+				created_at TIMESTAMPTZ DEFAULT NOW(),
+				updated_at TIMESTAMPTZ DEFAULT NOW()
+			)`},
+		{"meter_readings", `
+			CREATE TABLE IF NOT EXISTS meter_readings (
+				id TEXT PRIMARY KEY,
+				meter_id TEXT NOT NULL,
+				reading INTEGER NOT NULL,
+				reading_date TEXT NOT NULL,
+				photo_url TEXT,
+				extracted_by_ai INTEGER DEFAULT 0,
+				ai_provider TEXT,
+				ai_confidence TEXT,
+				billing_period TEXT,
+				notes TEXT,
+				created_at TIMESTAMPTZ DEFAULT NOW()
+			)`},
+		{"settings", `
+			CREATE TABLE IF NOT EXISTS settings (
+				key TEXT PRIMARY KEY,
+				value TEXT NOT NULL,
+				description TEXT,
+				updated_at TIMESTAMPTZ DEFAULT NOW()
+			)`},
+		{"media", `
+			CREATE TABLE IF NOT EXISTS media (
+				id TEXT PRIMARY KEY,
+				name TEXT NOT NULL UNIQUE,
+				content_type TEXT NOT NULL,
+				data BYTEA NOT NULL,
+				created_at TIMESTAMPTZ DEFAULT NOW()
+			)`},
+		{"blog_posts", `
+			CREATE TABLE IF NOT EXISTS blog_posts (
+				id TEXT PRIMARY KEY,
+				title TEXT NOT NULL,
+				slug TEXT NOT NULL UNIQUE,
+				excerpt TEXT,
+				content TEXT NOT NULL,
+				image_url TEXT,
+				author TEXT DEFAULT 'Vats Apartment',
+				status TEXT DEFAULT 'draft',
+				created_at TIMESTAMPTZ DEFAULT NOW(),
+				updated_at TIMESTAMPTZ DEFAULT NOW()
+			)`},
+		{"api_keys", `
+			CREATE TABLE IF NOT EXISTS api_keys (
+				id TEXT PRIMARY KEY,
+				key TEXT NOT NULL UNIQUE,
+				name TEXT NOT NULL,
+				permissions TEXT DEFAULT 'blog',
+				created_at TIMESTAMPTZ DEFAULT NOW(),
+				last_used_at TIMESTAMPTZ
+			)`},
+	}
+
+	for _, m := range migrations {
+		if _, err := DB.Exec(m.sql); err != nil {
+			return fmt.Errorf("%s: %w", m.name, err)
+		}
+		log.Printf("  ✓ %s", m.name)
+	}
+
+	return nil
 }
 
 func SeedRooms() error {
@@ -206,7 +237,6 @@ func SeedRooms() error {
 			return err
 		}
 	}
-	// Delete rooms that are no longer available
 	_, err := DB.Exec(`DELETE FROM rooms WHERE id NOT IN ('R101', 'R102', 'R301')`)
 	return err
 }
