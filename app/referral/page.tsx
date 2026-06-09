@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Gift, Copy, Check, Share2, User, Mail, Phone, MessageCircle, Instagram, Ticket, Link2, Tag, ChevronRight, Sparkles, IndianRupee, ArrowLeft } from 'lucide-react';
+import { Gift, Copy, Check, Share2, User, Mail, Phone, MessageCircle, AtSign, Ticket, Link2, Tag, ChevronRight, Sparkles, IndianRupee, ArrowLeft } from 'lucide-react';
 
 interface ReferralResult {
   id: string;
@@ -395,7 +395,7 @@ export default function ReferralPage() {
           <div className="flex flex-col space-y-2">
             <label className={labelClass} htmlFor="instagramHandle">
               <span className="flex items-center gap-1.5">
-                <Instagram className="w-3 h-3 md:w-4 md:h-4" />
+                <AtSign className="w-3 h-3 md:w-4 md:h-4" />
                 Instagram Handle
               </span>
             </label>

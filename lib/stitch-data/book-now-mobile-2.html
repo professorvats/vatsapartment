@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Book Now - Vats Apartment</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#c8c6c5",
+                        "surface-dim": "#dadad9",
+                        "on-primary-fixed-variant": "#474746",
+                        "on-error-container": "#93000a",
+                        "outline-variant": "#c4c7c7",
+                        "on-secondary-fixed": "#121e15",
+                        "secondary-fixed-dim": "#bbcbbb",
+                        "primary-fixed": "#e4e2e1",
+                        "on-error": "#ffffff",
+                        "on-background": "#1a1c1c",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#1a1c1c",
+                        "surface-tint": "#5f5e5e",
+                        "surface-container-low": "#f3f4f3",
+                        "secondary-fixed": "#d7e7d6",
+                        "on-secondary-fixed-variant": "#3c4a3e",
+                        "secondary": "#546255",
+                        "on-tertiary-fixed-variant": "#434846",
+                        "on-secondary-container": "#5a685b",
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#f9f9f8",
+                        "tertiary-container": "#222725",
+                        "secondary-container": "#d7e7d6",
+                        "inverse-on-surface": "#f1f1f0",
+                        "tertiary-fixed": "#dfe3e0",
+                        "surface-container-high": "#e8e8e7",
+                        "surface": "#f9f9f8",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#111111",
+                        "surface-variant": "#e2e2e2",
+                        "tertiary-fixed-dim": "#c3c7c4",
+                        "outline": "#747878",
+                        "on-primary-container": "#8e8d8c",
+                        "inverse-primary": "#c8c6c5",
+                        "on-surface-variant": "#444748",
+                        "on-tertiary-container": "#8a8e8b",
+                        "surface-container-highest": "#e2e2e2",
+                        "on-tertiary-fixed": "#181d1b",
+                        "error": "#ba1a1a",
+                        "surface-bright": "#f9f9f8",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#1b1c1c",
+                        "primary-container": "#262626",
+                        "inverse-surface": "#2f3130",
+                        "surface-container": "#eeeeed",
+                        "tertiary": "#0e1211",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "section-gap": "120px",
+                        "unit": "8px",
+                        "container-max": "1280px",
+                        "margin-desktop": "64px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "h3": ["Manrope"],
+                        "h1": ["Manrope"],
+                        "h2": ["Manrope"],
+                        "body-lg": ["Manrope"],
+                        "label-caps": ["Manrope"],
+                        "display": ["Manrope"],
+                        "caption": ["Manrope"],
+                        "body-md": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "h3": ["20px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                        "h1": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "display": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "caption": ["14px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md text-body-md antialiased pt-16 md:pt-20">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-md border-b border-neutral-100 dark:border-neutral-800">
+<div class="max-w-7xl mx-auto px-4 md:px-6 lg:px-12 flex justify-between items-center h-16 md:h-20">
+<div class="text-base md:text-lg font-bold uppercase tracking-widest text-[#262626] dark:text-white font-manrope antialiased tracking-tight" style="">
+                Vats Apartment
+            </div>
+<div class="hidden md:flex space-x-8">
+<a class="font-manrope antialiased tracking-tight text-[#262626] dark:text-white border-b-2 border-[#262626] dark:border-white pb-1 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all duration-300" href="#" style="">Availability</a>
+<a class="font-manrope antialiased tracking-tight text-neutral-500 dark:text-neutral-400 hover:text-[#262626] dark:hover:text-white transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all duration-300" href="#" style="">Amenities</a>
+<a class="font-manrope antialiased tracking-tight text-neutral-500 dark:text-neutral-400 hover:text-[#262626] dark:hover:text-white transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all duration-300" href="#" style="">Location</a>
+<a class="font-manrope antialiased tracking-tight text-neutral-500 dark:text-neutral-400 hover:text-[#262626] dark:hover:text-white transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all duration-300" href="#" style="">Contact</a>
+</div>
+<button class="bg-[#262626] text-white px-4 md:px-6 py-2 rounded-DEFAULT font-label-caps text-[10px] md:text-label-caps tracking-widest hover:bg-opacity-90 transition-colors hidden sm:block" style="">
+                Reserve Room
+            </button>
+<!-- Mobile Menu Icon -->
+<button class="md:hidden text-[#262626] dark:text-white p-2" style="">
+<span class="material-symbols-outlined" style="">menu</span>
+</button>
+</div>
+</nav>
+<main class="max-w-[container-max] mx-auto px-4 md:px-margin-desktop py-8 md:py-24">
+<!-- Hero Section -->
+<header class="mb-12 md:mb-section-gap text-center md:text-left">
+<h1 class="font-display text-3xl md:text-display text-primary-container mb-4" style="">Secure Your Modern Space</h1>
+<p class="font-body-lg text-body-md md:text-body-lg text-on-surface-variant max-w-2xl mx-auto md:mx-0" style="">Select your preferred layout and reserve your room in our contemporary architectural living space.</p>
+</header>
+<!-- Main Layout: Building View & Booking Form -->
+<div class="flex flex-col lg:grid lg:grid-cols-12 gap-8 md:gap-gutter items-start">
+<!-- Building Visual Representation -->
+<div class="w-full lg:col-span-7 bg-surface-container-lowest border border-outline-variant rounded-xl p-4 md:p-8 shadow-sm">
+<h2 class="font-h2 text-xl md:text-h2 text-primary-container mb-6 md:mb-8 border-b border-surface-variant pb-4" style="">Building Layout</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-x-12 md:gap-y-10">
+<!-- Floor 1 -->
+<div class="flex flex-col gap-3">
+<div class="font-label-caps text-label-caps text-outline mb-1" style="">FLOOR 1</div>
+<div class="grid grid-cols-1 gap-4">
+<!-- Room 1A -->
+<button class="group relative bg-surface-container-low hover:bg-secondary-fixed border border-outline-variant hover:border-secondary transition-all rounded-lg p-5 text-left min-h-[100px] flex flex-col justify-between" style="">
+<div class="flex justify-between items-start w-full">
+<span class="font-h3 text-lg text-primary-container group-hover:text-on-secondary-container" style="">1A - Front</span>
+<span class="bg-secondary-container text-on-secondary-container font-label-caps text-[10px] px-2 py-1 rounded-full" style="">Available</span>
+</div>
+<span class="font-caption text-caption text-on-surface-variant group-hover:text-on-secondary-container" style="">2 Bed, 1 Bath</span>
+</button>
+<!-- Room 1B -->
+<div class="bg-surface-variant border border-outline-variant opacity-60 rounded-lg p-5 text-left min-h-[100px] flex flex-col justify-between cursor-not-allowed">
+<div class="flex justify-between items-start w-full">
+<span class="font-h3 text-lg text-outline" style="">1B - Back</span>
+<span class="bg-surface-dim text-surface-tint font-label-caps text-[10px] px-2 py-1 rounded-full" style="">Booked</span>
+</div>
+<span class="font-caption text-caption text-outline" style="">1 Bed, 1 Bath</span>
+</div>
+</div>
+</div>
+<!-- Floor 2 -->
+<div class="flex flex-col gap-3">
+<div class="font-label-caps text-label-caps text-outline mb-1" style="">FLOOR 2</div>
+<div class="grid grid-cols-1 gap-4">
+<!-- Room 2A -->
+<button class="group relative bg-surface-container-low hover:bg-secondary-fixed border border-outline-variant hover:border-secondary transition-all rounded-lg p-5 text-left min-h-[100px] flex flex-col justify-between" style="">
+<div class="flex justify-between items-start w-full">
+<span class="font-h3 text-lg text-primary-container group-hover:text-on-secondary-container" style="">2A - Front</span>
+<span class="bg-secondary-container text-on-secondary-container font-label-caps text-[10px] px-2 py-1 rounded-full" style="">Booked</span>
+</div>
+<span class="font-caption text-caption text-on-surface-variant group-hover:text-on-secondary-container" style="">2 Bed, 1 Bath</span>
+</button>
+<!-- Room 2B -->
+<button class="group relative bg-surface-container-low hover:bg-secondary-fixed border border-outline-variant hover:border-secondary transition-all rounded-lg p-5 text-left min-h-[100px] flex flex-col justify-between" style="">
+<div class="flex justify-between items-start w-full">
+<span class="font-h3 text-lg text-primary-container group-hover:text-on-secondary-container" style="">2B - Back</span>
+<span class="bg-secondary-container text-on-secondary-container font-label-caps text-[10px] px-2 py-1 rounded-full" style="">Available</span>
+</div>
+<span class="font-caption text-caption text-on-surface-variant group-hover:text-on-secondary-container" style="">1 Bed, 1 Bath</span>
+</button>
+</div>
+</div>
+<!-- Floor 3 -->
+<div class="flex flex-col gap-3">
+<div class="font-label-caps text-label-caps text-outline mb-1" style="">FLOOR 3</div>
+<div class="grid grid-cols-1 gap-4">
+<!-- Room 3A -->
+<div class="bg-surface-variant border border-outline-variant opacity-60 rounded-lg p-5 text-left min-h-[100px] flex flex-col justify-between cursor-not-allowed">
+<div class="flex justify-between items-start w-full">
+<span class="font-h3 text-lg text-outline" style="">3A - Front</span>
+<span class="bg-surface-dim text-surface-tint font-label-caps text-[10px] px-2 py-1 rounded-full" style="">Booked</span>
+</div>
+<span class="font-caption text-caption text-outline" style="">2 Bed, 1 Bath</span>
+</div>
+<!-- Room 3B -->
+<button class="group relative bg-surface-container-low hover:bg-secondary-fixed border border-secondary bg-secondary-fixed transition-all rounded-lg p-5 text-left min-h-[100px] flex flex-col justify-between" style="">
+<div class="flex justify-between items-start w-full">
+<span class="font-h3 text-lg text-on-secondary-container" style="">3B - Back</span>
+<span class="bg-secondary-container text-on-secondary-container font-label-caps text-[10px] px-2 py-1 rounded-full" style="">Selected</span>
+</div>
+<span class="font-caption text-caption text-on-secondary-container" style="">1 Bed, 1 Bath</span>
+</button>
+</div>
+</div>
+<!-- Floor 4 -->
+<div class="flex flex-col gap-3">
+<div class="font-label-caps text-label-caps text-outline mb-1" style="">FLOOR 4</div>
+<div class="grid grid-cols-1 gap-4">
+<!-- Penthouse -->
+<button class="group relative bg-surface-container-low hover:bg-secondary-fixed border border-outline-variant hover:border-secondary transition-all rounded-lg p-5 text-left min-h-[160px] flex flex-col justify-between" style="">
+<div class="flex justify-between items-start w-full gap-2">
+<div class="flex flex-col">
+<span class="font-h2 text-lg md:text-xl text-primary-container group-hover:text-on-secondary-container mb-1" style="">Owner Room</span>
+<span class="font-caption text-[12px] md:text-caption text-on-surface-variant group-hover:text-on-secondary-container" style="">Entire Floor • Panoramic Views</span>
+</div>
+<span class="bg-secondary-container text-on-secondary-container font-label-caps text-[10px] px-2 py-1 rounded-full shrink-0" style="">Available</span>
+</div>
+<div class="flex items-center gap-2 text-primary-container group-hover:text-on-secondary-container">
+<span class="material-symbols-outlined text-sm" style="">stars</span>
+<span class="font-label-caps text-[10px]" style="">Premium Amenities Included</span>
+</div>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Booking Sidebar Form -->
+<div class="w-full lg:col-span-5 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 md:p-8 shadow-sm lg:sticky lg:top-28">
+<h2 class="font-h2 text-xl md:text-h2 text-primary-container mb-6" style="">Reserve Your Room</h2>
+<form class="space-y-6">
+<!-- Room Selection -->
+<div>
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-2" for="room" style="">SELECTED ROOM</label>
+<div class="relative">
+<select class="block w-full pl-3 pr-10 py-4 text-base font-body-md text-primary-container bg-surface-container-low border-outline-variant focus:outline-none focus:ring-0 focus:border-primary-container sm:text-sm rounded-lg appearance-none" id="room" name="room">
+<option value="1A">1A - Front (Available)</option>
+<option value="2A">2A - Front (Available)</option>
+<option value="2B">2B - Back (Available)</option>
+<option selected="" value="3B">3B - Back (Selected)</option>
+<option value="PH">Penthouse Suite (Available)</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-on-surface-variant">
+<span class="material-symbols-outlined" style="">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Starting Date -->
+<div>
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-2" for="date" style="">STARTING DATE</label>
+<div class="relative">
+<input class="block w-full pl-3 pr-4 py-4 text-base font-body-md text-primary-container bg-surface-container-low border-outline-variant focus:outline-none focus:ring-0 focus:border-primary-container sm:text-sm rounded-lg" id="date" name="date" type="date" value="2024-11-01"/>
+</div>
+</div>
+<div class="border-t border-surface-variant my-6"></div>
+<!-- Contact Details -->
+<div class="space-y-4">
+<div>
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-2" for="name" style="">FULL NAME</label>
+<input class="block w-full px-3 py-4 text-base font-body-md text-primary-container bg-surface-container-low border-outline-variant focus:outline-none focus:ring-0 focus:border-primary-container sm:text-sm rounded-lg placeholder:text-outline" id="name" name="name" placeholder="Enter your full name" type="text"/>
+</div>
+<div>
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-2" for="phone" style="">PHONE NUMBER</label>
+<input class="block w-full px-3 py-4 text-base font-body-md text-primary-container bg-surface-container-low border-outline-variant focus:outline-none focus:ring-0 focus:border-primary-container sm:text-sm rounded-lg placeholder:text-outline" id="phone" name="phone" placeholder="+1 (555) 000-0000" type="tel"/>
+</div>
+</div>
+<!-- Submit Button -->
+<div class="pt-4">
+<button class="w-full flex justify-center items-center py-5 px-4 border border-transparent rounded-DEFAULT shadow-sm font-label-caps text-label-caps text-white bg-primary-container hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-container transition-colors tracking-widest uppercase" style="" type="submit">
+                            Confirm Booking
+                        </button>
+<p class="mt-4 text-center font-caption text-caption text-on-surface-variant" style="">
+                            By confirming, you agree to our <a class="underline hover:text-primary-container" href="#" style="">Booking Terms</a>.
+                        </p>
+</div>
+</form>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 w-full rounded-none">
+<div class="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="font-bold text-[#262626] dark:text-white font-manrope text-xs md:text-sm text-center md:text-left" style="">
+                © 2024 Vats Apartment. Contemporary Architectural Living.
+            </div>
+<div class="flex flex-wrap justify-center gap-4 md:gap-6 font-manrope text-xs md:text-sm">
+<a class="text-neutral-500 dark:text-neutral-400 hover:underline underline-offset-4 decoration-neutral-300 transition-opacity duration-200" href="#" style="">Floor Plans</a>
+<a class="text-neutral-500 dark:text-neutral-400 hover:underline underline-offset-4 decoration-neutral-300 transition-opacity duration-200" href="#" style="">Booking Terms</a>
+<a class="text-neutral-500 dark:text-neutral-400 hover:underline underline-offset-4 decoration-neutral-300 transition-opacity duration-200" href="#" style="">Privacy Policy</a>
+<a class="text-neutral-500 dark:text-neutral-400 hover:underline underline-offset-4 decoration-neutral-300 transition-opacity duration-200" href="#" style="">Contact</a>
+</div>
+</div>
+</footer>
+</body></html>

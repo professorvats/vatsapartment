@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Contact - Vats Apartment</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#bbcbbb",
+                        "on-secondary-fixed-variant": "#3c4a3e",
+                        "on-tertiary-fixed": "#181d1b",
+                        "on-primary-container": "#8e8d8c",
+                        "surface-container-low": "#f3f4f3",
+                        "outline": "#747878",
+                        "on-surface": "#1a1c1c",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#c4c7c7",
+                        "tertiary-fixed-dim": "#c3c7c4",
+                        "on-surface-variant": "#444748",
+                        "tertiary": "#0e1211",
+                        "surface-container": "#eeeeed",
+                        "surface": "#f9f9f8",
+                        "secondary": "#546255",
+                        "surface-container-highest": "#e2e2e2",
+                        "inverse-primary": "#c8c6c5",
+                        "primary": "#111111",
+                        "on-background": "#1a1c1c",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#d7e7d6",
+                        "tertiary-container": "#222725",
+                        "surface-tint": "#5f5e5e",
+                        "primary-fixed-dim": "#c8c6c5",
+                        "on-error-container": "#93000a",
+                        "on-tertiary": "#ffffff",
+                        "inverse-surface": "#2f3130",
+                        "on-secondary-fixed": "#121e15",
+                        "on-primary-fixed": "#1b1c1c",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#262626",
+                        "primary-fixed": "#e4e2e1",
+                        "on-secondary-container": "#5a685b",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#f1f1f0",
+                        "on-tertiary-fixed-variant": "#434846",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed-variant": "#474746",
+                        "surface-bright": "#f9f9f8",
+                        "surface-dim": "#dadad9",
+                        "surface-container-high": "#e8e8e7",
+                        "secondary-container": "#d7e7d6",
+                        "on-tertiary-container": "#8a8e8b",
+                        "background": "#f9f9f8",
+                        "surface-variant": "#e2e2e2",
+                        "tertiary-fixed": "#dfe3e0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "container-max": "1280px",
+                        "unit": "8px",
+                        "section-gap": "120px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "64px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Manrope"],
+                        "h3": ["Manrope"],
+                        "h2": ["Manrope"],
+                        "caption": ["Manrope"],
+                        "body-md": ["Manrope"],
+                        "h1": ["Manrope"],
+                        "display": ["Manrope"],
+                        "body-lg": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "h3": ["20px", { "lineHeight": "1.4", "fontWeight": "500" }],
+                        "h2": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "caption": ["14px", { "lineHeight": "1.4", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "h1": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "display": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased pt-20">
+<!-- TopNavBar -->
+<nav class="bg-white/80 dark:bg-neutral-950/80 backdrop-blur-md fixed top-0 w-full z-50 border-b border-neutral-100 dark:border-neutral-800 font-manrope antialiased tracking-tight">
+<div class="max-w-7xl mx-auto px-6 lg:px-12 flex justify-between items-center h-20">
+<div class="text-base sm:text-lg font-bold uppercase tracking-widest text-[#262626] dark:text-white">
+                Vats Apartment
+            </div>
+<ul class="hidden lg:flex space-x-8 text-[#262626] dark:text-neutral-100">
+<li>
+<a class="text-neutral-500 dark:text-neutral-400 hover:text-[#262626] dark:hover:text-white transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all duration-300 px-3 py-2" href="#">Availability</a>
+</li>
+<li>
+<a class="text-neutral-500 dark:text-neutral-400 hover:text-[#262626] dark:hover:text-white transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all duration-300 px-3 py-2" href="#">Amenities</a>
+</li>
+<li>
+<a class="text-neutral-500 dark:text-neutral-400 hover:text-[#262626] dark:hover:text-white transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all duration-300 px-3 py-2" href="#">Location</a>
+</li>
+<li>
+<a class="text-[#262626] dark:text-white border-b-2 border-[#262626] dark:border-white pb-1 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all duration-300 px-3" href="#">Contact</a>
+</li>
+</ul>
+<button class="bg-[#262626] dark:bg-white text-white dark:text-[#262626] px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold tracking-wide hover:-translate-y-0.5 transition-transform duration-300 rounded-sm">
+                Reserve
+            </button>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-12 md:py-section-gap min-h-screen flex flex-col">
+<!-- Header -->
+<header class="mb-12 md:mb-24 max-w-3xl">
+<h1 class="font-display text-4xl sm:text-display text-on-background mb-4">Get in Touch</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">We are here to assist you with inquiries regarding availability, leasing terms, or scheduling a private viewing of our spaces.</p>
+</header>
+<!-- Content Grid -->
+<div class="flex flex-col lg:grid lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+<!-- Contact Form (Top on Mobile, Left on Desktop) -->
+<section class="w-full lg:col-span-7 order-1 lg:order-1">
+<form class="space-y-10">
+<div class="flex flex-col space-y-3">
+<label class="font-label-caps text-label-caps text-on-surface-variant" for="name">Full Name</label>
+<input class="w-full bg-transparent border-0 border-b border-outline-variant focus:border-primary focus:ring-0 py-4 px-0 font-body-md text-body-md text-on-surface transition-colors rounded-none placeholder:text-outline" id="name" name="name" placeholder="Enter your full name" type="text"/>
+</div>
+<div class="flex flex-col space-y-3">
+<label class="font-label-caps text-label-caps text-on-surface-variant" for="email">Email Address</label>
+<input class="w-full bg-transparent border-0 border-b border-outline-variant focus:border-primary focus:ring-0 py-4 px-0 font-body-md text-body-md text-on-surface transition-colors rounded-none placeholder:text-outline" id="email" name="email" placeholder="Enter your email address" type="email"/>
+</div>
+<div class="flex flex-col space-y-3">
+<label class="font-label-caps text-label-caps text-on-surface-variant" for="message">Message</label>
+<textarea class="w-full bg-transparent border-0 border-b border-outline-variant focus:border-primary focus:ring-0 py-4 px-0 font-body-md text-body-md text-on-surface transition-colors rounded-none resize-none placeholder:text-outline" id="message" name="message" placeholder="How can we help you?" rows="5"></textarea>
+</div>
+<div class="pt-6">
+<button class="bg-primary text-on-primary font-label-caps text-label-caps px-8 py-5 uppercase tracking-widest hover:-translate-y-0.5 transition-transform duration-300 w-full sm:w-auto rounded-DEFAULT" type="submit">
+                            Send Message
+                        </button>
+</div>
+</form>
+</section>
+<!-- Contact Details (Bottom on Mobile, Right on Desktop) -->
+<aside class="w-full lg:col-span-5 flex flex-col space-y-8 order-2 lg:order-2 mt-4 lg:mt-0">
+<!-- Image/Map Placeholder -->
+<div class="w-full h-56 sm:h-64 bg-surface-container-high rounded overflow-hidden border border-outline-variant/30">
+<img alt="Contact Office" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMueYjsg9gjbmzKGINUkQ8VOm7KpAta_JyGyv5z87JZgVXtdWqlDXRwGMdBNapBEOmfDufQCi5Q2b-MCDBvS5sc0LAKZX4NB6RHhM9Mpy_T9uL5L-N3Jk5MnzPjI6K0GDGUmibOnpWqLqlytF1RW70AJ_APBrsJEtjbwuQ3hOB27VTbW_O_Tch56eAwpqTTKHSx4EQeOZ7qr-xHeKJRRdONRvMmXQsbKJBno7LH-_P5ANbDvQr00jIfcLpHxu5alpnhzYwIhOy"/>
+</div>
+<div class="bg-surface border border-outline-variant/50 p-6 sm:p-8 rounded flex flex-col space-y-8">
+<div>
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-4 uppercase tracking-widest">Location</h3>
+<p class="font-body-md text-body-md text-on-surface flex items-start">
+<span class="material-symbols-outlined mr-4 text-outline mt-0.5" data-icon="location_on">location_on</span>
+<span>Near Apna Chai Wala, Lawgate<br/>Contact Office</span>
+</p>
+</div>
+<div>
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-4 uppercase tracking-widest">Contact Information</h3>
+<div class="space-y-5">
+<p class="font-body-md text-body-md text-on-surface flex items-center">
+<span class="material-symbols-outlined mr-4 text-outline" data-icon="call">call</span>
+                                +91 9992937447</p>
+<p class="font-body-md text-body-md text-on-surface flex items-center">
+<span class="material-symbols-outlined mr-4 text-outline" data-icon="mail">mail</span>
+                                hament.mailbox@gmail.com</p>
+</div>
+</div>
+<div>
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-4 uppercase tracking-widest">Office Hours</h3>
+<p class="font-body-md text-body-md text-on-surface flex items-start">
+<span class="material-symbols-outlined mr-4 text-outline mt-0.5" data-icon="schedule">schedule</span>
+<span>Monday - Friday: 9:00 AM - 6:00 PM<br/>Saturday: 10:00 AM - 4:00 PM<br/>Sunday: Closed</span>
+</p>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-neutral-50 dark:bg-neutral-900 text-[#262626] dark:text-neutral-100 font-manrope text-sm w-full border-t border-neutral-200 dark:border-neutral-800">
+<div class="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="font-bold text-[#262626] dark:text-white text-center md:text-left">
+                © 2024 Vats Apartment. <br class="sm:hidden"/>Contemporary Architectural Living.
+            </div>
+<ul class="flex flex-wrap gap-x-6 gap-y-4 justify-center">
+<li><a class="text-neutral-500 dark:text-neutral-400 hover:underline underline-offset-4 decoration-neutral-300 transition-opacity duration-200" href="#">Floor Plans</a></li>
+<li><a class="text-neutral-500 dark:text-neutral-400 hover:underline underline-offset-4 decoration-neutral-300 transition-opacity duration-200" href="#">Booking Terms</a></li>
+<li><a class="text-neutral-500 dark:text-neutral-400 hover:underline underline-offset-4 decoration-neutral-300 transition-opacity duration-200" href="#">Privacy Policy</a></li>
+<li><a class="text-neutral-500 dark:text-neutral-400 hover:underline underline-offset-4 decoration-neutral-300 transition-opacity duration-200" href="#">Contact</a></li>
+</ul>
+</div>
+</footer>
+</body></html>
