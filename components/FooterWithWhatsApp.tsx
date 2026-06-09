@@ -5,6 +5,12 @@ import { MessageCircle, Phone, LogIn } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
+function pushEvent(event: Record<string, unknown>) {
+  if (typeof window !== 'undefined' && window.dataLayer) {
+    window.dataLayer.push(event);
+  }
+}
+
 export default function FooterWithWhatsApp() {
   const pathname = usePathname();
 
@@ -14,18 +20,13 @@ export default function FooterWithWhatsApp() {
 
   return (
     <>
-      {/* WhatsApp Floating Button - Always visible */}
       <a
         href="https://wa.me/919992937447?text=Hi,%20I'm%20interested%20in%20Vats%20Apartment.%20Please%20share%20more%20details."
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-4 md:bottom-8 md:right-8 z-[1001] w-14 h-14 md:w-16 md:h-16 bg-green-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition-all hover:scale-105"
         aria-label="Chat on WhatsApp"
-        onClick={() => {
-          if (typeof window !== 'undefined' && window.dataLayer) {
-            window.dataLayer.push({ event: 'whatsapp_click', source: 'floating_button' });
-          }
-        }}
+        onClick={() => pushEvent({ event: 'whatsapp_click', source: 'floating_button' })}
       >
         <MessageCircle className="w-7 h-7 md:w-8 md:h-8" />
       </a>
@@ -33,7 +34,6 @@ export default function FooterWithWhatsApp() {
       <footer className="bg-surface-container-lowest border-t border-outline-variant w-full py-10 md:py-16 mt-auto">
         <div className="container-max mx-auto margin-mobile md:margin-desktop">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 items-start">
-            {/* Logo */}
             <div>
               <Image src="/logo.png" alt="Vats Apartment" width={200} height={134} className="h-20 w-auto mb-4" priority />
               <p className="text-on-surface-variant text-xs md:text-sm leading-relaxed max-w-xs">
@@ -41,7 +41,6 @@ export default function FooterWithWhatsApp() {
               </p>
             </div>
 
-            {/* Links */}
             <div className="flex flex-col space-y-3">
               <h3 className="font-label-caps text-on-surface text-[10px] md:text-xs tracking-widest uppercase">Quick Links</h3>
               <Link href="/book-now" className="text-on-surface-variant text-xs md:text-sm hover:text-primary transition-colors">Book Now</Link>
@@ -54,12 +53,12 @@ export default function FooterWithWhatsApp() {
               </Link>
             </div>
 
-            {/* Contact */}
             <div className="flex flex-col space-y-3">
               <h3 className="font-label-caps text-on-surface text-[10px] md:text-xs tracking-widest uppercase">Contact</h3>
               <a
                 href="tel:+919992937447"
                 className="text-on-surface-variant text-xs md:text-sm hover:text-primary transition-colors inline-flex items-center gap-2"
+                onClick={() => pushEvent({ event: 'phone_call_click', source: 'footer' })}
               >
                 <Phone className="w-3 h-3 md:w-4 md:h-4" />
                 +91 9992937447
@@ -69,6 +68,7 @@ export default function FooterWithWhatsApp() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-success text-xs md:text-sm hover:text-green-600 transition-colors inline-flex items-center gap-2"
+                onClick={() => pushEvent({ event: 'whatsapp_click', source: 'footer_link' })}
               >
                 <MessageCircle className="w-3 h-3 md:w-4 md:h-4" />
                 WhatsApp Us

@@ -164,7 +164,16 @@ export default function BookNowPage() {
     const selectedRoom = rooms.find((r) => r.id === formData.room);
     const roomPrice = selectedRoom?.price || 9000;
 
-    // Send to Notion API
+    if (typeof window !== 'undefined' && window.dataLayer) {
+      window.dataLayer.push({
+        event: 'booking_form_submit',
+        room_id: formData.room,
+        room_type: selectedRoom?.type || 'unknown',
+        room_price: roomPrice,
+        form_source: 'book_now_page',
+      });
+    }
+
     try {
       const response = await fetch('/api/bookings', {
         method: 'POST',

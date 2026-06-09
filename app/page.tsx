@@ -31,8 +31,17 @@ export default function HomePage() {
   }, []);
 
   const handleBookNow = () => {
+    if (typeof window !== 'undefined' && window.dataLayer) {
+      window.dataLayer.push({ event: 'whatsapp_click', source: 'check_availability_button' });
+    }
     const message = encodeURIComponent("Hi, I'm interested in booking a room at Vats Apartment. Please share more details.");
     window.open(`https://wa.me/919992937447?text=${message}`, '_blank');
+  };
+
+  const handleCallNow = () => {
+    if (typeof window !== 'undefined' && window.dataLayer) {
+      window.dataLayer.push({ event: 'phone_call_click', source: 'call_now_button' });
+    }
   };
 
   const amenities = [
@@ -183,6 +192,7 @@ export default function HomePage() {
             </button>
             <a
               href="tel:+919992937447"
+              onClick={handleCallNow}
               className="bg-surface-container text-on-surface font-body-md py-2 md:py-4 px-6 md:px-10 rounded-lg hover:bg-surface-container-highest transition-colors border border-outline text-xs md:text-lg inline-flex items-center justify-center gap-2"
             >
               Call Now

@@ -13,22 +13,29 @@ export const metadata: Metadata = {
   keywords: 'PG near LPU, hostel near LPU, rooms near LPU, paying guest LPU, Vats Apartment, PG accommodation Jalandhar',
 };
 
+const GTM_ID = 'GTM-P6TDL438';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-IN" className="h-full antialiased">
       <head>
-        <Script id="gtm-head" strategy="afterInteractive">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer=window.dataLayer||[];window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});`,
+          }}
+        />
+        <Script id="gtm" strategy="afterInteractive">
           {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-P6TDL438');`}
+})(window,document,'script','dataLayer','${GTM_ID}');`}
         </Script>
       </head>
       <body className="min-h-screen flex flex-col bg-surface text-on-background font-sans">
         <noscript>
           <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-P6TDL438"
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
             height="0"
             width="0"
             style={{ display: 'none', visibility: 'hidden' }}
