@@ -7,6 +7,12 @@ services:
       - PORT=8080
       - DATABASE_URL=${DATABASE_URL}
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    networks:
+      - default
+      - dokploy-network
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:8080/health"]
       interval: 30s
@@ -22,3 +28,9 @@ services:
       resources:
         limits:
           memory: 256M
+
+networks:
+  default:
+    driver: bridge
+  dokploy-network:
+    external: true
