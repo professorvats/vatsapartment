@@ -34,6 +34,19 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 	render(w, "home.html", nil)
 }
 
+func handleLogout(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   r.TLS != nil,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   -1,
+	})
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
 func handleBookNow(w http.ResponseWriter, r *http.Request) {
 	rooms, err := getRooms()
 	if err != nil {
@@ -91,7 +104,7 @@ func handleLoginPost(w http.ResponseWriter, r *http.Request) {
 		Value:    username,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   r.TLS != nil,
 		SameSite: http.SameSiteLaxMode,
 		Expires:  time.Now().Add(24 * time.Hour),
 	})

@@ -271,9 +271,9 @@ func SeedMedia() error {
 	media := []struct {
 		id, name, ctype, path string
 	}{
-		{"med_logo", "logo.png", "image/png", "static/logo.png"},
-		{"med_white_logo", "white-logo.png", "image/png", "static/white-logo.png"},
-		{"med_hero", "hero-2.png", "image/png", "static/hero-2.png"},
+		{"med_logo", "logo.webp", "image/webp", "static/logo.webp"},
+		{"med_white_logo", "white-logo.webp", "image/webp", "static/white-logo.webp"},
+		{"med_hero", "hero-2.webp", "image/webp", "static/hero-2.webp"},
 		{"med_favicon", "favicon.ico", "image/x-icon", "static/favicon.ico"},
 		{"med_photo360", "photo360.webp", "image/webp", "static/photo360.webp"},
 		{"med_video", "vats-apartment-tour.mp4", "video/mp4", "static/vats-apartment-tour.mp4"},

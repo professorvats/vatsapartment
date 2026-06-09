@@ -57,6 +57,7 @@ func main() {
 	mux.HandleFunc("GET /blog/post", handleBlogPost)
 	mux.HandleFunc("GET /login", handleLogin)
 	mux.HandleFunc("POST /login", handleLoginPost)
+	mux.HandleFunc("GET /logout", handleLogout)
 
 	// Admin
 	mux.HandleFunc("GET /admin/blog", handleAdminBlogList)
