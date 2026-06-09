@@ -140,9 +140,10 @@ func groupByFloor(rooms []Room) []FloorGroup {
 		floorMap[r.Floor] = append(floorMap[r.Floor], r)
 	}
 
-	labels := map[int]string{1: "FLOOR 1", 2: "FLOOR 2", 3: "FLOOR 3", 4: "ROOFTOP"}
+	labels := map[int]string{1: "GROUND FLOOR", 2: "FIRST FLOOR", 3: "SECOND FLOOR", 4: "ROOFTOP"}
+	order := []int{3, 2, 1, 4}
 	var groups []FloorGroup
-	for f := 4; f >= 1; f-- {
+	for _, f := range order {
 		if rooms, ok := floorMap[f]; ok {
 			groups = append(groups, FloorGroup{Label: labels[f], Rooms: rooms})
 		}
