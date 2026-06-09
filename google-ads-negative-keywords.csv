@@ -1,0 +1,76 @@
+Campaign,Ad Group,Keyword,Match Type
+V1-GMB,,free,Exact
+V1-GMB,,free room,Exact
+V1-GMB,,without rent,Exact
+V1-GMB,,zero rent,Exact
+V1-GMB,,zero deposit,Exact
+V1-GMB,,no deposit,Phrase
+V1-GMB,,without deposit,Phrase
+V1-GMB,,cheapest,Exact
+V1-GMB,,very cheap,Exact
+V1-GMB,,below 3000,Exact
+V1-GMB,,below 5000,Exact
+V1-GMB,,under 3000,Exact
+V1-GMB,,under 5000,Exact
+V1-GMB,,hourly,Exact
+V1-GMB,,daily rent,Exact
+V1-GMB,,one day,Exact
+V1-GMB,,short stay,Exact
+V1-GMB,,one night,Exact
+V1-GMB,,day care,Exact
+V1-GMB,,commercial,Exact
+V1-GMB,,office space,Exact
+V1-GMB,,shop,Exact
+V1-GMB,,showroom,Exact
+V1-GMB,,godown,Exact
+V1-GMB,,warehouse,Exact
+V1-GMB,,buy,Exact
+V1-GMB,,purchase,Exact
+V1-GMB,,for sale,Exact
+V1-GMB,,plot,Exact
+V1-GMB,,land for sale,Phrase
+V1-GMB,,hostel job,Exact
+V1-GMB,,hostel warden,Exact
+V1-GMB,,hostel manager,Exact
+V1-GMB,,staff,Exact
+V1-GMB,,vacancy,Exact
+V1-GMB,,recruitment,Exact
+V1-GMB,,flat for sale,Phrase
+V1-GMB,,apartment for sale,Phrase
+V1-GMB,,villa,Exact
+V1-GMB,,independent house,Exact
+V1-GMB,,kothi,Exact
+V1-GMB,,farm house,Exact
+V1-GMB,,agricultural land,Exact
+V1-GMB,,marriage hall,Exact
+V1-GMB,,banquet,Exact
+V1-GMB,,event space,Exact
+V1-GMB,,hotel,Exact
+V1-GMB,,resort,Exact
+V1-GMB,,guest house,Exact
+V1-GMB,,lodge,Exact
+V1-GMB,,dharamshala,Exact
+V1-GMB,,married couple,Phrase
+V1-GMB,,family flat,Phrase
+V1-GMB,,pet friendly,Exact
+V1-GMB,,dog,Exact
+V1-GMB,,cat,Exact
+V1-GMB,,senior citizen,Phrase
+V1-GMB,,old age home,Phrase
+V1-GMB,,retirement,Exact
+V1-GMB,,couple friendly,Phrase
+V1-GMB,,unmarried couple,Phrase
+V1-GMB,,LPU Mumbai,Exact
+V1-GMB,,LPU Bangalore,Exact
+V1-GMB,,LPU Chennai,Exact
+V1-GMB,,LPU Hyderabad,Exact
+V1-GMB,,images,Exact
+V1-GMB,,photos,Exact
+V1-GMB,,pictures,Exact
+V1-GMB,,reviews,Exact
+V1-GMB,,contact number,Exact
+V1-GMB,,phone number,Exact
+V1-GMB,,address,Exact
+V1-GMB,,directions,Exact
+V1-GMB,,map,Exact
+V1-GMB,,location,Exact

@@ -1,0 +1,266 @@
+{
+  "exportFormatVersion": 2,
+  "exportTime": "2026-06-10T12:00:00.000Z",
+  "containerVersion": {
+    "path": "accounts/6360055644/containers/255041451/versions/0",
+    "accountId": "6360055644",
+    "containerId": "255041451",
+    "containerVersionId": "0",
+    "container": {
+      "path": "accounts/6360055644/containers/255041451",
+      "accountId": "6360055644",
+      "containerId": "255041451",
+      "name": "www.vatsapartment.com",
+      "publicId": "GTM-P6TDL438",
+      "usageContext": ["WEB"],
+      "fingerprint": "0",
+      "tagManagerUrl": "https://tagmanager.google.com/#/container/accounts/6360055644/containers/255041451/workspaces/2"
+    },
+    "variable": [
+      {
+        "accountId": "6360055644",
+        "containerId": "255041451",
+        "type": "v",
+        "name": "DLV - Event Source",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "source"
+          }
+        ],
+        "fingerprint": "0",
+        "formatValue": {}
+      },
+      {
+        "accountId": "6360055644",
+        "containerId": "255041451",
+        "type": "v",
+        "name": "DLV - Room ID",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "room_id"
+          }
+        ],
+        "fingerprint": "0",
+        "formatValue": {}
+      },
+      {
+        "accountId": "6360055644",
+        "containerId": "255041451",
+        "type": "v",
+        "name": "DLV - Room Type",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "room_type"
+          }
+        ],
+        "fingerprint": "0",
+        "formatValue": {}
+      },
+      {
+        "accountId": "6360055644",
+        "containerId": "255041451",
+        "type": "v",
+        "name": "DLV - Room Price",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "room_price"
+          }
+        ],
+        "fingerprint": "0",
+        "formatValue": {}
+      }
+    ],
+    "trigger": [
+      {
+        "accountId": "6360055644",
+        "containerId": "255041451",
+        "type": "CUSTOM_EVENT",
+        "name": "CE - WhatsApp Click",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "whatsapp_click"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "0"
+      },
+      {
+        "accountId": "6360055644",
+        "containerId": "255041451",
+        "type": "CUSTOM_EVENT",
+        "name": "CE - Phone Call Click",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "phone_call_click"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "0"
+      },
+      {
+        "accountId": "6360055644",
+        "containerId": "255041451",
+        "type": "CUSTOM_EVENT",
+        "name": "CE - Booking Form Submit",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "booking_form_submit"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "0"
+      },
+      {
+        "accountId": "6360055644",
+        "containerId": "255041451",
+        "type": "PAGEVIEW",
+        "name": "All Pages",
+        "filter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "gtm.js"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "0"
+      }
+    ],
+    "tag": [
+      {
+        "accountId": "6360055644",
+        "containerId": "255041451",
+        "type": "html",
+        "name": "Conversion - WhatsApp Click",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "html",
+            "value": "<script>\n  // Google Ads Conversion - WhatsApp Click\n  // Update AW-XXXXXXXXX and label with your conversion details\n  if(typeof gtag === 'function') {\n    gtag('event', 'conversion', {\n      'send_to': 'AW-XXXXXXXXX/whatsapp_click',\n      'event_callback': function() {}\n    });\n  }\n  console.log('[GTM] WhatsApp conversion tracked - Source:', {{DLV - Event Source}});\n</script>"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "supportDocumentWrite",
+            "value": "false"
+          }
+        ],
+        "fingerprint": "0",
+        "firingTriggerId": ["CE - WhatsApp Click"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "6360055644",
+        "containerId": "255041451",
+        "type": "html",
+        "name": "Conversion - Phone Call Click",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "html",
+            "value": "<script>\n  // Google Ads Conversion - Phone Call Click\n  if(typeof gtag === 'function') {\n    gtag('event', 'conversion', {\n      'send_to': 'AW-XXXXXXXXX/phone_call',\n      'event_callback': function() {}\n    });\n  }\n  console.log('[GTM] Phone call conversion tracked - Source:', {{DLV - Event Source}});\n</script>"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "supportDocumentWrite",
+            "value": "false"
+          }
+        ],
+        "fingerprint": "0",
+        "firingTriggerId": ["CE - Phone Call Click"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "6360055644",
+        "containerId": "255041451",
+        "type": "html",
+        "name": "Conversion - Booking Form Submit",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "html",
+            "value": "<script>\n  // Google Ads Conversion - Booking Form Submit (PRIMARY CONVERSION)\n  if(typeof gtag === 'function') {\n    gtag('event', 'conversion', {\n      'send_to': 'AW-XXXXXXXXX/booking_submit',\n      'value': {{DLV - Room Price}},\n      'currency': 'INR',\n      'event_callback': function() {}\n    });\n  }\n  console.log('[GTM] Booking conversion tracked - Room:', {{DLV - Room ID}}, 'Type:', {{DLV - Room Type}}, 'Price:', {{DLV - Room Price}});\n</script>"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "supportDocumentWrite",
+            "value": "false"
+          }
+        ],
+        "fingerprint": "0",
+        "firingTriggerId": ["CE - Booking Form Submit"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      }
+    ],
+    "fingerprint": "0"
+  }
+}
