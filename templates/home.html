@@ -87,47 +87,6 @@
     </div>
   </section>
 
-  <!-- Blog Preview -->
-  <section class="max-w-6xl mx-auto px-4 mb-8">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl md:text-2xl font-bold">Latest from Our Blog</h2>
-      <a href="/blog" class="text-sm text-primary hover:underline font-medium">View All →</a>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="blog-preview">
-      <div class="bg-sf-lowest border border-ol-variant rounded-lg p-5 animate-pulse">
-        <div class="h-4 bg-sf-high rounded w-3/4 mb-3"></div>
-        <div class="h-3 bg-sf-high rounded w-full mb-2"></div>
-        <div class="h-3 bg-sf-high rounded w-2/3"></div>
-      </div>
-      <div class="bg-sf-lowest border border-ol-variant rounded-lg p-5 animate-pulse hidden md:block">
-        <div class="h-4 bg-sf-high rounded w-3/4 mb-3"></div>
-        <div class="h-3 bg-sf-high rounded w-full mb-2"></div>
-        <div class="h-3 bg-sf-high rounded w-2/3"></div>
-      </div>
-      <div class="bg-sf-lowest border border-ol-variant rounded-lg p-5 animate-pulse hidden md:block">
-        <div class="h-4 bg-sf-high rounded w-3/4 mb-3"></div>
-        <div class="h-3 bg-sf-high rounded w-full mb-2"></div>
-        <div class="h-3 bg-sf-high rounded w-2/3"></div>
-      </div>
-    </div>
-  </section>
-  <script>
-  fetch('/api/blog/preview')
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      var container = document.getElementById('blog-preview');
-      if (!data || !data.posts || data.posts.length === 0) return;
-      var html = '';
-      data.posts.forEach(function(post) {
-        html += '<a href="/blog/post?slug=' + post.slug + '" class="bg-sf-lowest border border-ol-variant rounded-lg p-5 hover:border-primary transition-colors group">' +
-          '<h3 class="font-semibold text-sm mb-2 group-hover:text-primary transition-colors">' + post.title + '</h3>' +
-          (post.excerpt ? '<p class="text-xs text-on-sf-variant leading-relaxed mb-2">' + post.excerpt + '</p>' : '') +
-          '<span class="text-xs text-on-sf-variant">' + post.created_at + '</span>' +
-        '</a>';
-      });
-      container.innerHTML = html;
-    });
-  </script>
 
   <!-- Bento Grid -->
   <section class="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mt-8 mb-16">
@@ -393,7 +352,49 @@
   </section>
 </main>
 
-<!-- Footer -->
+  <!-- Blog Preview -->
+  <section class="max-w-6xl mx-auto px-4 mb-8">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl md:text-2xl font-bold">Latest from Our Blog</h2>
+      <a href="/blog" class="text-sm text-primary hover:underline font-medium">View All →</a>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="blog-preview">
+      <div class="bg-sf-lowest border border-ol-variant rounded-lg p-5 animate-pulse">
+        <div class="h-4 bg-sf-high rounded w-3/4 mb-3"></div>
+        <div class="h-3 bg-sf-high rounded w-full mb-2"></div>
+        <div class="h-3 bg-sf-high rounded w-2/3"></div>
+      </div>
+      <div class="bg-sf-lowest border border-ol-variant rounded-lg p-5 animate-pulse hidden md:block">
+        <div class="h-4 bg-sf-high rounded w-3/4 mb-3"></div>
+        <div class="h-3 bg-sf-high rounded w-full mb-2"></div>
+        <div class="h-3 bg-sf-high rounded w-2/3"></div>
+      </div>
+      <div class="bg-sf-lowest border border-ol-variant rounded-lg p-5 animate-pulse hidden md:block">
+        <div class="h-4 bg-sf-high rounded w-3/4 mb-3"></div>
+        <div class="h-3 bg-sf-high rounded w-full mb-2"></div>
+        <div class="h-3 bg-sf-high rounded w-2/3"></div>
+      </div>
+    </div>
+  </section>
+  <script>
+  fetch('/api/blog/preview')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var container = document.getElementById('blog-preview');
+      if (!data || !data.posts || data.posts.length === 0) return;
+      var html = '';
+      data.posts.forEach(function(post) {
+        html += '<a href="/blog/post?slug=' + post.slug + '" class="bg-sf-lowest border border-ol-variant rounded-lg p-5 hover:border-primary transition-colors group">' +
+          '<h3 class="font-semibold text-sm mb-2 group-hover:text-primary transition-colors">' + post.title + '</h3>' +
+          (post.excerpt ? '<p class="text-xs text-on-sf-variant leading-relaxed mb-2">' + post.excerpt + '</p>' : '') +
+          '<span class="text-xs text-on-sf-variant">' + post.created_at + '</span>' +
+        '</a>';
+      });
+      container.innerHTML = html;
+    });
+  </script>
+
+  <!-- Footer -->
 <footer class="bg-primary border-t border-white/10 py-12 px-4 mt-auto">
   <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
     <div class="flex items-center">
