@@ -27,6 +27,8 @@ func main() {
 	tmpl = template.New("").Funcs(template.FuncMap{
 		"icon":    icon,
 		"safeHTML": func(s string) template.HTML { return template.HTML(s) },
+		"sub":     func(a, b int) int { return a - b },
+		"mul":     func(a, b int) float64 { return float64(a) * float64(b) },
 	})
 	tmpl, err = tmpl.ParseGlob("templates/*.html")
 	if err != nil {

@@ -224,9 +224,12 @@ func SeedRooms() error {
 		floor                    int
 		price                    float64
 	}{
-		{"R101", "R101", "Standard Single", 1, 9000},
-		{"R102", "R102", "Deluxe Single", 1, 10000},
-		{"R301", "R301", "Standard Single", 3, 9000},
+		{"101", "101", "Standard Double", 1, 9000},
+		{"102", "102", "Standard Double", 1, 10000},
+		{"201", "201", "Standard Double", 2, 9000},
+		{"202", "202", "Standard Double", 2, 10000},
+		{"301", "301", "Standard Double", 3, 10000},
+		{"302", "302", "Standard Double", 3, 9000},
 	}
 	for _, r := range rooms {
 		_, err := DB.Exec(
@@ -237,7 +240,7 @@ func SeedRooms() error {
 			return err
 		}
 	}
-	_, err := DB.Exec(`DELETE FROM rooms WHERE id NOT IN ('R101', 'R102', 'R301')`)
+	_, err := DB.Exec(`DELETE FROM rooms WHERE id NOT IN ('101', '102', '201', '202', '301', '302')`)
 	return err
 }
 

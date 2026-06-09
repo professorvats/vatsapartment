@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Electricity Meters — Vats Apartment Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: { colors: {
+      primary: '#111111', 'on-primary': '#ffffff', secondary: '#546255',
+      background: '#f9f9f8', 'on-surface': '#1a1c1c', 'sf-variant': '#e2e2e2',
+      'on-sf-variant': '#444748', outline: '#747878', 'ol-variant': '#c4c7c7',
+      'sf-low': '#f3f4f3', 'sf-lowest': '#ffffff',
+    }}}
+  }
+</script>
+<link rel="icon" href="/static/favicon.ico">
+</head>
+<body class="bg-background text-on-surface min-h-screen">
+
+<nav class="bg-primary shadow-sm border-b border-white/10">
+  <div class="max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between h-16">
+    <div class="flex items-center gap-6">
+      <a href="/"><img src="/static/white-logo.webp" alt="Vats Apartment" class="h-12 w-auto"></a>
+      <span class="text-white/40 text-sm">Admin Panel</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="/admin/dashboard" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">Dashboard</a>
+      <a href="/admin/rooms" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">Rooms</a>
+      <a href="/admin/payments" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">Payments</a>
+      <a href="/logout" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-6xl mx-auto px-4 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-xl font-bold">Electricity Meters</h1>
+    <button onclick="document.getElementById('reading-form').classList.toggle('hidden')" class="bg-secondary text-white px-4 py-2 rounded-lg text-sm font-semibold">+ Record Reading</button>
+  </div>
+
+  <!-- Rate Setting -->
+  <div class="bg-sf-lowest border border-ol-variant rounded-lg p-4 mb-6 flex flex-wrap items-center gap-4">
+    <span class="text-sm font-semibold">Electricity Rate:</span>
+    <form method="POST" action="/admin/meters/save" class="flex items-center gap-3">
+      <input type="hidden" name="action" value="update_rate">
+      <span>₹</span><input name="rate" type="number" step="0.01" value="{{printf "%.2f" .RatePerUnit}}" class="w-24 border border-ol-variant rounded px-2 py-1 text-sm">
+      <span class="text-sm text-on-sf-variant">/ unit</span>
+      <button type="submit" class="text-sm text-primary font-semibold hover:underline">Update Rate</button>
+    </form>
+  </div>
+
+  <!-- Record Reading Form -->
+  <div id="reading-form" class="hidden bg-sf-lowest border border-ol-variant rounded-lg p-6 mb-6">
+    <h3 class="font-semibold mb-4">Record Meter Reading</h3>
+    <form method="POST" action="/admin/meters/save" class="space-y-4">
+      <input type="hidden" name="action" value="add_reading">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div><label class="block text-xs text-on-sf-variant mb-1">Meter</label>
+          <select name="meter_id" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <option value="">Select Meter</option>
+            {{range .Meters}}<option value="{{.ID}}">{{.RoomNumber}} — {{.MeterType}} ({{.MeterNumber}})</option>{{end}}
+          </select>
+        </div>
+        <div><label class="block text-xs text-on-sf-variant mb-1">Current Reading</label><input name="reading" type="number" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
+        <div><label class="block text-xs text-on-sf-variant mb-1">Date</label><input name="reading_date" type="date" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
+        <div><label class="block text-xs text-on-sf-variant mb-1">Billing Period</label><input name="billing_period" placeholder="e.g. Jun 2026" class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
+      </div>
+      <button type="submit" class="bg-secondary text-white px-5 py-2 rounded-lg text-sm font-semibold">Record Reading</button>
+    </form>
+  </div>
+
+  {{if .RoomMeters}}
+  <div class="space-y-4">
+    {{range .RoomMeters}}
+    <div class="bg-sf-lowest border border-ol-variant rounded-lg p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-semibold">Room {{.RoomNumber}} {{if .Occupied}}<span class="text-xs text-secondary ml-2">Occupied</span>{{else}}<span class="text-xs text-on-sf-variant ml-2">Vacant</span>{{end}}</h3>
+        <form method="POST" action="/admin/meters/save" class="flex items-center gap-2">
+          <input type="hidden" name="action" value="add_meter">
+          <input type="hidden" name="room_id" value="{{.RoomID}}">
+          <select name="meter_type" class="border border-ol-variant rounded px-2 py-1 text-xs">
+            <option>Electric</option><option>Inverter</option>
+          </select>
+          <input name="meter_number" placeholder="Meter #" class="w-24 border border-ol-variant rounded px-2 py-1 text-xs">
+          <input name="initial_reading" type="number" placeholder="Initial" value="0" class="w-16 border border-ol-variant rounded px-2 py-1 text-xs">
+          <button type="submit" class="text-xs bg-primary text-on-primary px-2 py-1 rounded">+ Add Meter</button>
+        </form>
+      </div>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-ol-variant">
+            <th class="text-left py-2 text-xs uppercase tracking-wider text-on-sf-variant">Meter Type</th>
+            <th class="text-left py-2 text-xs uppercase tracking-wider text-on-sf-variant">Meter #</th>
+            <th class="text-right py-2 text-xs uppercase tracking-wider text-on-sf-variant">Initial</th>
+            <th class="text-right py-2 text-xs uppercase tracking-wider text-on-sf-variant">Current</th>
+            <th class="text-right py-2 text-xs uppercase tracking-wider text-on-sf-variant">Units Used</th>
+            <th class="text-right py-2 text-xs uppercase tracking-wider text-on-sf-variant">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range .Meters}}
+          <tr class="border-b border-ol-variant last:border-0">
+            <td class="py-2 font-medium">{{.MeterType}}</td>
+            <td class="py-2 text-xs text-on-sf-variant">{{.MeterNumber}}</td>
+            <td class="py-2 text-right text-xs text-on-sf-variant">{{.InitialReading}}</td>
+            <td class="py-2 text-right font-semibold">{{.CurrentReading}}</td>
+            <td class="py-2 text-right font-semibold">{{sub .CurrentReading .InitialReading}}</td>
+            <td class="py-2 text-right font-semibold">₹{{printf "%.0f" (mul (sub .CurrentReading .InitialReading) $.RatePerUnit)}}</td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+    {{end}}
+  </div>
+  {{else}}
+  <div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-lg">
+    <p class="text-on-sf-variant">No meters configured.</p>
+  </div>
+  {{end}}
+</main>
+</body>
+</html>

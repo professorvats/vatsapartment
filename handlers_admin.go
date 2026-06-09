@@ -115,7 +115,7 @@ func handleAdminRoomAdd(w http.ResponseWriter, r *http.Request) {
 	roomType := r.FormValue("type")
 	floor, _ := strconv.Atoi(r.FormValue("floor"))
 	price, _ := strconv.ParseFloat(r.FormValue("price"), 64)
-	id := fmt.Sprintf("R%s", roomNum)
+	id := roomNum
 
 	db.DB.Exec(`INSERT INTO rooms (id, room_number, floor, type, price) VALUES ($1, $2, $3, $4, $5)
 		ON CONFLICT (id) DO UPDATE SET room_number=$2, floor=$3, type=$4, price=$5, updated_at=NOW()`,
@@ -157,7 +157,23 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 	if tenants == nil {
 		tenants = []TenantAdmin{}
 	}
-	render(w, "admin_tenants.html", map[string]interface{}{"Tenants": tenants})
+	// Rooms for assign dropdown
+	type RoomOpt struct{ ID, Number string }
+	var roomOpts []RoomOpt
+	roomRows, _ := db.DB.Query("SELECT id, room_number FROM rooms ORDER BY room_number")
+	if roomRows != nil {
+		defer roomRows.Close()
+		for roomRows.Next() {
+			var r RoomOpt
+			roomRows.Scan(&r.ID, &r.Number)
+			roomOpts = append(roomOpts, r)
+		}
+	}
+
+	render(w, "admin_tenants.html", map[string]interface{}{
+		"Tenants": tenants,
+		"Rooms":   roomOpts,
+	})
 }
 
 func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
@@ -275,10 +291,12 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	rows, err := db.DB.Query(`SELECT m.id, m.room_id, r.room_number, m.meter_type, m.meter_number,
-		m.current_reading, m.initial_reading, m.is_active
+		m.current_reading, m.initial_reading, m.is_active,
+		COALESCE(b.status, '') as booking_status
 		FROM meters m
 		LEFT JOIN rooms r ON m.room_id = r.id
-		ORDER BY r.room_number`)
+		LEFT JOIN bookings b ON m.room_id = b.room_id AND b.status = 'active'
+		ORDER BY r.room_number, m.meter_type`)
 	if err != nil {
 		http.Error(w, "Failed to load meters", 500)
 		return
@@ -286,15 +304,15 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	type MeterAdmin struct {
-		ID, RoomID, RoomNumber, MeterType, MeterNumber string
-		CurrentReading, InitialReading                 int
-		IsActive                                       bool
+		ID, RoomID, RoomNumber, MeterType, MeterNumber, BookingStatus string
+		CurrentReading, InitialReading                                int
+		IsActive                                                      bool
 	}
 	var meters []MeterAdmin
 	for rows.Next() {
 		var m MeterAdmin
 		var active int
-		rows.Scan(&m.ID, &m.RoomID, &m.RoomNumber, &m.MeterType, &m.MeterNumber, &m.CurrentReading, &m.InitialReading, &active)
+		rows.Scan(&m.ID, &m.RoomID, &m.RoomNumber, &m.MeterType, &m.MeterNumber, &m.CurrentReading, &m.InitialReading, &active, &m.BookingStatus)
 		m.IsActive = active == 1
 		meters = append(meters, m)
 	}
@@ -302,7 +320,29 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 		meters = []MeterAdmin{}
 	}
 
-	// Get rate from settings
+	// Group meters by room
+	type RoomMeterGroup struct {
+		RoomID, RoomNumber string
+		Occupied           bool
+		Meters             []MeterAdmin
+	}
+	var roomGroups []RoomMeterGroup
+	seen := map[string]int{}
+	for _, m := range meters {
+		idx, ok := seen[m.RoomNumber]
+		if !ok {
+			idx = len(roomGroups)
+			roomGroups = append(roomGroups, RoomMeterGroup{
+				RoomID:     m.RoomID,
+				RoomNumber: m.RoomNumber,
+				Occupied:   m.BookingStatus == "active",
+				Meters:     []MeterAdmin{},
+			})
+			seen[m.RoomNumber] = idx
+		}
+		roomGroups[idx].Meters = append(roomGroups[idx].Meters, m)
+	}
+
 	var ratePerUnit float64 = 12
 	var unitRate string
 	db.DB.QueryRow("SELECT value FROM settings WHERE key = 'electricity_rate'").Scan(&unitRate)
@@ -312,20 +352,9 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Rooms for dropdown
-	roomRows, _ := db.DB.Query("SELECT id, room_number FROM rooms ORDER BY room_number")
-	defer roomRows.Close()
-	type RoomOpt struct{ ID, Number string }
-	var roomOpts []RoomOpt
-	for roomRows.Next() {
-		var ro RoomOpt
-		roomRows.Scan(&ro.ID, &ro.Number)
-		roomOpts = append(roomOpts, ro)
-	}
-
 	render(w, "admin_meters.html", map[string]interface{}{
+		"RoomMeters":  roomGroups,
 		"Meters":      meters,
-		"Rooms":       roomOpts,
 		"RatePerUnit": ratePerUnit,
 	})
 }

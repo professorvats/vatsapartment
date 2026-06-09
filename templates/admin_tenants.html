@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Tenants — Vats Apartment Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: { colors: {
+      primary: '#111111', 'on-primary': '#ffffff', secondary: '#546255',
+      background: '#f9f9f8', 'on-surface': '#1a1c1c', 'sf-variant': '#e2e2e2',
+      'on-sf-variant': '#444748', outline: '#747878', 'ol-variant': '#c4c7c7',
+      'sf-low': '#f3f4f3', 'sf-lowest': '#ffffff',
+    }}}
+  }
+</script>
+<link rel="icon" href="/static/favicon.ico">
+</head>
+<body class="bg-background text-on-surface min-h-screen">
+
+<nav class="bg-primary shadow-sm border-b border-white/10">
+  <div class="max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between h-16">
+    <div class="flex items-center gap-6">
+      <a href="/"><img src="/static/white-logo.webp" alt="Vats Apartment" class="h-12 w-auto"></a>
+      <span class="text-white/40 text-sm">Admin Panel</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="/admin/dashboard" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">Dashboard</a>
+      <a href="/admin/rooms" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">Rooms</a>
+      <a href="/admin/payments" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">Payments</a>
+      <a href="/admin/meters" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">Meters</a>
+      <a href="/logout" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-5xl mx-auto px-4 py-8">
+  <h1 class="text-xl font-bold mb-6">Manage Tenants</h1>
+
+  {{if .Tenants}}
+  <div class="bg-sf-lowest border border-ol-variant rounded-lg overflow-hidden">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-ol-variant bg-sf-low">
+          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Name</th>
+          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Contact</th>
+          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Room</th>
+          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Check-in</th>
+          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Status</th>
+          <th class="text-right px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Tenants}}
+        <tr class="border-b border-ol-variant last:border-0 hover:bg-sf-low/50">
+          <td class="px-4 py-3 font-medium">{{.Name}}</td>
+          <td class="px-4 py-3 text-xs text-on-sf-variant">{{.Phone}}<br>{{.Email}}</td>
+          <td class="px-4 py-3">{{if .RoomNumber}}{{.RoomNumber}}{{else}}<span class="text-on-sf-variant">—</span>{{end}}</td>
+          <td class="px-4 py-3 text-xs text-on-sf-variant">{{.CheckInDate}}</td>
+          <td class="px-4 py-3">
+            {{if eq .Status "active"}}
+            <span class="inline-flex items-center gap-1 text-xs text-secondary font-medium"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>Active</span>
+            {{else}}
+            <span class="inline-flex items-center gap-1 text-xs text-on-sf-variant"><span class="w-1.5 h-1.5 rounded-full bg-on-sf-variant"></span>{{.Status}}</span>
+            {{end}}
+          </td>
+          <td class="px-4 py-3 text-right">
+            <button onclick="editTenant('{{.ID}}','{{.Name}}','{{.Phone}}','{{.Email}}','{{.Status}}','{{.RoomID}}')" class="text-xs text-primary font-semibold hover:underline mr-3">Edit</button>
+            <button onclick="assignRoom('{{.ID}}','{{.Name}}','{{.RoomID}}')" class="text-xs text-secondary font-semibold hover:underline">Assign Room</button>
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-lg">
+    <p class="text-on-sf-variant">No tenants yet.</p>
+  </div>
+  {{end}}
+</main>
+
+<!-- Edit Tenant Modal -->
+<div id="edit-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-md">
+    <h3 class="font-semibold mb-4">Edit Tenant</h3>
+    <form method="POST" action="/admin/tenants/save" class="space-y-3">
+      <input type="hidden" name="action" value="update">
+      <input type="hidden" name="id" id="edit-id">
+      <div><label class="block text-xs text-on-sf-variant mb-1">Name</label><input name="name" id="edit-name" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required></div>
+      <div><label class="block text-xs text-on-sf-variant mb-1">Phone</label><input name="phone" id="edit-phone" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required></div>
+      <div><label class="block text-xs text-on-sf-variant mb-1">Email</label><input name="email" id="edit-email" type="email" class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
+      <div><label class="block text-xs text-on-sf-variant mb-1">Status</label>
+        <select name="status" id="edit-status" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+          <option value="active">Active</option><option value="inactive">Inactive</option>
+        </select>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="bg-primary text-on-primary px-5 py-2 rounded-lg text-sm font-semibold">Save</button>
+        <button type="button" onclick="document.getElementById('edit-modal').classList.add('hidden')" class="border border-ol-variant px-5 py-2 rounded-lg text-sm">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Assign Room Modal -->
+<div id="assign-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-md">
+    <h3 class="font-semibold mb-4">Assign Room to <span id="assign-tenant-name"></span></h3>
+    <form method="POST" action="/admin/tenants/save" class="space-y-3">
+      <input type="hidden" name="action" value="assign">
+      <input type="hidden" name="id" id="assign-id">
+      <div><label class="block text-xs text-on-sf-variant mb-1">Room</label>
+        <select name="room_id" id="assign-room" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+          {{range .Rooms}}<option value="{{.ID}}">{{.Number}}</option>{{end}}
+        </select>
+      </div>
+      <div><label class="block text-xs text-on-sf-variant mb-1">Rent</label><input name="rent" type="number" value="9000" class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
+      <div><label class="block text-xs text-on-sf-variant mb-1">Start Date</label><input name="start_date" type="date" id="assign-date" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required></div>
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="bg-secondary text-white px-5 py-2 rounded-lg text-sm font-semibold">Assign</button>
+        <button type="button" onclick="document.getElementById('assign-modal').classList.add('hidden')" class="border border-ol-variant px-5 py-2 rounded-lg text-sm">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function editTenant(id, name, phone, email, status, roomId) {
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-name').value = name;
+  document.getElementById('edit-phone').value = phone;
+  document.getElementById('edit-email').value = email;
+  document.getElementById('edit-status').value = status;
+  document.getElementById('edit-modal').classList.remove('hidden');
+}
+function assignRoom(id, name, currentRoom) {
+  document.getElementById('assign-id').value = id;
+  document.getElementById('assign-tenant-name').textContent = name;
+  if (currentRoom) document.getElementById('assign-room').value = currentRoom;
+  document.getElementById('assign-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('assign-modal').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
