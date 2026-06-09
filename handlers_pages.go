@@ -108,7 +108,7 @@ func handleLoginPost(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 		Expires:  time.Now().Add(24 * time.Hour),
 	})
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+		http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
 }
 
 func getRooms() ([]Room, error) {

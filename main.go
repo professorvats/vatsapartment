@@ -60,6 +60,17 @@ func main() {
 	mux.HandleFunc("GET /logout", handleLogout)
 
 	// Admin
+	mux.HandleFunc("GET /admin/dashboard", handleAdminDashboard)
+	mux.HandleFunc("GET /admin/rooms", handleAdminRooms)
+	mux.HandleFunc("POST /admin/rooms/save", handleAdminRoomsSave)
+	mux.HandleFunc("POST /admin/rooms/add", handleAdminRoomAdd)
+	mux.HandleFunc("GET /admin/tenants", handleAdminTenants)
+	mux.HandleFunc("POST /admin/tenants/save", handleAdminTenantsSave)
+	mux.HandleFunc("GET /admin/payments", handleAdminPayments)
+	mux.HandleFunc("POST /admin/payments/save", handleAdminPaymentsSave)
+	mux.HandleFunc("GET /admin/meters", handleAdminMeters)
+	mux.HandleFunc("POST /admin/meters/save", handleAdminMetersSave)
+	mux.HandleFunc("GET /admin/meter-readings", handleAdminMeterReadings)
 	mux.HandleFunc("GET /admin/blog", handleAdminBlogList)
 	mux.HandleFunc("GET /admin/blog/new", handleAdminBlogForm)
 	mux.HandleFunc("POST /admin/blog/save", handleAdminBlogSave)

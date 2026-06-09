@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Rooms — Vats Apartment Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#111111',
+          'on-primary': '#ffffff',
+          secondary: '#546255',
+          background: '#f9f9f8',
+          'on-surface': '#1a1c1c',
+          'sf-variant': '#e2e2e2',
+          'on-sf-variant': '#444748',
+          outline: '#747878',
+          'ol-variant': '#c4c7c7',
+          'sf-low': '#f3f4f3',
+          'sf-lowest': '#ffffff',
+          error: '#ba1a1a',
+        }
+      }
+    }
+  }
+</script>
+<link rel="icon" href="/static/favicon.ico">
+</head>
+<body class="bg-background text-on-surface min-h-screen">
+
+<nav class="bg-primary shadow-sm border-b border-white/10">
+  <div class="max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between h-16">
+    <div class="flex items-center gap-6">
+      <a href="/"><img src="/static/white-logo.webp" alt="Vats Apartment" class="h-12 w-auto"></a>
+      <span class="text-white/40 text-sm">Admin Panel</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="/admin/dashboard" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">Dashboard</a>
+      <a href="/" class="text-sm text-white/65 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5">View Site</a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-4xl mx-auto px-4 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-xl font-bold">Manage Rooms</h1>
+    <button onclick="document.getElementById('add-form').classList.toggle('hidden')" class="bg-primary text-on-primary px-4 py-2 rounded-lg text-sm font-semibold">+ Add Room</button>
+  </div>
+
+  <div id="add-form" class="hidden bg-sf-lowest border border-ol-variant rounded-lg p-6 mb-6">
+    <h3 class="font-semibold mb-4">Add New Room</h3>
+    <form method="POST" action="/admin/rooms/add" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-xs text-on-sf-variant mb-1">Room Number</label>
+        <input name="room_number" placeholder="e.g. 201" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs text-on-sf-variant mb-1">Type</label>
+        <select name="type" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+          <option>Standard Single</option>
+          <option>Deluxe Single</option>
+          <option>Standard Double</option>
+          <option>Deluxe Double</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-on-sf-variant mb-1">Floor</label>
+        <input name="floor" type="number" value="1" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs text-on-sf-variant mb-1">Monthly Rent</label>
+        <input name="price" type="number" placeholder="9000" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+      </div>
+      <div class="col-span-full">
+        <button type="submit" class="bg-secondary text-white px-6 py-2 rounded-lg text-sm font-semibold">Save Room</button>
+      </div>
+    </form>
+  </div>
+
+  {{if .Rooms}}
+  <div class="bg-sf-lowest border border-ol-variant rounded-lg overflow-hidden">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-ol-variant bg-sf-low">
+          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Room</th>
+          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Type</th>
+          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Floor</th>
+          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Monthly Rent</th>
+          <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Status</th>
+          <th class="text-right px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Rooms}}
+        <tr class="border-b border-ol-variant last:border-0 hover:bg-sf-low/50">
+          <td class="px-4 py-3 font-medium">{{.RoomNumber}}</td>
+          <td class="px-4 py-3 text-on-sf-variant">{{.RoomType}}</td>
+          <td class="px-4 py-3 text-on-sf-variant">{{.Floor}}</td>
+          <td class="px-4 py-3">
+            <form method="POST" action="/admin/rooms/save" class="inline-flex items-center gap-2">
+              <input type="hidden" name="id" value="{{.ID}}">
+              <span>₹</span><input name="price" type="number" value="{{printf "%.0f" .Price}}" class="w-20 border border-ol-variant rounded px-2 py-1 text-sm">
+          </td>
+          <td class="px-4 py-3">
+            {{if eq .Status "active"}}
+            <span class="inline-flex items-center gap-1 text-xs text-secondary font-medium"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>Occupied</span>
+            {{else}}
+            <span class="inline-flex items-center gap-1 text-xs text-on-sf-variant"><span class="w-1.5 h-1.5 rounded-full bg-on-sf-variant"></span>Available</span>
+            {{end}}
+          </td>
+          <td class="px-4 py-3 text-right">
+            <select name="status" class="border border-ol-variant rounded px-2 py-1 text-xs mr-2">
+              <option value="">-- Set Status --</option>
+              <option value="available">Available</option>
+              <option value="occupied">Occupied</option>
+            </select>
+            <button type="submit" class="text-xs text-primary font-semibold hover:underline">Update</button>
+            </form>
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-lg">
+    <p class="text-on-sf-variant">No rooms configured.</p>
+  </div>
+  {{end}}
+</main>
+</body>
+</html>
