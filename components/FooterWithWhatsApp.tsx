@@ -21,6 +21,11 @@ export default function FooterWithWhatsApp() {
         rel="noopener noreferrer"
         className="fixed bottom-6 right-4 md:bottom-8 md:right-8 z-[1001] w-14 h-14 md:w-16 md:h-16 bg-green-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition-all hover:scale-105"
         aria-label="Chat on WhatsApp"
+        onClick={() => {
+          if (typeof window !== 'undefined' && window.dataLayer) {
+            window.dataLayer.push({ event: 'whatsapp_click', source: 'floating_button' });
+          }
+        }}
       >
         <MessageCircle className="w-7 h-7 md:w-8 md:h-8" />
       </a>
