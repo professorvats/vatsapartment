@@ -228,7 +228,7 @@ func SeedRooms() error {
 		{"102", "102", "Standard Double", 1, 10000},
 		{"201", "201", "Standard Double", 2, 9000},
 		{"202", "202", "Standard Double", 2, 10000},
-		{"301", "301", "Standard Double", 3, 10000},
+		{"301", "301", "Standard Double", 3, 9000},
 		{"302", "302", "Standard Double", 3, 9000},
 	}
 	for _, r := range rooms {
