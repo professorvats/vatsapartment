@@ -51,7 +51,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           />
         </noscript>
         <Navigation />
-        <main className="flex-1 pt-16 md:pt-20">{children}</main>
+        <main className="flex-1 pt-16 md:pt-20 pb-16 md:pb-0">{children}</main>
         <FooterWithWhatsApp />
       </body>
     </html>

@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
+import { Home, CalendarCheck, MapPin, Phone, LogIn, MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -15,6 +15,20 @@ const NAV_LINKS = [
   { href: '/location', label: 'Location' },
   { href: '/contact-us', label: 'Contact' },
 ];
+
+const MOBILE_TABS = [
+  { href: '/', label: 'Home', icon: Home },
+  { href: '/book-now', label: 'Book', icon: CalendarCheck },
+  { href: '/location', label: 'Location', icon: MapPin },
+  { href: '/contact-us', label: 'Contact', icon: Phone },
+  { href: '/login', label: 'Login', icon: LogIn },
+];
+
+function pushEvent(event: Record<string, unknown>) {
+  if (typeof window !== 'undefined' && window.dataLayer) {
+    window.dataLayer.push(event);
+  }
+}
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -53,14 +67,6 @@ export default function Navigation() {
               Login
             </Link>
           </nav>
-
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 text-on-surface"
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
         </div>
       </header>
 
@@ -91,6 +97,57 @@ export default function Navigation() {
           </nav>
         </div>
       )}
+
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-surface/95 backdrop-blur-lg border-t border-outline-variant/50 md:hidden">
+        <div className="flex items-end justify-around px-1 pb-[env(safe-area-inset-bottom)] h-16">
+          {MOBILE_TABS.slice(0, 2).map((tab) => {
+            const Icon = tab.icon;
+            const active = pathname === tab.href;
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={`flex flex-col items-center justify-center gap-0.5 min-w-[48px] py-1.5 transition-colors ${
+                  active ? 'text-secondary' : 'text-on-surface-variant'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="text-[10px] font-medium">{tab.label}</span>
+              </Link>
+            );
+          })}
+
+          <a
+            href="https://wa.me/919992937447?text=Hi,%20I'm%20interested%20in%20Vats%20Apartment.%20Please%20share%20more%20details."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col items-center justify-center -mt-5"
+            onClick={() => pushEvent({ event: 'whatsapp_click', source: 'mobile_bottom_bar' })}
+          >
+            <div className="w-14 h-14 bg-green-500 rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition-all hover:scale-105 border-4 border-surface">
+              <MessageCircle className="w-7 h-7 text-white" />
+            </div>
+            <span className="text-[10px] font-medium text-green-600 mt-0.5">WhatsApp</span>
+          </a>
+
+          {MOBILE_TABS.slice(2).map((tab) => {
+            const Icon = tab.icon;
+            const active = pathname === tab.href;
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={`flex flex-col items-center justify-center gap-0.5 min-w-[48px] py-1.5 transition-colors ${
+                  active ? 'text-secondary' : 'text-on-surface-variant'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="text-[10px] font-medium">{tab.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </>
   );
 }
