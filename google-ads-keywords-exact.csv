@@ -1,0 +1,39 @@
+Campaign,Ad Group,Keyword,Match Type
+V1-GMB,PG Near LPU,[PG near LPU],Exact
+V1-GMB,PG Near LPU,[PG LPU],Exact
+V1-GMB,PG Near LPU,[LPU PG],Exact
+V1-GMB,PG Near LPU,[PG near LPU university],Exact
+V1-GMB,PG Near LPU,[student PG LPU],Exact
+V1-GMB,PG Near LPU,[boys PG near LPU],Exact
+V1-GMB,PG Near LPU,[PG Jalandhar],Exact
+V1-GMB,PG Near LPU,[PG Phagwara],Exact
+V1-GMB,PG Near LPU,[budget PG LPU],Exact
+V1-GMB,PG Near LPU,[best PG near LPU],Exact
+V1-GMB,Room Near LPU,[room near LPU],Exact
+V1-GMB,Room Near LPU,[room LPU],Exact
+V1-GMB,Room Near LPU,[LPU room rent],Exact
+V1-GMB,Room Near LPU,[room rent near LPU],Exact
+V1-GMB,Room Near LPU,[single room LPU],Exact
+V1-GMB,Room Near LPU,[furnished room LPU],Exact
+V1-GMB,Room Near LPU,[room for rent Jalandhar],Exact
+V1-GMB,Room Near LPU,[1 BHK near LPU],Exact
+V1-GMB,Room Near LPU,[flat near LPU],Exact
+V1-GMB,Room Near LPU,[room near university Jalandhar],Exact
+V1-GMB,Hostel Near LPU,[hostel near LPU],Exact
+V1-GMB,Hostel Near LPU,[LPU hostel],Exact
+V1-GMB,Hostel Near LPU,[hostel near LPU university],Exact
+V1-GMB,Hostel Near LPU,[LPU hostel alternative],Exact
+V1-GMB,Hostel Near LPU,[student hostel LPU],Exact
+V1-GMB,LPU Accommodation,[LPU accommodation],Exact
+V1-GMB,LPU Accommodation,[LPU student housing],Exact
+V1-GMB,LPU Accommodation,[LPU off campus],Exact
+V1-GMB,LPU Accommodation,[LPU admission room],Exact
+V1-GMB,LPU Accommodation,[where to stay near LPU],Exact
+V1-GMB,LPU Accommodation,[student accommodation LPU],Exact
+V1-GMB,LPU Accommodation,[LPU room booking],Exact
+V1-GMB,LPU Accommodation,[Lovely Professional University PG],Exact
+V1-GMB,Jalandhar Broad,[room rent Jalandhar],Exact
+V1-GMB,Jalandhar Broad,[paying guest Jalandhar],Exact
+V1-GMB,Jalandhar Broad,[flat rent Jalandhar],Exact
+V1-GMB,Jalandhar Broad,[student room Jalandhar],Exact
+V1-GMB,Jalandhar Broad,[hostel Jalandhar],Exact
