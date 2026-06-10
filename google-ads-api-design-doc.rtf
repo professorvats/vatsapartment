@@ -1,0 +1,81 @@
+{\rtf1\ansi\deff0{\fonttbl{\f0 Calibri;}}
+\fs22
+\pard\qc\b\fs36 Vats Apartment - Google Ads API Tool Design Document\b0\par
+\pard\qc\fs20 Date: June 10, 2026 | Account: 407-256-0405\par
+\pard\fs22\par
+\b 1. Tool Overview\b0\par
+\par
+This is an internal automation tool for managing Google Ads Search campaigns for Vats Apartment, a PG (paying guest) accommodation business near LPU University, Jalandhar, Punjab, India. The tool uses the Google Ads API (v20) to automate campaign management tasks.\par
+\par
+\b 2. Business Context\b0\par
+\par
+- Business: PG accommodation provider offering 1BHK, 2BHK, and Penthouse rooms\par
+- Website: https://vatsapartment.com\par
+- Target audience: Students and professionals seeking housing near LPU University\par
+- Campaign type: Google Search Ads only\par
+- Monthly budget: INR 10,000-15,000\par
+- Target CPA: INR 2,000 per confirmed room booking\par
+\par
+\b 3. API Features Used\b0\par
+\par
+The tool uses the following Google Ads API services:\par
+\par
+\b 3.1 Campaign Management\b0\par
+- GoogleAdsService.Search/SearchStream - Query campaign performance data\par
+- CampaignService - Manage campaign settings and budgets\par
+- CampaignBudgetService - Adjust daily budgets\par
+\par
+\b 3.2 Keyword Management\b0\par
+- AdGroupCriterionService - Add, remove, and pause keywords\par
+- CampaignCriterionService - Manage negative keywords at campaign level\par
+- Keyword reporting via GAQL queries\par
+\par
+\b 3.3 Conversion Tracking\b0\par
+- ConversionActionService - Create and manage conversion actions\par
+- Phone call conversion tracking\par
+- WhatsApp click tracking via GTM integration\par
+\par
+\b 3.4 Reporting\b0\par
+- Performance reports (impressions, clicks, CTR, CPC, conversions)\par
+- Keyword performance analysis\par
+- Search term reports for negative keyword discovery\par
+\par
+\b 4. Architecture\b0\par
+\par
+The tool is a server-side automation built with:\par
+- Language: Shell scripts using curl (REST API calls)\par
+- Auth: OAuth2 with refresh token, hosted in .env file\par
+- API version: Google Ads API v20\par
+- Execution: Manual or cron-based scheduled runs\par
+\par
+\b 5. Workflow\b0\par
+\par
+Step 1: Authenticate using OAuth2 refresh token to get access token\par
+Step 2: Query current campaign and keyword data using GAQL\par
+Step 3: Analyze keyword performance (remove low-volume, add new keywords)\par
+Step 4: Update keywords via AdGroupCriterionService.mutate\par
+Step 5: Update negative keywords via CampaignCriterionService.mutate\par
+Step 6: Generate performance reports\par
+\par
+\b 6. Access Level\b0\par
+\par
+We are requesting Basic Access level. Our expected API usage:\par
+- Operations per day: Less than 500 (well within 15,000 daily limit)\par
+- Frequency: Weekly keyword reviews, monthly campaign adjustments\par
+- Accounts managed: 1 (our own Vats Apartment account, 644-356-8695)\par
+\par
+\b 7. Compliance\b0\par
+\par
+- The tool will only be used for our own Google Ads account\par
+- No external users or clients will have access\par
+- All API usage complies with Google Ads API Terms of Service\par
+- The tool will not create ads automatically; it only manages keywords and reports\par
+- Rate limits will be respected with appropriate backoff handling\par
+\par
+\b 8. Contact\b0\par
+\par
+API Contact Email: hament.mailbox@gmail.com\par
+Company: Vats Apartment\par
+Manager Account ID: 407-256-0405\par
+Client Account ID: 644-356-8695\par
+}

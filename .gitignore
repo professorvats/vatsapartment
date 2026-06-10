@@ -29,6 +29,8 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+.env.google-ads
+DOKPLOY_ENV_VARS.txt
 
 # Database
 *.db
@@ -40,4 +42,7 @@ static/uploads/*
 
 # Temporary files
 tmp/
-vatsapartment/.env.google-ads
+
+# Node.js (removed, kept for reference)
+node_modules/
+.next/
