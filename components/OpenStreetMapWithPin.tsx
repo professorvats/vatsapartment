@@ -24,14 +24,14 @@ export function OpenStreetMapWithPin({
   const mapInstanceRef = useRef<L.Map | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(true);
 
+  const MAPS_LINK = 'https://maps.app.goo.gl/FtMggqQiCrC6Rnp96';
+
   const openInGoogleMaps = () => {
-    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-    window.open(googleMapsUrl, '_blank');
+    window.open(MAPS_LINK, '_blank');
   };
 
   const getDirections = () => {
-    const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
-    window.open(directionsUrl, '_blank');
+    window.open(MAPS_LINK, '_blank');
   };
 
   useEffect(() => {
@@ -69,7 +69,7 @@ export function OpenStreetMapWithPin({
               ${address.replace(/\n/g, '<br>')}
             </p>
             <div style="display: flex; flex-direction: column; gap: 8px;">
-              <a href="https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}"
+              <a href="https://maps.app.goo.gl/FtMggqQiCrC6Rnp96"
                  target="_blank"
                  rel="noopener noreferrer"
                  style="display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -81,7 +81,7 @@ export function OpenStreetMapWithPin({
                 Open in Google Maps
               </a>
               ${showDirections ? `
-              <a href="https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}"
+              <a href="https://maps.app.goo.gl/FtMggqQiCrC6Rnp96"
                  target="_blank"
                  rel="noopener noreferrer"
                  style="display: flex; align-items: center; justify-content: center; gap: 8px;
