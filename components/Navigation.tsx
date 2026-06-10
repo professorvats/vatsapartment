@@ -10,6 +10,9 @@ const NAV_LINKS = [
   { href: '/', label: 'Home' },
   { href: '/book-now', label: 'Book Now' },
   { href: '/referral', label: 'Refer & Earn' },
+  { href: '/blog', label: 'Blog' },
+  { href: '/room-showcase', label: '3D Tour' },
+  { href: '/location', label: 'Location' },
   { href: '/contact-us', label: 'Contact' },
 ];
 
