@@ -1,6 +1,6 @@
 ---
 name: google-ads
-description: Manage Google Ads campaigns, keywords, negative keywords, conversion actions, and budgets via the Google Ads REST API (v18). Use when adding/removing keywords, managing campaigns, creating conversion actions, uploading bulk changes, or querying ad performance for Vats Apartment or any Google Ads account.
+description: Manage Google Ads campaigns, keywords, negative keywords, conversion actions, and budgets via the Google Ads REST API (v20). Use when adding/removing keywords, managing campaigns, creating conversion actions, uploading bulk changes, or querying ad performance for Vats Apartment or any Google Ads account.
 ---
 
 # Google Ads API Skill
@@ -43,7 +43,7 @@ ACCESS_TOKEN=$(curl -s -X POST https://oauth2.googleapis.com/token \
 ## API Base URL
 
 ```
-https://googleads.googleapis.com/v18/customers/{customer_id}/
+https://googleads.googleapis.com/v20/customers/{customer_id}/
 ```
 
 Headers for every request:
@@ -59,7 +59,7 @@ Content-Type: application/json
 ### List all campaigns
 
 ```bash
-curl -s -X POST "https://googleads.googleapis.com/v18/customers/{CID}/googleAds:searchStream" \
+curl -s -X POST "https://googleads.googleapis.com/v20/customers/{CID}/googleAds:searchStream" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "developer-token: $DEV_TOKEN" \
   -H "Content-Type: application/json" \
@@ -75,7 +75,7 @@ QUERY="SELECT ad_group_criterion.keyword.text, ad_group_criterion.keyword.match_
 ### Add keywords to an ad group
 
 ```bash
-curl -s -X POST "https://googleads.googleapis.com/v18/customers/{CID}/adGroupCriteria:mutate" \
+curl -s -X POST "https://googleads.googleapis.com/v20/customers/{CID}/adGroupCriteria:mutate" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "developer-token: $DEV_TOKEN" \
   -H "Content-Type: application/json" \
@@ -95,7 +95,7 @@ curl -s -X POST "https://googleads.googleapis.com/v18/customers/{CID}/adGroupCri
 ### Remove a keyword
 
 ```bash
-curl -s -X POST "https://googleads.googleapis.com/v18/customers/{CID}/adGroupCriteria:mutate" \
+curl -s -X POST "https://googleads.googleapis.com/v20/customers/{CID}/adGroupCriteria:mutate" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "developer-token: $DEV_TOKEN" \
   -H "Content-Type: application/json" \
@@ -109,7 +109,7 @@ curl -s -X POST "https://googleads.googleapis.com/v18/customers/{CID}/adGroupCri
 ### Add negative keywords (campaign-level)
 
 ```bash
-curl -s -X POST "https://googleads.googleapis.com/v18/customers/{CID}/campaignCriteria:mutate" \
+curl -s -X POST "https://googleads.googleapis.com/v20/customers/{CID}/campaignCriteria:mutate" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "developer-token: $DEV_TOKEN" \
   -H "Content-Type: application/json" \
@@ -130,7 +130,7 @@ curl -s -X POST "https://googleads.googleapis.com/v18/customers/{CID}/campaignCr
 ### Update campaign budget
 
 ```bash
-curl -s -X POST "https://googleads.googleapis.com/v18/customers/{CID}/campaignBudgets:mutate" \
+curl -s -X POST "https://googleads.googleapis.com/v20/customers/{CID}/campaignBudgets:mutate" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "developer-token: $DEV_TOKEN" \
   -H "Content-Type: application/json" \
@@ -148,7 +148,7 @@ curl -s -X POST "https://googleads.googleapis.com/v18/customers/{CID}/campaignBu
 ### Create conversion action
 
 ```bash
-curl -s -X POST "https://googleads.googleapis.com/v18/customers/{CID}/conversionActions:mutate" \
+curl -s -X POST "https://googleads.googleapis.com/v20/customers/{CID}/conversionActions:mutate" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "developer-token: $DEV_TOKEN" \
   -H "Content-Type: application/json" \
@@ -193,7 +193,7 @@ with open('google-ads-keywords-exact.csv') as f:
 print(json.dumps({'operations': ops}))
 " > /tmp/keywords_payload.json
 
-curl -s -X POST "https://googleads.googleapis.com/v18/customers/{CID}/adGroupCriteria:mutate" \
+curl -s -X POST "https://googleads.googleapis.com/v20/customers/{CID}/adGroupCriteria:mutate" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "developer-token: $DEV_TOKEN" \
   -H "Content-Type: application/json" \

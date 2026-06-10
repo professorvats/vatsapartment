@@ -40,3 +40,4 @@ static/uploads/*
 
 # Temporary files
 tmp/
+vatsapartment/.env.google-ads
