@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 };
 
 const GTM_ID = 'GTM-P6TDL438';
+const GADS_ID = 'AW-18227145928';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -30,6 +31,14 @@ new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','${GTM_ID}');`}
+        </Script>
+        <Script
+          id="google-ads-gtag"
+          strategy="afterInteractive"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GADS_ID}`}
+        />
+        <Script id="google-ads-config" strategy="afterInteractive">
+          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GADS_ID}');`}
         </Script>
       </head>
       <body className="min-h-screen flex flex-col bg-surface text-on-background font-sans">
