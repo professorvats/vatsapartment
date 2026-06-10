@@ -35,8 +35,16 @@
 </script>
 <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 <link rel="icon" href="/static/favicon.ico">
+<!-- Google Tag Manager -->
+<script>
+window.dataLayer=window.dataLayer||[];
+window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+</script>
+<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-P6TDL438"></script>
 </head>
 <body class="bg-background text-on-surface">
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P6TDL438" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <nav class="sticky top-0 z-50 bg-primary shadow-sm border-b border-white/10">
   <div class="max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between h-24 md:h-28">
@@ -143,6 +151,7 @@ function sendInquiry(e) {
   var name = document.getElementById('inquiry-name').value.trim();
   if (!room || !name) return;
   var msg = encodeURIComponent('Hi, I am ' + name + '. I am interested in Room ' + room + ' at Vats Apartment. Please share availability and details.');
+  window.dataLayer=window.dataLayer||[];window.dataLayer.push({event:'whatsapp_click',source:'booknow_inquiry'});
   window.open('https://wa.me/919992937447?text=' + msg, '_blank');
 }
 </script>

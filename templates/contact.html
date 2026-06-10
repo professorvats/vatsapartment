@@ -32,8 +32,16 @@
   }
 </script>
 <link rel="icon" href="/static/favicon.ico">
+<!-- Google Tag Manager -->
+<script>
+window.dataLayer=window.dataLayer||[];
+window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+</script>
+<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-P6TDL438"></script>
 </head>
 <body class="bg-background text-on-surface">
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P6TDL438" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <nav class="sticky top-0 z-50 bg-primary shadow-sm border-b border-white/10">
   <div class="max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between h-24 md:h-28">
@@ -105,7 +113,7 @@
           <div class="space-y-3">
             <p class="text-sm flex items-center gap-2.5">
               <svg class="w-5 h-5 shrink-0 text-on-sf-variant" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-              <a href="tel:+919992937447" class="hover:text-primary transition-colors">+91 99929 37447</a>
+              <a href="tel:+919992937447" onclick="window.dataLayer=window.dataLayer||[];window.dataLayer.push({event:'phone_call_click',source:'contact_page'})" class="hover:text-primary transition-colors">+91 99929 37447</a>
             </p>
             <p class="text-sm flex items-center gap-2.5">
               <svg class="w-5 h-5 shrink-0 text-on-sf-variant" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4l-10 8L2 4"/></svg>
@@ -125,7 +133,7 @@
           </p>
         </div>
         <div class="pt-2">
-          <a href="https://wa.me/919992937447?text=Hi%2C%20I%27m%20interested%20in%20Vats%20Apartment" target="_blank"
+          <a href="https://wa.me/919992937447?text=Hi%2C%20I%27m%20interested%20in%20Vats%20Apartment" target="_blank" onclick="window.dataLayer=window.dataLayer||[];window.dataLayer.push({event:'whatsapp_click',source:'contact_page'})"
             class="inline-flex items-center gap-2 bg-secondary text-on-secondary px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-secondary/90 transition-colors">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
             Chat on WhatsApp
@@ -171,9 +179,11 @@ function handleContactSubmit(e) {
   fetch("/api/contact", { method: "POST", body: formData })
     .then(function(r) { return r.text(); })
     .then(function() {
+      window.dataLayer=window.dataLayer||[];window.dataLayer.push({event:'whatsapp_click',source:'contact_form'});
       window.open("https://wa.me/919992937447?text=" + msg, "_blank");
     })
     .catch(function() {
+      window.dataLayer=window.dataLayer||[];window.dataLayer.push({event:'whatsapp_click',source:'contact_form_fallback'});
       window.open("https://wa.me/919992937447?text=" + msg, "_blank");
     });
 }

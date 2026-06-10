@@ -41,8 +41,16 @@
   .hero-3d { perspective: 1000px; transform-style: preserve-3d; }
   .hero-3d:hover .hero-inner { transform: rotateX(2deg) rotateY(2deg) scale(1.05); }
 </style>
+<!-- Google Tag Manager -->
+<script>
+window.dataLayer=window.dataLayer||[];
+window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+</script>
+<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-P6TDL438"></script>
 </head>
 <body class="bg-background text-on-surface">
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P6TDL438" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- Nav -->
 <nav class="sticky top-0 z-50 bg-primary shadow-sm border-b border-white/10">
@@ -174,7 +182,7 @@
       <p class="text-on-sf-variant mb-6 max-w-xl mx-auto">Check room availability and book your premium space near LPU campus today.</p>
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
         <a href="/book-now" class="bg-secondary text-on-secondary px-8 py-3 rounded-lg font-semibold hover:bg-secondary/90">Check Availability</a>
-        <a href="tel:+919992937447" class="bg-sf-low border border-ol-variant text-on-surface px-8 py-3 rounded-lg font-semibold hover:bg-sf-high inline-flex items-center justify-center gap-2">Call Now</a>
+        <a href="tel:+919992937447" onclick="window.dataLayer=window.dataLayer||[];window.dataLayer.push({event:'phone_call_click',source:'home_cta'})" class="bg-sf-low border border-ol-variant text-on-surface px-8 py-3 rounded-lg font-semibold hover:bg-sf-high inline-flex items-center justify-center gap-2">Call Now</a>
       </div>
     </div>
   </section>
