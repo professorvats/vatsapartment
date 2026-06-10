@@ -745,7 +745,7 @@ Thank you! 🙏
 ### Step 1: Google Tag Manager (GTM)
 ```
 1. Create GTM container: "Vats Apartment"
-2. Install GTM snippet in app/layout.tsx (in <head> and <body>)
+2. Install GTM snippet in all templates/*.html (in <head> and <body>)
 3. Set up triggers and tags
 ```
 

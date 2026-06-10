@@ -164,9 +164,4 @@ After all setup is complete:
 
 ## CODE CHANGES (already committed and pushed)
 
-- `app/layout.tsx` — GTM with dataLayer init + GTM_ID constant
-- `components/FooterWithWhatsApp.tsx` — WhatsApp + phone click tracking
-- `app/page.tsx` — Check Availability + Call Now tracking
-- `app/book-now/page.tsx` — Booking form submission tracking
-- `types/global.d.ts` — Window.dataLayer TypeScript type
-- All 10 Go templates in `templates/*.html` — GTM + floating WhatsApp + click tracking
+- All Go templates in `templates/*.html` — GTM + floating WhatsApp + click tracking

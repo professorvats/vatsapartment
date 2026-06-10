@@ -39,7 +39,7 @@
 > **Goal:** Track every call, WhatsApp click, and form submission — THE most critical step
 
 - [ ] **2.1** Create Google Tag Manager (GTM) container
-- [ ] **2.2** Install GTM code in website (app/layout.tsx)
+- [ ] **2.2** Install GTM code in website (templates/*.html <head> and <body>)
 - [ ] **2.3** Create GA4 property and connect via GTM
 - [ ] **2.4** In Google Ads → Tools → Conversions → Create:
   - [ ] **2.4a** Phone Call conversion (calls to +919992937447, count >60s)
