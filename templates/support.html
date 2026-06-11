@@ -198,7 +198,10 @@ window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
   var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var dateStr=d.getDate()+' '+months[d.getMonth()];
   var el=document.getElementById('urgency-text');
-  if(el)var text='\u26A1\uFE0F High Demand \u2022 Only 3 rooms left \u2022 Book before '+dateStr+' \u2022 \u26A1\uFE0F High Demand \u2022 Only 3 rooms left \u2022 Book before '+dateStr+' \u2022 \u26A1\uFE0F High Demand \u2022 Only 3 rooms left \u2022 Book before '+dateStr+' \u2022 '; el.textContent = text + text;
+  if(el) {
+    var text = '⚡️ High Demand • Only 3 rooms left • Book before '+dateStr+' • &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ';
+    el.innerHTML = text.repeat(15);
+  }
 })();
 </script>
 </body>
