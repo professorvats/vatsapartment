@@ -47,8 +47,8 @@
   .blog-content code { background: #f3f4f3; padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-size: 0.85em; }
   .blog-content pre { background: #f3f4f3; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-bottom: 0.75rem; }
 .safe-bottom{padding-bottom:env(safe-area-inset-bottom)}
-@keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
-.animate-marquee{display:inline-block;animation:marquee 20s linear infinite;min-width:max-content;padding-left:100%}</style>
+@keyframes marquee{0%{transform:translateX(0%)}100%{transform:translateX(-50%)}}
+.animate-marquee{display:inline-block;animation:marquee 40s linear infinite;min-width:max-content;}</style>
 <!-- Google Tag Manager -->
 <script>
 window.dataLayer=window.dataLayer||[];
@@ -164,7 +164,7 @@ window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
   var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var dateStr=d.getDate()+' '+months[d.getMonth()];
   var el=document.getElementById('urgency-text');
-  if(el)el.textContent='\u26A1\uFE0F High Demand \u2022 Only 3 rooms left \u2022 Book before '+dateStr+' \u2022 \u26A1\uFE0F High Demand \u2022 Only 3 rooms left \u2022 Book before '+dateStr+' \u2022 \u26A1\uFE0F High Demand \u2022 Only 3 rooms left \u2022 Book before '+dateStr+' \u2022';
+  if(el)var text='\u26A1\uFE0F High Demand \u2022 Only 3 rooms left \u2022 Book before '+dateStr+' \u2022 \u26A1\uFE0F High Demand \u2022 Only 3 rooms left \u2022 Book before '+dateStr+' \u2022 \u26A1\uFE0F High Demand \u2022 Only 3 rooms left \u2022 Book before '+dateStr+' \u2022 '; el.textContent = text + text;
 })();
 </script>
 </body>
