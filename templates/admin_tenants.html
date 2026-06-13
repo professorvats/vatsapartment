@@ -44,9 +44,8 @@
           {{end}}
         </td>
         <td class="px-4 py-3 text-right whitespace-nowrap">
-          <button onclick="editTenant('{{.ID}}','{{.Name}}','{{.Phone}}','{{.Email}}','{{.Status}}','{{.RoomID}}')" class="text-xs text-primary font-semibold hover:underline">Edit</button>
-          <button onclick="assignRoom('{{.ID}}','{{.Name}}','{{.RoomID}}')" class="text-xs text-secondary font-semibold hover:underline ml-2">Room</button>
-          <button onclick="setPassword('{{.ID}}','{{.Name}}')" class="text-xs text-secondary font-semibold hover:underline ml-2">Password</button>
+          <button onclick="openEdit('{{.ID}}','{{.Name}}','{{.Phone}}','{{.Email}}','{{.Status}}','{{.RoomID}}','{{.RoomNumber}}','{{.SecurityDeposit}}','{{.LockInPeriod}}','{{.RentAmount}}','{{.StartDate}}','{{.HasPassword}}')"
+            class="text-xs text-primary font-semibold hover:underline">Edit</button>
         </td>
       </tr>
       {{end}}
@@ -59,91 +58,104 @@
 </div>
 {{end}}
 
-<!-- Edit Tenant Modal -->
-<div id="edit-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-md">
-    <h3 class="font-semibold mb-4">Edit Tenant</h3>
-    <form method="POST" action="/admin/tenants/save" class="space-y-3">
-      <input type="hidden" name="action" value="update">
+<!-- Combined Edit Modal -->
+<div id="edit-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-lg my-8">
+    <h3 class="font-semibold text-lg mb-1">Edit Tenant</h3>
+    <p class="text-xs text-on-sf-variant mb-4" id="edit-subtitle">Room: <span id="edit-room-display"></span></p>
+
+    <form method="POST" action="/admin/tenants/save" class="space-y-4">
+      <input type="hidden" name="action" value="save_all">
       <input type="hidden" name="id" id="edit-id">
-      <div><label class="block text-xs text-on-sf-variant mb-1">Name</label><input name="name" id="edit-name" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required></div>
-      <div><label class="block text-xs text-on-sf-variant mb-1">Phone</label><input name="phone" id="edit-phone" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required></div>
-      <div><label class="block text-xs text-on-sf-variant mb-1">Email</label><input name="email" id="edit-email" type="email" class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
-      <div><label class="block text-xs text-on-sf-variant mb-1">Status</label>
-        <select name="status" id="edit-status" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
-          <option value="active">Active</option><option value="inactive">Inactive</option>
-        </select>
-      </div>
-      <div class="flex gap-3 pt-2">
-        <button type="submit" class="bg-primary text-on-primary px-5 py-2 rounded-lg text-sm font-semibold">Save</button>
-        <button type="button" onclick="document.getElementById('edit-modal').classList.add('hidden')" class="border border-ol-variant px-5 py-2 rounded-lg text-sm">Cancel</button>
-      </div>
-    </form>
-  </div>
-</div>
 
-<!-- Assign Room Modal -->
-<div id="assign-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-md">
-    <h3 class="font-semibold mb-4">Assign Room to <span id="assign-tenant-name"></span></h3>
-    <form method="POST" action="/admin/tenants/save" class="space-y-3">
-      <input type="hidden" name="action" value="assign">
-      <input type="hidden" name="id" id="assign-id">
-      <div><label class="block text-xs text-on-sf-variant mb-1">Room</label>
-        <select name="room_id" id="assign-room" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
-          {{range .Rooms}}<option value="{{.ID}}">{{.Number}}</option>{{end}}
-        </select>
+      <!-- Personal Info -->
+      <div class="bg-sf-low rounded-lg p-4 space-y-3">
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-on-sf-variant">Personal Info</h4>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-on-sf-variant mb-1">Name</label>
+            <input name="name" id="edit-name" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required>
+          </div>
+          <div>
+            <label class="block text-xs text-on-sf-variant mb-1">Phone</label>
+            <input name="phone" id="edit-phone" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required>
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs text-on-sf-variant mb-1">Email</label>
+            <input name="email" id="edit-email" type="email" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs text-on-sf-variant mb-1">Status</label>
+            <select name="status" id="edit-status" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-on-sf-variant mb-1">Password <span class="text-on-sf-variant/60">(leave blank to keep)</span></label>
+            <input name="password" id="edit-password" type="text" placeholder="Set new password"
+              class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+          </div>
+        </div>
       </div>
-      <div><label class="block text-xs text-on-sf-variant mb-1">Rent</label><input name="rent" type="number" value="9000" class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
-      <div><label class="block text-xs text-on-sf-variant mb-1">Start Date</label><input name="start_date" type="date" id="assign-date" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required></div>
-      <div class="flex gap-3 pt-2">
-        <button type="submit" class="bg-secondary text-white px-5 py-2 rounded-lg text-sm font-semibold">Assign</button>
-        <button type="button" onclick="document.getElementById('assign-modal').classList.add('hidden')" class="border border-ol-variant px-5 py-2 rounded-lg text-sm">Cancel</button>
-      </div>
-    </form>
-  </div>
-</div>
 
-<!-- Set Password Modal -->
-<div id="password-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-md">
-    <h3 class="font-semibold mb-4">Set Password for <span id="pw-tenant-name"></span></h3>
-    <p class="text-xs text-on-sf-variant mb-4">Tenant will use their <strong>phone number</strong> as username to log in.</p>
-    <form method="POST" action="/admin/tenants/save" class="space-y-3">
-      <input type="hidden" name="action" value="set_password">
-      <input type="hidden" name="id" id="pw-id">
-      <div>
-        <label class="block text-xs text-on-sf-variant mb-1">New Password</label>
-        <input name="password" id="pw-password" type="text" value="tenant@123" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+      <!-- Room Assignment -->
+      <div class="bg-sf-low rounded-lg p-4 space-y-3">
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-on-sf-variant">Room Assignment</h4>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-on-sf-variant mb-1">Room</label>
+            <select name="room_id" id="edit-room" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+              <option value="">— No room —</option>
+              {{range .Rooms}}<option value="{{.ID}}">{{.Number}}</option>{{end}}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-on-sf-variant mb-1">Rent (₹)</label>
+            <input name="rent" id="edit-rent" type="number" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs text-on-sf-variant mb-1">Start Date</label>
+            <input name="start_date" id="edit-start-date" type="date" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs text-on-sf-variant mb-1">Security Deposit (₹)</label>
+            <input name="security_deposit" id="edit-sec-deposit" type="number" step="0.01" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs text-on-sf-variant mb-1">Lock-in Period (months)</label>
+            <input name="lock_in_period" id="edit-lock-in" type="number" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+          </div>
+        </div>
       </div>
+
       <div class="flex gap-3 pt-2">
-        <button type="submit" class="bg-secondary text-white px-5 py-2 rounded-lg text-sm font-semibold">Set Password</button>
-        <button type="button" onclick="document.getElementById('password-modal').classList.add('hidden')" class="border border-ol-variant px-5 py-2 rounded-lg text-sm">Cancel</button>
+        <button type="submit" class="bg-primary text-on-primary px-6 py-2.5 rounded-lg text-sm font-semibold flex-1">Save All</button>
+        <button type="button" onclick="closeEdit()" class="border border-ol-variant px-6 py-2.5 rounded-lg text-sm">Cancel</button>
       </div>
     </form>
   </div>
 </div>
 
 <script>
-function editTenant(id, name, phone, email, status, roomId) {
+function openEdit(id, name, phone, email, status, roomId, roomNumber, secDeposit, lockIn, rent, startDate, hasPw) {
   document.getElementById('edit-id').value = id;
   document.getElementById('edit-name').value = name;
   document.getElementById('edit-phone').value = phone;
   document.getElementById('edit-email').value = email;
   document.getElementById('edit-status').value = status;
+  document.getElementById('edit-room-display').textContent = roomNumber || 'No room assigned';
+  if (roomId) document.getElementById('edit-room').value = roomId;
+  else document.getElementById('edit-room').value = '';
+  document.getElementById('edit-start-date').value = startDate || new Date().toISOString().split('T')[0];
+  document.getElementById('edit-rent').value = rent || '9000';
+  document.getElementById('edit-sec-deposit').value = secDeposit || '';
+  document.getElementById('edit-lock-in').value = lockIn || '';
+  document.getElementById('edit-password').value = '';
   document.getElementById('edit-modal').classList.remove('hidden');
 }
-function assignRoom(id, name, currentRoom) {
-  document.getElementById('assign-id').value = id;
-  document.getElementById('assign-tenant-name').textContent = name;
-  if (currentRoom) document.getElementById('assign-room').value = currentRoom;
-  document.getElementById('assign-date').value = new Date().toISOString().split('T')[0];
-  document.getElementById('assign-modal').classList.remove('hidden');
-}
-function setPassword(id, name) {
-  document.getElementById('pw-id').value = id;
-  document.getElementById('pw-tenant-name').textContent = name;
-  document.getElementById('password-modal').classList.remove('hidden');
+function closeEdit() {
+  document.getElementById('edit-modal').classList.add('hidden');
 }
 </script>
 {{template "admin_footer" .}}

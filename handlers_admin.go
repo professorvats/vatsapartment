@@ -133,6 +133,7 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.DB.Query(`SELECT t.id, t.name, t.email, t.phone, t.status, t.check_in_date,
 		t.security_deposit, t.security_lock_in_period,
 		COALESCE(ra.room_id, '') as room_id, COALESCE(r.room_number, '') as room_number,
+		COALESCE(ra.rent_amount, 0) as rent_amount, COALESCE(ra.start_date, '') as start_date,
 		COALESCE(t.password_hash, '') as password_hash,
 		COALESCE((SELECT status FROM tenant_verifications WHERE tenant_id = t.id), 'not_submitted') as ver_status
 		FROM tenants t
@@ -149,6 +150,8 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 		ID, Name, Email, Phone, Status, CheckInDate, RoomID, RoomNumber string
 		SecurityDeposit                                                  float64
 		LockInPeriod                                                     int
+		RentAmount                                                       float64
+		StartDate                                                        string
 		HasPassword                                                      bool
 		VerificationStatus                                                string
 	}
@@ -157,7 +160,8 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 		var t TenantAdmin
 		var pwHash, verStatus string
 		rows.Scan(&t.ID, &t.Name, &t.Email, &t.Phone, &t.Status, &t.CheckInDate,
-			&t.SecurityDeposit, &t.LockInPeriod, &t.RoomID, &t.RoomNumber, &pwHash, &verStatus)
+			&t.SecurityDeposit, &t.LockInPeriod, &t.RoomID, &t.RoomNumber, &t.RentAmount, &t.StartDate,
+			&pwHash, &verStatus)
 		t.HasPassword = pwHash != ""
 		t.VerificationStatus = verStatus
 		tenants = append(tenants, t)
@@ -218,6 +222,36 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			hash, err := bcrypt.GenerateFromPassword([]byte(newPass), bcrypt.DefaultCost)
 			if err == nil {
 				db.DB.Exec("UPDATE tenants SET password_hash = $1, updated_at = NOW() WHERE id = $2", string(hash), id)
+			}
+		}
+	} else if action == "save_all" {
+		name := r.FormValue("name")
+		phone := r.FormValue("phone")
+		email := r.FormValue("email")
+		status := r.FormValue("status")
+		secDeposit, _ := strconv.ParseFloat(r.FormValue("security_deposit"), 64)
+		lockIn, _ := strconv.Atoi(r.FormValue("lock_in_period"))
+		newPass := r.FormValue("password")
+		db.DB.Exec(`UPDATE tenants SET name=$1, phone=$2, email=$3, status=$4,
+			security_deposit=$5, security_lock_in_period=$6, updated_at=NOW() WHERE id=$7`,
+			name, phone, email, status, secDeposit, lockIn, id)
+		if newPass != "" {
+			hash, err := bcrypt.GenerateFromPassword([]byte(newPass), bcrypt.DefaultCost)
+			if err == nil {
+				db.DB.Exec("UPDATE tenants SET password_hash = $1, updated_at = NOW() WHERE id = $2", string(hash), id)
+			}
+		}
+		roomID := r.FormValue("room_id")
+		rent, _ := strconv.ParseFloat(r.FormValue("rent"), 64)
+		startDate := r.FormValue("start_date")
+		if roomID != "" {
+			db.DB.Exec("UPDATE room_assignments SET is_active=false, updated_at=NOW() WHERE tenant_id=$1 AND is_active IS TRUE", id)
+			var existing int
+			db.DB.QueryRow("SELECT COUNT(*) FROM room_assignments WHERE tenant_id=$1 AND room_id=$2 AND is_active IS TRUE", id, roomID).Scan(&existing)
+			if existing == 0 {
+				assignID := fmt.Sprintf("RA%d", time.Now().UnixNano())
+				db.DB.Exec(`INSERT INTO room_assignments (id, tenant_id, room_id, rent_amount, start_date, is_active)
+					VALUES ($1, $2, $3, $4, $5, true)`, assignID, id, roomID, rent, startDate)
 			}
 		}
 	}
