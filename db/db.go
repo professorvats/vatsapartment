@@ -206,6 +206,32 @@ func runMigrations() error {
 				created_at TIMESTAMPTZ DEFAULT NOW(),
 				last_used_at TIMESTAMPTZ
 			)`},
+		{"tenant_password", `
+			ALTER TABLE tenants ADD COLUMN IF NOT EXISTS password_hash TEXT`},
+		{"tenant_verifications", `
+			CREATE TABLE IF NOT EXISTS tenant_verifications (
+				id TEXT PRIMARY KEY,
+				tenant_id TEXT NOT NULL,
+				lpu_id_photo TEXT,
+				aadhar_photo TEXT,
+				status TEXT DEFAULT 'not_submitted',
+				submitted_at TIMESTAMPTZ,
+				verified_at TIMESTAMPTZ,
+				notes TEXT,
+				created_at TIMESTAMPTZ DEFAULT NOW(),
+				updated_at TIMESTAMPTZ DEFAULT NOW()
+			)`},
+		{"tenant_passes", `
+			CREATE TABLE IF NOT EXISTS tenant_passes (
+				id TEXT PRIMARY KEY,
+				tenant_id TEXT NOT NULL,
+				pass_number TEXT NOT NULL UNIQUE,
+				issued_by TEXT,
+				issued_at TIMESTAMPTZ DEFAULT NOW(),
+				is_active INTEGER DEFAULT 1,
+				created_at TIMESTAMPTZ DEFAULT NOW(),
+				updated_at TIMESTAMPTZ DEFAULT NOW()
+			)`},
 	}
 
 	for _, m := range migrations {

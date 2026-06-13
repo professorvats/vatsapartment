@@ -74,7 +74,12 @@ func handleContact(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleLogin(w http.ResponseWriter, r *http.Request) {
-	render(w, "login.html", nil)
+	mode := r.URL.Query().Get("mode")
+	data := map[string]interface{}{}
+	if mode == "tenant" {
+		data["TenantMode"] = true
+	}
+	render(w, "login.html", data)
 }
 
 func handlePrivacy(w http.ResponseWriter, r *http.Request) {
@@ -92,6 +97,31 @@ func handleSupport(w http.ResponseWriter, r *http.Request) {
 func handleLoginPost(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
+	loginType := r.FormValue("login_type")
+
+	if loginType == "tenant" {
+		var tenantID, hash string
+		err := db.DB.QueryRow("SELECT id, COALESCE(password_hash,'') FROM tenants WHERE phone = $1 AND status = 'active'", username).Scan(&tenantID, &hash)
+		if err != nil {
+			render(w, "login.html", map[string]interface{}{"Error": "Invalid phone or password", "TenantMode": true})
+			return
+		}
+		if hash == "" || bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) != nil {
+			render(w, "login.html", map[string]interface{}{"Error": "Invalid phone or password", "TenantMode": true})
+			return
+		}
+		http.SetCookie(w, &http.Cookie{
+			Name:     "tenant_session",
+			Value:    "tenant:" + tenantID,
+			Path:     "/",
+			HttpOnly: true,
+			Secure:   r.TLS != nil,
+			SameSite: http.SameSiteLaxMode,
+			Expires:  time.Now().Add(24 * time.Hour),
+		})
+		http.Redirect(w, r, "/tenant/dashboard", http.StatusSeeOther)
+		return
+	}
 
 	var hash string
 	err := db.DB.QueryRow("SELECT password_hash FROM users WHERE username = $1", username).Scan(&hash)
@@ -109,7 +139,7 @@ func handleLoginPost(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 		Expires:  time.Now().Add(24 * time.Hour),
 	})
-		http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
+	http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
 }
 
 func getRooms() ([]Room, error) {

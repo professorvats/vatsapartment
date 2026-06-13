@@ -1,0 +1,33 @@
+{{template "tenant_header" .}}
+
+<h2 class="text-lg font-bold mb-4">Payment History</h2>
+
+{{if .Payments}}
+<div class="space-y-3">
+  {{range .Payments}}
+  <div class="bg-sf-lowest rounded-xl p-4 border border-ol-variant">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-sm font-semibold">₹{{printf "%.0f" .Amount}}{{if gt .LateFee 0.0}} <span class="text-xs text-error">(+₹{{printf "%.0f" .LateFee}} late fee)</span>{{end}}</span>
+      <span class="text-xs px-2 py-0.5 rounded-full font-medium
+        {{if eq .Status "completed"}}bg-green-50 text-success border border-green-200
+        {{else if eq .Status "pending"}}bg-amber-50 text-warning border border-amber-200
+        {{else}}bg-red-50 text-error border border-red-200{{end}}">
+        {{.Status}}
+      </span>
+    </div>
+    <div class="flex items-center justify-between text-xs text-on-sf-variant">
+      <span>{{.Date}}</span>
+      <span>{{.MonthCovered}}</span>
+      <span>{{.Method}}</span>
+    </div>
+    {{if .Notes}}<p class="text-xs text-on-sf-variant mt-1 italic">{{.Notes}}</p>{{end}}
+  </div>
+  {{end}}
+</div>
+{{else}}
+<div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-xl">
+  <p class="text-on-sf-variant">No payment records found.</p>
+</div>
+{{end}}
+
+{{template "tenant_footer" .}}

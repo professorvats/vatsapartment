@@ -9,7 +9,8 @@
         <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Name</th>
         <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Contact</th>
         <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Room</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Check-in</th>
+        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Verification</th>
+        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Login</th>
         <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Status</th>
         <th class="text-right px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Action</th>
       </tr>
@@ -20,7 +21,21 @@
         <td class="px-4 py-3 font-medium">{{.Name}}</td>
         <td class="px-4 py-3 text-xs text-on-sf-variant">{{.Phone}}<br>{{.Email}}</td>
         <td class="px-4 py-3">{{if .RoomNumber}}{{.RoomNumber}}{{else}}<span class="text-on-sf-variant">—</span>{{end}}</td>
-        <td class="px-4 py-3 text-xs text-on-sf-variant">{{.CheckInDate}}</td>
+        <td class="px-4 py-3">
+          <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full
+            {{if eq .VerificationStatus "verified"}}bg-green-50 text-success border border-green-200
+            {{else if eq .VerificationStatus "pending"}}bg-amber-50 text-warning border border-amber-200
+            {{else}}bg-gray-50 text-on-sf-variant border border-ol-variant{{end}}">
+            {{.VerificationStatus}}
+          </span>
+        </td>
+        <td class="px-4 py-3">
+          {{if .HasPassword}}
+          <span class="text-xs text-success">✓ Active</span>
+          {{else}}
+          <span class="text-xs text-on-sf-variant">No password</span>
+          {{end}}
+        </td>
         <td class="px-4 py-3">
           {{if eq .Status "active"}}
           <span class="inline-flex items-center gap-1 text-xs text-secondary font-medium"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>Active</span>
@@ -28,9 +43,10 @@
           <span class="inline-flex items-center gap-1 text-xs text-on-sf-variant"><span class="w-1.5 h-1.5 rounded-full bg-on-sf-variant"></span>{{.Status}}</span>
           {{end}}
         </td>
-        <td class="px-4 py-3 text-right">
-          <button onclick="editTenant('{{.ID}}','{{.Name}}','{{.Phone}}','{{.Email}}','{{.Status}}','{{.RoomID}}')" class="text-xs text-primary font-semibold hover:underline mr-3">Edit</button>
-          <button onclick="assignRoom('{{.ID}}','{{.Name}}','{{.RoomID}}')" class="text-xs text-secondary font-semibold hover:underline">Assign Room</button>
+        <td class="px-4 py-3 text-right whitespace-nowrap">
+          <button onclick="editTenant('{{.ID}}','{{.Name}}','{{.Phone}}','{{.Email}}','{{.Status}}','{{.RoomID}}')" class="text-xs text-primary font-semibold hover:underline">Edit</button>
+          <button onclick="assignRoom('{{.ID}}','{{.Name}}','{{.RoomID}}')" class="text-xs text-secondary font-semibold hover:underline ml-2">Room</button>
+          <button onclick="setPassword('{{.ID}}','{{.Name}}')" class="text-xs text-secondary font-semibold hover:underline ml-2">Password</button>
         </td>
       </tr>
       {{end}}
@@ -88,6 +104,26 @@
   </div>
 </div>
 
+<!-- Set Password Modal -->
+<div id="password-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-md">
+    <h3 class="font-semibold mb-4">Set Password for <span id="pw-tenant-name"></span></h3>
+    <p class="text-xs text-on-sf-variant mb-4">Tenant will use their <strong>phone number</strong> as username to log in.</p>
+    <form method="POST" action="/admin/tenants/save" class="space-y-3">
+      <input type="hidden" name="action" value="set_password">
+      <input type="hidden" name="id" id="pw-id">
+      <div>
+        <label class="block text-xs text-on-sf-variant mb-1">New Password</label>
+        <input name="password" id="pw-password" type="text" value="tenant@123" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="bg-secondary text-white px-5 py-2 rounded-lg text-sm font-semibold">Set Password</button>
+        <button type="button" onclick="document.getElementById('password-modal').classList.add('hidden')" class="border border-ol-variant px-5 py-2 rounded-lg text-sm">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
 function editTenant(id, name, phone, email, status, roomId) {
   document.getElementById('edit-id').value = id;
@@ -103,6 +139,11 @@ function assignRoom(id, name, currentRoom) {
   if (currentRoom) document.getElementById('assign-room').value = currentRoom;
   document.getElementById('assign-date').value = new Date().toISOString().split('T')[0];
   document.getElementById('assign-modal').classList.remove('hidden');
+}
+function setPassword(id, name) {
+  document.getElementById('pw-id').value = id;
+  document.getElementById('pw-tenant-name').textContent = name;
+  document.getElementById('password-modal').classList.remove('hidden');
 }
 </script>
 {{template "admin_footer" .}}

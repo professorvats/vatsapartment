@@ -1,0 +1,185 @@
+{{template "tenant_header" .}}
+
+<!-- Verification Banner -->
+{{if ne .VerificationStatus "verified"}}
+<div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 flex items-start gap-3">
+  <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+  </svg>
+  <div class="flex-1">
+    <p class="font-semibold text-amber-800 text-sm">
+      {{if eq .VerificationStatus "not_submitted"}}
+        Verification Pending — Please upload your documents
+      {{else if eq .VerificationStatus "pending"}}
+        Documents Submitted — Awaiting admin verification
+      {{else if eq .VerificationStatus "rejected"}}
+        Verification Rejected — Please re-upload correct documents
+      {{end}}
+    </p>
+    <p class="text-amber-700 text-xs mt-1">Complete your KYC to access all features and your digital pass.</p>
+    <a href="#verification" class="inline-block mt-2 text-xs font-semibold text-amber-800 bg-amber-100 px-3 py-1.5 rounded-lg hover:bg-amber-200 transition-colors">
+      {{if eq .VerificationStatus "not_submitted"}}Upload Now{{else}}Check Status{{end}}
+    </a>
+  </div>
+</div>
+{{else}}
+<div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-4 flex items-start gap-3">
+  <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+  </svg>
+  <div>
+    <p class="font-semibold text-green-800 text-sm">Verification Complete ✓</p>
+  </div>
+</div>
+{{end}}
+
+<!-- Welcome Card -->
+<div class="bg-sf-lowest rounded-xl p-5 border border-ol-variant mb-4">
+  <div class="flex items-center justify-between mb-3">
+    <div>
+      <h2 class="text-lg font-bold">Welcome, {{.Tenant.Name}}!</h2>
+      <p class="text-xs text-on-sf-variant">{{.Tenant.Phone}}{{if .Tenant.Email}} · {{.Tenant.Email}}{{end}}</p>
+    </div>
+    {{if .Tenant.RoomNumber}}
+    <div class="text-right">
+      <div class="text-xs text-on-sf-variant">Room</div>
+      <div class="text-xl font-bold text-primary">{{.Tenant.RoomNumber}}</div>
+    </div>
+    {{end}}
+  </div>
+  <hr class="border-ol-variant mb-3">
+  <div class="grid grid-cols-2 gap-3 text-sm">
+    <div>
+      <span class="text-on-sf-variant text-xs">Check-in</span>
+      <p class="font-medium">{{.Tenant.CheckInDate}}</p>
+    </div>
+    <div>
+      <span class="text-on-sf-variant text-xs">Monthly Rent</span>
+      <p class="font-medium">₹{{printf "%.0f" .Tenant.RentAmount}}</p>
+    </div>
+  </div>
+</div>
+
+<!-- Rent Due Card -->
+<div class="bg-sf-lowest rounded-xl p-5 border border-ol-variant mb-4">
+  <h3 class="font-semibold text-sm mb-3">Payment Summary</h3>
+  <div class="grid grid-cols-2 gap-4">
+    <div class="bg-red-50 rounded-lg p-3">
+      <div class="text-xs text-on-sf-variant mb-1">Previous Month Due ({{.PrevMonth}})</div>
+      <div class="text-xl font-bold text-error">
+        {{if gt .PrevMonthDue 0.0}}₹{{printf "%.0f" .PrevMonthDue}}{{else}}₹0{{end}}
+      </div>
+    </div>
+    <div class="bg-amber-50 rounded-lg p-3">
+      <div class="text-xs text-on-sf-variant mb-1">Total Pending</div>
+      <div class="text-xl font-bold text-warning">
+        {{if gt .TotalPending 0.0}}₹{{printf "%.0f" .TotalPending}}{{else}}₹0{{end}}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Digital Pass -->
+<div id="pass" class="bg-sf-lowest rounded-xl p-5 border border-ol-variant mb-4">
+  <h3 class="font-semibold text-sm mb-3">Digital Pass</h3>
+  {{if .PassNumber}}
+  <div class="bg-primary text-on-primary rounded-xl p-4">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-white/50 text-xs">VATS APARTMENT</span>
+      <span class="text-white/50 text-xs">TENANT PASS</span>
+    </div>
+    <div class="mb-3">
+      <p class="text-lg font-bold">{{.Tenant.Name}}</p>
+      <p class="text-white/70 text-sm">Room {{.Tenant.RoomNumber}}</p>
+    </div>
+    <div class="flex items-center justify-between text-xs">
+      <span class="text-white/50">Pass #{{.PassNumber}}</span>
+      <span class="text-white/70">{{.Tenant.Phone}}</span>
+    </div>
+  </div>
+  <div class="mt-3 flex gap-2">
+    <a href="https://wa.me/919992937447?text={{urlquery (printf "🏠 *Vats Apartment - Digital Pass*\n\n*Name:* %s\n*Room:* %s\n*Pass No:* %s\n*Phone:* %s\n*Address:* Near LPU, Jalandhar\n\nPlease keep this pass handy for entry." .Tenant.Name .Tenant.RoomNumber .PassNumber .Tenant.Phone)}}"
+       target="_blank"
+       class="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-green-700 transition-colors">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Share via WhatsApp
+    </a>
+  </div>
+  {{else}}
+  <p class="text-on-sf-variant text-sm">No pass assigned yet. Complete your verification and contact the admin.</p>
+  {{end}}
+</div>
+
+<!-- Verification Section -->
+<div id="verification" class="bg-sf-lowest rounded-xl p-5 border border-ol-variant mb-4">
+  <h3 class="font-semibold text-sm mb-1">Document Verification</h3>
+  <p class="text-xs text-on-sf-variant mb-4">Upload your LPU ID Card and Aadhar Card for verification.</p>
+
+  <div class="mb-3">
+    <div class="flex items-center justify-between text-sm mb-1">
+      <span>Status</span>
+      <span class="font-semibold {{if eq .VerificationStatus "verified"}}text-success{{else if eq .VerificationStatus "pending"}}text-warning{{else if eq .VerificationStatus "rejected"}}text-error{{else}}text-on-sf-variant{{end}}">
+        {{if eq .VerificationStatus "not_submitted"}}Not Submitted{{end}}
+        {{if eq .VerificationStatus "pending"}}Pending Review{{end}}
+        {{if eq .VerificationStatus "verified"}}✓ Verified{{end}}
+        {{if eq .VerificationStatus "rejected"}}✗ Rejected{{end}}
+      </span>
+    </div>
+    <div class="w-full bg-sf-variant rounded-full h-2">
+      <div class="bg-primary h-2 rounded-full transition-all"
+        style="width:{{if eq .VerificationStatus "verified"}}100{{else if eq .VerificationStatus "pending"}}50{{else}}0{{end}}%">
+      </div>
+    </div>
+  </div>
+
+  {{if ne .VerificationStatus "verified"}}
+  <form method="POST" action="/tenant/verification/upload" enctype="multipart/form-data" class="space-y-4 mt-4">
+    <div>
+      <label class="block text-sm font-medium mb-1">LPU ID Card Photo</label>
+      {{if .LpuPhoto}}
+      <div class="mb-2">
+        <img src="{{.LpuPhoto}}" alt="LPU ID" class="h-24 w-auto rounded border border-ol-variant">
+        <p class="text-xs text-green-600 mt-1">✓ Uploaded</p>
+      </div>
+      {{end}}
+      <input type="file" name="lpu_id_photo" accept="image/*"
+        class="w-full text-sm text-on-sf-variant file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-on-primary hover:file:bg-primary/90">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">Aadhar Card Photo</label>
+      {{if .AadharPhoto}}
+      <div class="mb-2">
+        <img src="{{.AadharPhoto}}" alt="Aadhar" class="h-24 w-auto rounded border border-ol-variant">
+        <p class="text-xs text-green-600 mt-1">✓ Uploaded</p>
+      </div>
+      {{end}}
+      <input type="file" name="aadhar_photo" accept="image/*"
+        class="w-full text-sm text-on-sf-variant file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-on-primary hover:file:bg-primary/90">
+    </div>
+    <button type="submit"
+      class="w-full bg-primary text-on-primary py-2.5 rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors">
+      {{if or .LpuPhoto .AadharPhoto}}Update & Submit{{else}}Upload & Submit{{end}}
+    </button>
+  </form>
+  {{else}}
+  <div class="mt-3 p-3 bg-green-50 rounded-lg text-sm text-green-800">
+    All documents verified. You can now access your digital pass above.
+  </div>
+  {{end}}
+</div>
+
+<!-- Set Password -->
+<div class="bg-sf-lowest rounded-xl p-5 border border-ol-variant mb-4">
+  <h3 class="font-semibold text-sm mb-3">Change Password</h3>
+  <form method="POST" action="/tenant/change-password" class="space-y-3">
+    <div>
+      <input type="password" name="new_password" required placeholder="Enter new password (min 4 chars)"
+        class="w-full border border-ol-variant rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+    </div>
+    <button type="submit" class="bg-secondary text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-secondary/90 transition-colors">
+      Update Password
+    </button>
+  </form>
+</div>
+
+{{template "tenant_footer" .}}

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"vatsapartment-go/db"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // ─── Dashboard ────────────────────────────────────────────────
@@ -131,7 +132,9 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 	}
 	rows, err := db.DB.Query(`SELECT t.id, t.name, t.email, t.phone, t.status, t.check_in_date,
 		t.security_deposit, t.security_lock_in_period,
-		COALESCE(ra.room_id, '') as room_id, COALESCE(r.room_number, '') as room_number
+		COALESCE(ra.room_id, '') as room_id, COALESCE(r.room_number, '') as room_number,
+		COALESCE(t.password_hash, '') as password_hash,
+		COALESCE((SELECT status FROM tenant_verifications WHERE tenant_id = t.id), 'not_submitted') as ver_status
 		FROM tenants t
 		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active IS TRUE
 		LEFT JOIN rooms r ON ra.room_id = r.id
@@ -146,12 +149,17 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 		ID, Name, Email, Phone, Status, CheckInDate, RoomID, RoomNumber string
 		SecurityDeposit                                                  float64
 		LockInPeriod                                                     int
+		HasPassword                                                      bool
+		VerificationStatus                                                string
 	}
 	var tenants []TenantAdmin
 	for rows.Next() {
 		var t TenantAdmin
+		var pwHash, verStatus string
 		rows.Scan(&t.ID, &t.Name, &t.Email, &t.Phone, &t.Status, &t.CheckInDate,
-			&t.SecurityDeposit, &t.LockInPeriod, &t.RoomID, &t.RoomNumber)
+			&t.SecurityDeposit, &t.LockInPeriod, &t.RoomID, &t.RoomNumber, &pwHash, &verStatus)
+		t.HasPassword = pwHash != ""
+		t.VerificationStatus = verStatus
 		tenants = append(tenants, t)
 	}
 	if tenants == nil {
@@ -203,6 +211,14 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			assignID := fmt.Sprintf("RA%d", time.Now().UnixNano())
 			db.DB.Exec(`INSERT INTO room_assignments (id, tenant_id, room_id, rent_amount, start_date, is_active)
 				VALUES ($1, $2, $3, $4, $5, true)`, assignID, id, roomID, rent, startDate)
+		}
+	} else if action == "set_password" {
+		newPass := r.FormValue("password")
+		if newPass != "" {
+			hash, err := bcrypt.GenerateFromPassword([]byte(newPass), bcrypt.DefaultCost)
+			if err == nil {
+				db.DB.Exec("UPDATE tenants SET password_hash = $1, updated_at = NOW() WHERE id = $2", string(hash), id)
+			}
 		}
 	}
 	http.Redirect(w, r, "/admin/tenants", http.StatusSeeOther)
@@ -425,6 +441,160 @@ func handleAdminMeterReadings(w http.ResponseWriter, r *http.Request) {
 	}
 	jsonContent(w)
 	json.NewEncoder(w).Encode(map[string]interface{}{"readings": readings})
+}
+
+// ─── Passes ─────────────────────────────────────────────────────
+
+func handleAdminPasses(w http.ResponseWriter, r *http.Request) {
+	if !requireAdmin(w, r) {
+		return
+	}
+
+	rows, err := db.DB.Query(`
+		SELECT t.id, t.name, t.phone, COALESCE(r.room_number,''),
+			COALESCE(tp.id,'') as pass_id, COALESCE(tp.pass_number,'') as pass_number,
+			COALESCE(tp.is_active,0) as pass_active
+		FROM tenants t
+		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active IS TRUE
+		LEFT JOIN rooms r ON ra.room_id = r.id
+		LEFT JOIN tenant_passes tp ON t.id = tp.tenant_id AND tp.is_active = 1
+		WHERE t.status = 'active'
+		ORDER BY t.name`)
+	if err != nil {
+		http.Error(w, "Failed to load tenants", 500)
+		return
+	}
+	defer rows.Close()
+
+	type PassTenant struct {
+		ID, Name, Phone, RoomNumber, PassID, PassNumber string
+		PassActive                                       bool
+	}
+	var tenants []PassTenant
+	for rows.Next() {
+		var t PassTenant
+		var pa int
+		rows.Scan(&t.ID, &t.Name, &t.Phone, &t.RoomNumber, &t.PassID, &t.PassNumber, &pa)
+		t.PassActive = pa == 1
+		tenants = append(tenants, t)
+	}
+	if tenants == nil {
+		tenants = []PassTenant{}
+	}
+
+	render(w, "admin_passes.html", map[string]interface{}{
+		"Tenants": tenants,
+		"Active":  "passes",
+		"Title":   "Digital Passes",
+	})
+}
+
+func handleAdminPassGenerate(w http.ResponseWriter, r *http.Request) {
+	if !requireAdmin(w, r) {
+		return
+	}
+	r.ParseForm()
+	tenantID := r.FormValue("tenant_id")
+	if tenantID == "" {
+		http.Redirect(w, r, "/admin/passes", http.StatusSeeOther)
+		return
+	}
+
+	var existingID, existingPass string
+	db.DB.QueryRow("SELECT id, pass_number FROM tenant_passes WHERE tenant_id = $1 AND is_active = 1", tenantID).Scan(&existingID, &existingPass)
+	if existingPass != "" {
+		http.Redirect(w, r, "/admin/passes?msg=Pass+already+exists:+ "+existingPass, http.StatusSeeOther)
+		return
+	}
+
+	var roomNum, tenantName string
+	db.DB.QueryRow(`
+		SELECT t.name, COALESCE(r.room_number,'')
+		FROM tenants t
+		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active IS TRUE
+		LEFT JOIN rooms r ON ra.room_id = r.id
+		WHERE t.id = $1`, tenantID).Scan(&tenantName, &roomNum)
+
+	passNum := fmt.Sprintf("VATS%s%s", roomNum, time.Now().Format("20060102"))
+	id := fmt.Sprintf("PASS%d", time.Now().UnixNano())
+	db.DB.Exec(`INSERT INTO tenant_passes (id, tenant_id, pass_number, issued_by, issued_at, is_active)
+		VALUES ($1, $2, $3, 'admin', NOW(), 1)`, id, tenantID, passNum)
+
+	http.Redirect(w, r, "/admin/passes?msg=Pass+"+passNum+"+generated+for+"+tenantName, http.StatusSeeOther)
+}
+
+func handleAdminPassRevoke(w http.ResponseWriter, r *http.Request) {
+	if !requireAdmin(w, r) {
+		return
+	}
+	r.ParseForm()
+	passID := r.FormValue("pass_id")
+	if passID != "" {
+		db.DB.Exec("UPDATE tenant_passes SET is_active = 0, updated_at = NOW() WHERE id = $1", passID)
+	}
+	http.Redirect(w, r, "/admin/passes", http.StatusSeeOther)
+}
+
+// ─── Verifications ─────────────────────────────────────────────
+
+func handleAdminVerifications(w http.ResponseWriter, r *http.Request) {
+	if !requireAdmin(w, r) {
+		return
+	}
+
+	rows, err := db.DB.Query(`
+		SELECT tv.id, tv.tenant_id, t.name, t.phone, COALESCE(r.room_number,''),
+			COALESCE(tv.lpu_id_photo,''), COALESCE(tv.aadhar_photo,''),
+			COALESCE(tv.status,'not_submitted'),
+			COALESCE(TO_CHAR(tv.submitted_at, 'Mon DD, YYYY HH24:MI'), ''),
+			COALESCE(tv.notes,'')
+		FROM tenant_verifications tv
+		JOIN tenants t ON tv.tenant_id = t.id
+		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active IS TRUE
+		LEFT JOIN rooms r ON ra.room_id = r.id
+		ORDER BY tv.submitted_at DESC NULLS LAST, tv.created_at DESC`)
+	if err != nil {
+		http.Error(w, "Failed to load verifications", 500)
+		return
+	}
+	defer rows.Close()
+
+	type VerificationAdmin struct {
+		ID, TenantID, Name, Phone, Room, LpuPhoto, AadharPhoto, Status, SubmittedAt, Notes string
+	}
+	var verifications []VerificationAdmin
+	for rows.Next() {
+		var v VerificationAdmin
+		rows.Scan(&v.ID, &v.TenantID, &v.Name, &v.Phone, &v.Room,
+			&v.LpuPhoto, &v.AadharPhoto, &v.Status, &v.SubmittedAt, &v.Notes)
+		verifications = append(verifications, v)
+	}
+	if verifications == nil {
+		verifications = []VerificationAdmin{}
+	}
+
+	render(w, "admin_verifications.html", map[string]interface{}{
+		"Verifications": verifications,
+		"Active":        "verifications",
+		"Title":         "Verification Requests",
+	})
+}
+
+func handleAdminVerificationAction(w http.ResponseWriter, r *http.Request) {
+	if !requireAdmin(w, r) {
+		return
+	}
+	r.ParseForm()
+	verID := r.FormValue("id")
+	action := r.FormValue("action")
+	notes := r.FormValue("notes")
+
+	if action == "verify" {
+		db.DB.Exec(`UPDATE tenant_verifications SET status = 'verified', verified_at = NOW(), notes = $1, updated_at = NOW() WHERE id = $2`, notes, verID)
+	} else if action == "reject" {
+		db.DB.Exec(`UPDATE tenant_verifications SET status = 'rejected', notes = $1, updated_at = NOW() WHERE id = $2`, notes, verID)
+	}
+	http.Redirect(w, r, "/admin/verifications", http.StatusSeeOther)
 }
 
 // ─── Helpers ───────────────────────────────────────────────────

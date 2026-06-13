@@ -1,0 +1,81 @@
+{{template "admin_header" .}}
+
+<h1 class="text-xl font-bold mb-6">Verification Requests</h1>
+
+{{if .Verifications}}
+<div class="bg-sf-lowest border border-ol-variant rounded-lg overflow-hidden">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b border-ol-variant bg-sf-low">
+        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Tenant</th>
+        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Room</th>
+        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Documents</th>
+        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Status</th>
+        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Submitted</th>
+        <th class="text-right px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .Verifications}}
+      <tr class="border-b border-ol-variant last:border-0 hover:bg-sf-low/50">
+        <td class="px-4 py-3">
+          <div class="font-medium">{{.Name}}</div>
+          <div class="text-xs text-on-sf-variant">{{.Phone}}</div>
+        </td>
+        <td class="px-4 py-3">{{.Room}}</td>
+        <td class="px-4 py-3">
+          <div class="flex items-center gap-2">
+            {{if .LpuPhoto}}
+            <a href="{{.LpuPhoto}}" target="_blank" class="text-xs text-primary font-semibold hover:underline">LPU ID</a>
+            {{else}}
+            <span class="text-xs text-on-sf-variant">No LPU ID</span>
+            {{end}}
+            {{if .AadharPhoto}}
+            <a href="{{.AadharPhoto}}" target="_blank" class="text-xs text-primary font-semibold hover:underline">Aadhar</a>
+            {{else}}
+            <span class="text-xs text-on-sf-variant">No Aadhar</span>
+            {{end}}
+          </div>
+        </td>
+        <td class="px-4 py-3">
+          <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full
+            {{if eq .Status "verified"}}bg-green-50 text-success border border-green-200
+            {{else if eq .Status "pending"}}bg-amber-50 text-warning border border-amber-200
+            {{else if eq .Status "rejected"}}bg-red-50 text-error border border-red-200
+            {{else}}bg-gray-50 text-on-sf-variant border border-ol-variant{{end}}">
+            {{.Status}}
+          </span>
+        </td>
+        <td class="px-4 py-3 text-xs text-on-sf-variant">{{.SubmittedAt}}</td>
+        <td class="px-4 py-3 text-right">
+          {{if or (eq .Status "pending") (eq .Status "not_submitted")}}
+          <div class="flex items-center justify-end gap-2">
+            <form method="POST" action="/admin/verifications/action" class="inline">
+              <input type="hidden" name="id" value="{{.ID}}">
+              <input type="hidden" name="action" value="verify">
+              <input type="text" name="notes" placeholder="Notes (optional)" class="w-24 text-xs border border-ol-variant rounded px-2 py-1">
+              <button type="submit" class="text-xs text-success font-semibold hover:underline ml-1">Approve</button>
+            </form>
+            <form method="POST" action="/admin/verifications/action" class="inline">
+              <input type="hidden" name="id" value="{{.ID}}">
+              <input type="hidden" name="action" value="reject">
+              <input type="text" name="notes" placeholder="Reason" class="w-24 text-xs border border-ol-variant rounded px-2 py-1">
+              <button type="submit" class="text-xs text-error font-semibold hover:underline ml-1">Reject</button>
+            </form>
+          </div>
+          {{else}}
+          <span class="text-xs text-on-sf-variant">{{.Notes}}</span>
+          {{end}}
+        </td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+</div>
+{{else}}
+<div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-lg">
+  <p class="text-on-sf-variant">No verification requests yet.</p>
+</div>
+{{end}}
+
+{{template "admin_footer" .}}

@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -25,10 +26,11 @@ func main() {
 	// Parse templates
 	var err error
 	tmpl = template.New("").Funcs(template.FuncMap{
-		"icon":    icon,
+		"icon":     icon,
 		"safeHTML": func(s string) template.HTML { return template.HTML(s) },
-		"sub":     func(a, b int) int { return a - b },
-		"mul":     func(a, b interface{}) float64 {
+		"sub":      func(a, b int) int { return a - b },
+		"urlquery": url.QueryEscape,
+		"mul": func(a, b interface{}) float64 {
 			toF := func(v interface{}) float64 {
 				switch x := v.(type) {
 				case int:
@@ -89,6 +91,23 @@ func main() {
 	mux.HandleFunc("POST /admin/blog/save", handleAdminBlogSave)
 	mux.HandleFunc("GET /admin/api-keys", handleAdminAPIKeys)
 	mux.HandleFunc("POST /admin/api-keys", handleAdminAPIKeys)
+
+	// Tenant Portal
+	mux.HandleFunc("GET /tenant/dashboard", handleTenantDashboard)
+	mux.HandleFunc("POST /tenant/verification/upload", handleTenantVerificationUpload)
+	mux.HandleFunc("POST /tenant/change-password", handleTenantSetPassword)
+	mux.HandleFunc("GET /tenant/payments", handleTenantPayments)
+	mux.HandleFunc("GET /tenant/logout", handleTenantLogout)
+
+	// Static uploads
+	mux.HandleFunc("GET /uploads/", handleTenantUploadedFile)
+
+	// Admin Passes & Verifications
+	mux.HandleFunc("GET /admin/passes", handleAdminPasses)
+	mux.HandleFunc("POST /admin/passes/generate", handleAdminPassGenerate)
+	mux.HandleFunc("POST /admin/passes/revoke", handleAdminPassRevoke)
+	mux.HandleFunc("GET /admin/verifications", handleAdminVerifications)
+	mux.HandleFunc("POST /admin/verifications/action", handleAdminVerificationAction)
 
 	// API
 	mux.HandleFunc("GET /api/rooms", handleAPIRooms)
