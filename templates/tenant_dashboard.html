@@ -198,13 +198,13 @@ function sendPassTo(phone) {
   var num = phone.replace(/[^0-9]/g, '');
   if (num.length < 10) { alert("Please enter a valid phone number"); return; }
   if (num.length === 10) num = "91" + num;
-  var msg = "🏠 *Vats Apartment - Digital Pass*\n\n" +
-    "*Name:* {{.Tenant.Name}}\n" +
+  var msg = "🏠 *Welcome to Vats Apartment!*\n\n" +
+    "Hi {{.Tenant.Name}}, your room is ready! 🎉\n\n" +
     "*Room:* {{.Tenant.RoomNumber}}\n" +
-    "*Pass No:* {{.PassNumber}}\n" +
-    "*Phone:* {{.Tenant.Phone}}\n" +
-    "*Address:* Near LPU, Jalandhar\n\n" +
-    "Please keep this pass handy for entry.";
+    "*Pass No:* {{.PassNumber}}\n\n" +
+    "🔑 Login at: https://vatsapartment.com/login\n" +
+    "Use your phone number & password to access your dashboard, payments & digital pass.\n\n" +
+    "Enjoy your stay! \n📍 Near LPU, Jalandhar";
   window.open("https://wa.me/" + num + "?text=" + encodeURIComponent(msg), '_blank');
 }
 </script>
