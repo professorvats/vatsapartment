@@ -55,9 +55,18 @@ func handleBookNow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	grouped := groupByFloor(rooms)
+
+	var availableRooms []Room
+	for _, room := range rooms {
+		if room.Status != "active" {
+			availableRooms = append(availableRooms, room)
+		}
+	}
+
 	render(w, "booknow.html", map[string]interface{}{
-		"Floors": grouped,
-		"Rooms":  rooms,
+		"Floors":         grouped,
+		"Rooms":          rooms,
+		"AvailableRooms": availableRooms,
 	})
 }
 

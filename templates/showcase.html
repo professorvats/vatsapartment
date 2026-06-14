@@ -23,6 +23,7 @@
 </script>
 <link rel="icon" href="/static/favicon.ico">
 <style>body{margin:0}canvas{display:block}.safe-bottom{padding-bottom:env(safe-area-inset-bottom)}
+#viewer{height:calc(100vh - 12rem)}@media(min-width:768px){#viewer{height:calc(100vh - 7rem)}}
 @keyframes marquee{0%{transform:translateX(0%)}100%{transform:translateX(-50%)}}
 .animate-marquee{display:inline-block;animation:marquee 40s linear infinite;min-width:max-content;}</style>
 <!-- Google Tag Manager -->
@@ -90,7 +91,7 @@ window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
   </div>
 </nav>
 
-<div id="viewer" class="relative" style="height:calc(100vh - 7rem)">
+<div id="viewer" class="relative">
   <div id="loading" class="absolute inset-0 flex items-center justify-center bg-black/90 z-10">
     <div class="text-center text-white">
       <div class="w-10 h-10 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-3"></div>
