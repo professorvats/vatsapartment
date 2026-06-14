@@ -507,9 +507,22 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Month options for dropdown (12 months back, 6 months forward from current month)
+	type MonthOpt struct{ Value, Label string }
+	var monthOpts []MonthOpt
+	now := time.Now()
+	for i := -12; i <= 6; i++ {
+		t := now.AddDate(0, i, 0)
+		monthOpts = append(monthOpts, MonthOpt{
+			Value: t.Format("2006-01"),
+			Label: t.Format("January 2006"),
+		})
+	}
+
 	render(w, "admin_payments.html", map[string]interface{}{
 		"Payments": payments,
 		"Tenants":  tenantOpts,
+		"Months":   monthOpts,
 		"Active":   "payments",
 		"Title":    "Payments",
 	})
