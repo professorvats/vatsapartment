@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -135,13 +136,13 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 		COALESCE(ra.room_id, '') as room_id, COALESCE(r.room_number, '') as room_number,
 		COALESCE(ra.rent_amount, 0) as rent_amount, COALESCE(ra.start_date, '') as start_date,
 		COALESCE(t.password_hash, '') as password_hash,
-		COALESCE((SELECT status FROM tenant_verifications WHERE tenant_id = t.id), 'not_submitted') as ver_status
+		COALESCE((SELECT status FROM tenant_verifications WHERE tenant_id = t.id LIMIT 1), 'not_submitted') as ver_status
 		FROM tenants t
 		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active = 1
 		LEFT JOIN rooms r ON ra.room_id = r.id
 		ORDER BY t.name`)
 	if err != nil {
-		http.Error(w, "Failed to load tenants", 500)
+		log.Printf("ERROR loading tenants: %v", err); http.Error(w, "Failed to load tenants", 500)
 		return
 	}
 	defer rows.Close()
@@ -495,7 +496,7 @@ func handleAdminPasses(w http.ResponseWriter, r *http.Request) {
 		WHERE t.status = 'active'
 		ORDER BY t.name`)
 	if err != nil {
-		http.Error(w, "Failed to load tenants", 500)
+		log.Printf("ERROR loading tenants: %v", err); http.Error(w, "Failed to load tenants", 500)
 		return
 	}
 	defer rows.Close()
