@@ -15,7 +15,6 @@
         <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Verification</th>
         <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Login</th>
         <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Status</th>
-        <th class="text-right px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Action</th>
       </tr>
     </thead>
     <tbody>
@@ -40,28 +39,17 @@
           {{end}}
         </td>
         <td class="px-4 py-3">
-          {{if eq .Status "active"}}
-          <span class="inline-flex items-center gap-1 text-xs text-secondary font-medium"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>Active</span>
-          {{else}}
-          <span class="inline-flex items-center gap-1 text-xs text-on-sf-variant"><span class="w-1.5 h-1.5 rounded-full bg-on-sf-variant"></span>{{.Status}}</span>
-          {{end}}
-        </td>
-        <td class="px-4 py-3 text-right whitespace-nowrap">
-          <div class="flex items-center justify-end gap-2">
-            <button onclick="openEdit('{{.ID}}','{{.Name}}','{{.Phone}}','{{.Email}}','{{.Status}}','{{.RoomID}}','{{.RoomNumber}}','{{.SecurityDeposit}}','{{.LockInPeriod}}','{{.RentAmount}}','{{.StartDate}}','{{.HasPassword}}')"
-              class="text-xs text-primary font-semibold hover:underline">Edit</button>
-            {{if eq .Status "active"}}
-            <form method="POST" action="/admin/tenants/save" class="inline" onsubmit="return confirm('Deactivate {{.Name}}?')">
-              <input type="hidden" name="action" value="update">
-              <input type="hidden" name="id" value="{{.ID}}">
-              <input type="hidden" name="name" value="{{.Name}}">
-              <input type="hidden" name="phone" value="{{.Phone}}">
-              <input type="hidden" name="email" value="{{.Email}}">
-              <input type="hidden" name="status" value="inactive">
-              <button type="submit" class="text-xs text-red-600 font-semibold hover:underline">Deactivate</button>
-            </form>
-            {{end}}
-          </div>
+          <form method="POST" action="/admin/tenants/save" class="inline">
+            <input type="hidden" name="action" value="update">
+            <input type="hidden" name="id" value="{{.ID}}">
+            <input type="hidden" name="name" value="{{.Name}}">
+            <input type="hidden" name="phone" value="{{.Phone}}">
+            <input type="hidden" name="email" value="{{.Email}}">
+            <select name="status" onchange="this.form.submit()" class="border border-ol-variant rounded px-2 py-1 text-xs bg-sf-lowest">
+              <option value="active" {{if eq .Status "active"}}selected{{end}}>Active</option>
+              <option value="inactive" {{if eq .Status "inactive"}}selected{{end}}>Inactive</option>
+            </select>
+          </form>
         </td>
       </tr>
       {{end}}
@@ -74,15 +62,14 @@
 </div>
 {{end}}
 
-<!-- Combined Edit Modal -->
+<!-- Add Tenant Modal -->
 <div id="edit-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
   <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-lg my-8">
-    <h3 class="font-semibold text-lg mb-1" id="modal-title">Edit Tenant</h3>
-    <p class="text-xs text-on-sf-variant mb-4" id="edit-subtitle">Room: <span id="edit-room-display"></span></p>
+    <h3 class="font-semibold text-lg mb-1">Add Tenant</h3>
+    <p class="text-xs text-on-sf-variant mb-4">Fill in the details for the new tenant</p>
 
     <form method="POST" action="/admin/tenants/save" class="space-y-4">
-      <input type="hidden" name="action" value="save_all" id="form-action">
-      <input type="hidden" name="id" id="edit-id">
+      <input type="hidden" name="action" value="add">
 
       <!-- Personal Info -->
       <div class="bg-sf-low rounded-lg p-4 space-y-3">
@@ -90,30 +77,30 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs text-on-sf-variant mb-1">Name</label>
-            <input name="name" id="edit-name" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required>
+            <input name="name" id="add-name" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required>
           </div>
           <div>
             <label class="block text-xs text-on-sf-variant mb-1">Phone</label>
-            <input name="phone" id="edit-phone" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required>
+            <input name="phone" id="add-phone" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required>
           </div>
           <div class="col-span-2">
             <label class="block text-xs text-on-sf-variant mb-1">Email</label>
-            <input name="email" id="edit-email" type="email" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <input name="email" id="add-email" type="email" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
           </div>
           <div>
             <label class="block text-xs text-on-sf-variant mb-1">Check-in Date</label>
-            <input name="check_in_date" id="edit-check-in" type="date" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <input name="check_in_date" id="add-check-in" type="date" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
           </div>
           <div>
             <label class="block text-xs text-on-sf-variant mb-1">Status</label>
-            <select name="status" id="edit-status" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <select name="status" id="add-status" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Password <span class="text-on-sf-variant/60" id="pw-hint">(leave blank to keep)</span></label>
-            <input name="password" id="edit-password" type="text" placeholder="Set new password"
+            <label class="block text-xs text-on-sf-variant mb-1">Password</label>
+            <input name="password" id="add-password" type="text" placeholder="Set password for login"
               class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
           </div>
         </div>
@@ -125,33 +112,33 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs text-on-sf-variant mb-1">Room</label>
-            <select name="room_id" id="edit-room" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <select name="room_id" id="add-room" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
               <option value="">— No room —</option>
               {{range .Rooms}}<option value="{{.ID}}">{{.Number}}</option>{{end}}
             </select>
           </div>
           <div>
             <label class="block text-xs text-on-sf-variant mb-1">Rent (₹)</label>
-            <input name="rent" id="edit-rent" type="number" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <input name="rent" id="add-rent" type="number" value="9000" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
           </div>
           <div>
             <label class="block text-xs text-on-sf-variant mb-1">Start Date</label>
-            <input name="start_date" id="edit-start-date" type="date" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <input name="start_date" id="add-start-date" type="date" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
           </div>
           <div>
             <label class="block text-xs text-on-sf-variant mb-1">Security Deposit (₹)</label>
-            <input name="security_deposit" id="edit-sec-deposit" type="number" step="0.01" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <input name="security_deposit" id="add-sec-deposit" type="number" step="0.01" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
           </div>
           <div>
             <label class="block text-xs text-on-sf-variant mb-1">Lock-in Period (months)</label>
-            <input name="lock_in_period" id="edit-lock-in" type="number" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <input name="lock_in_period" id="add-lock-in" type="number" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
           </div>
         </div>
       </div>
 
       <div class="flex gap-3 pt-2">
-        <button type="submit" class="bg-primary text-on-primary px-6 py-2.5 rounded-lg text-sm font-semibold flex-1">Save All</button>
-        <button type="button" onclick="closeEdit()" class="border border-ol-variant px-6 py-2.5 rounded-lg text-sm">Cancel</button>
+        <button type="submit" class="bg-primary text-on-primary px-6 py-2.5 rounded-lg text-sm font-semibold flex-1">Add Tenant</button>
+        <button type="button" onclick="closeAdd()" class="border border-ol-variant px-6 py-2.5 rounded-lg text-sm">Cancel</button>
       </div>
     </form>
   </div>
@@ -159,46 +146,20 @@
 
 <script>
 function openAdd() {
-  document.getElementById('modal-title').textContent = 'Add Tenant';
-  document.getElementById('form-action').value = 'add';
-  document.getElementById('edit-id').value = '';
-  document.getElementById('edit-name').value = '';
-  document.getElementById('edit-phone').value = '';
-  document.getElementById('edit-email').value = '';
-  document.getElementById('edit-status').value = 'active';
-  document.getElementById('edit-check-in').value = '';
-  document.getElementById('edit-room-display').textContent = 'New tenant';
-  document.getElementById('edit-room').value = '';
-  document.getElementById('edit-start-date').value = new Date().toISOString().split('T')[0];
-  document.getElementById('edit-rent').value = '9000';
-  document.getElementById('edit-sec-deposit').value = '';
-  document.getElementById('edit-lock-in').value = '';
-  document.getElementById('edit-password').value = '';
-  document.getElementById('pw-hint').textContent = '(set password for tenant login)';
+  document.getElementById('add-name').value = '';
+  document.getElementById('add-phone').value = '';
+  document.getElementById('add-email').value = '';
+  document.getElementById('add-status').value = 'active';
+  document.getElementById('add-check-in').value = '';
+  document.getElementById('add-room').value = '';
+  document.getElementById('add-start-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('add-rent').value = '9000';
+  document.getElementById('add-sec-deposit').value = '';
+  document.getElementById('add-lock-in').value = '';
+  document.getElementById('add-password').value = '';
   document.getElementById('edit-modal').classList.remove('hidden');
 }
-
-function openEdit(id, name, phone, email, status, roomId, roomNumber, secDeposit, lockIn, rent, startDate, hasPw) {
-  document.getElementById('modal-title').textContent = 'Edit Tenant';
-  document.getElementById('form-action').value = 'save_all';
-  document.getElementById('edit-id').value = id;
-  document.getElementById('edit-name').value = name;
-  document.getElementById('edit-phone').value = phone;
-  document.getElementById('edit-email').value = email;
-  document.getElementById('edit-status').value = status;
-  document.getElementById('edit-check-in').value = '';
-  document.getElementById('edit-room-display').textContent = roomNumber || 'No room assigned';
-  if (roomId) document.getElementById('edit-room').value = roomId;
-  else document.getElementById('edit-room').value = '';
-  document.getElementById('edit-start-date').value = startDate ? startDate.split('T')[0] : new Date().toISOString().split('T')[0];
-  document.getElementById('edit-rent').value = rent || '9000';
-  document.getElementById('edit-sec-deposit').value = secDeposit || '';
-  document.getElementById('edit-lock-in').value = lockIn || '';
-  document.getElementById('edit-password').value = '';
-  document.getElementById('pw-hint').textContent = '(leave blank to keep)';
-  document.getElementById('edit-modal').classList.remove('hidden');
-}
-function closeEdit() {
+function closeAdd() {
   document.getElementById('edit-modal').classList.add('hidden');
 }
 </script>
