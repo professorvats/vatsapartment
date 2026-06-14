@@ -160,11 +160,13 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 		COALESCE(ra.room_id, '') as room_id, COALESCE(r.room_number, '') as room_number,
 		COALESCE(ra.rent_amount, 0) as rent_amount, COALESCE(ra.start_date::text, '') as start_date,
 		COALESCE(t.password_hash, '') as password_hash,
-		COALESCE(tv.status, 'not_submitted') as ver_status
+		COALESCE(tv.status, 'not_submitted') as ver_status,
+		COALESCE(tp.pass_number, '') as pass_number, COALESCE(tp.is_active, 0) as pass_active
 		FROM tenants t
 		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active
 		LEFT JOIN rooms r ON ra.room_id = r.id
 		LEFT JOIN tenant_verifications tv ON t.id = tv.tenant_id
+		LEFT JOIN tenant_passes tp ON t.id = tp.tenant_id AND tp.is_active = 1
 		ORDER BY t.name`)
 	if err != nil {
 		log.Printf("ERROR loading tenants: %v", err); renderAdminError(w, "Failed to load tenants")
@@ -173,25 +175,27 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	type TenantAdmin struct {
-		ID, Name, Email, Phone, Status, CheckInDate, RoomID, RoomNumber string
+		ID, Name, Email, Phone, Status, CheckInDate, RoomID, RoomNumber, PassNumber string
 		SecurityDeposit                                                  float64
 		LockInPeriod                                                     int
 		RentAmount                                                       float64
 		StartDate                                                        string
-		HasPassword                                                      bool
+		HasPassword, PassActive                                          bool
 		VerificationStatus                                                string
 	}
 	var tenants []TenantAdmin
 	for rows.Next() {
 		var t TenantAdmin
 		var pwHash, verStatus string
+		var pa int
 		if err := rows.Scan(&t.ID, &t.Name, &t.Email, &t.Phone, &t.Status, &t.CheckInDate,
 			&t.SecurityDeposit, &t.LockInPeriod, &t.RoomID, &t.RoomNumber, &t.RentAmount, &t.StartDate,
-			&pwHash, &verStatus); err != nil {
+			&pwHash, &verStatus, &t.PassNumber, &pa); err != nil {
 			log.Printf("ERROR scanning tenant row: %v", err)
 			continue
 		}
 		t.HasPassword = pwHash != ""
+		t.PassActive = pa == 1
 		t.VerificationStatus = verStatus
 		tenants = append(tenants, t)
 	}

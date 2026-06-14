@@ -14,6 +14,7 @@
         <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Room</th>
         <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Verification</th>
         <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Login</th>
+        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Pass</th>
         <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Status</th>
         <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Actions</th>
       </tr>
@@ -37,6 +38,13 @@
           <span class="text-xs text-success">✓ Active</span>
           {{else}}
           <span class="text-xs text-on-sf-variant">No password</span>
+          {{end}}
+        </td>
+        <td class="px-4 py-3">
+          {{if .PassActive}}
+          <span class="text-xs text-success font-medium">{{.PassNumber}}</span>
+          {{else}}
+          <span class="text-xs text-on-sf-variant">—</span>
           {{end}}
         </td>
         <td class="px-4 py-3">
