@@ -305,12 +305,6 @@ function openEdit(id, name, phone, email, status, checkIn, roomId, rent, startDa
   document.getElementById('edit-lock-in').value = lockIn || '';
   document.getElementById('edit-password').value = '';
   document.getElementById('edit-pass-id').value = id;
-  var passStatus = document.getElementById('edit-pass-status');
-  if (passActive) {
-    passStatus.innerHTML = 'Current pass: <span class=\"text-success font-medium\">' + passNumber + '</span>';
-  } else {
-    passStatus.textContent = 'No active pass. Generate one below.';
-  }
   document.getElementById('edit-modal').classList.remove('hidden');
 }
 function closeEdit() {
