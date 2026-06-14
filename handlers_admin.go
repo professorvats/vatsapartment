@@ -130,8 +130,8 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 	if !requireAdmin(w, r) {
 		return
 	}
-	rows, err := db.DB.Query(`SELECT t.id, t.name, t.email, t.phone, t.status, t.check_in_date,
-		t.security_deposit, t.security_lock_in_period,
+	rows, err := db.DB.Query(`SELECT t.id, t.name, t.email, t.phone, t.status, COALESCE(t.check_in_date, '') as check_in_date,
+		COALESCE(t.security_deposit, 0) as security_deposit, COALESCE(t.security_lock_in_period, 0) as security_lock_in_period,
 		COALESCE(ra.room_id, '') as room_id, COALESCE(r.room_number, '') as room_number,
 		COALESCE(ra.rent_amount, 0) as rent_amount, COALESCE(ra.start_date, '') as start_date,
 		COALESCE(t.password_hash, '') as password_hash,
