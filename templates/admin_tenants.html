@@ -44,8 +44,21 @@
           {{end}}
         </td>
         <td class="px-4 py-3 text-right whitespace-nowrap">
-          <button onclick="openEdit('{{.ID}}','{{.Name}}','{{.Phone}}','{{.Email}}','{{.Status}}','{{.RoomID}}','{{.RoomNumber}}','{{.SecurityDeposit}}','{{.LockInPeriod}}','{{.RentAmount}}','{{.StartDate}}','{{.HasPassword}}')"
-            class="text-xs text-primary font-semibold hover:underline">Edit</button>
+          <div class="flex items-center justify-end gap-2">
+            <button onclick="openEdit('{{.ID}}','{{.Name}}','{{.Phone}}','{{.Email}}','{{.Status}}','{{.RoomID}}','{{.RoomNumber}}','{{.SecurityDeposit}}','{{.LockInPeriod}}','{{.RentAmount}}','{{.StartDate}}','{{.HasPassword}}')"
+              class="text-xs text-primary font-semibold hover:underline">Edit</button>
+            {{if eq .Status "active"}}
+            <form method="POST" action="/admin/tenants/save" class="inline" onsubmit="return confirm('Deactivate {{.Name}}?')">
+              <input type="hidden" name="action" value="update">
+              <input type="hidden" name="id" value="{{.ID}}">
+              <input type="hidden" name="name" value="{{.Name}}">
+              <input type="hidden" name="phone" value="{{.Phone}}">
+              <input type="hidden" name="email" value="{{.Email}}">
+              <input type="hidden" name="status" value="inactive">
+              <button type="submit" class="text-xs text-red-600 font-semibold hover:underline">Deactivate</button>
+            </form>
+            {{end}}
+          </div>
         </td>
       </tr>
       {{end}}
