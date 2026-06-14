@@ -53,7 +53,7 @@ func handleTenantDashboard(w http.ResponseWriter, r *http.Request) {
 			COALESCE(t.check_in_date,''),
 			COALESCE(ra.rent_amount,0)
 		FROM tenants t
-		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active IS TRUE
+		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active = 1
 		LEFT JOIN rooms r ON ra.room_id = r.id
 		WHERE t.id = $1`, tenantID,
 	).Scan(&ti.ID, &ti.Name, &ti.Phone, &ti.Email, &ti.RoomID, &ti.RoomNumber, &ti.CheckInDate, &ti.RentAmount)

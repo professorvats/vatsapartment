@@ -137,7 +137,7 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 		COALESCE(t.password_hash, '') as password_hash,
 		COALESCE((SELECT status FROM tenant_verifications WHERE tenant_id = t.id), 'not_submitted') as ver_status
 		FROM tenants t
-		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active IS TRUE
+		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active = 1
 		LEFT JOIN rooms r ON ra.room_id = r.id
 		ORDER BY t.name`)
 	if err != nil {
@@ -211,7 +211,7 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 		startDate := r.FormValue("start_date")
 		if roomID != "" {
 			// First end any active assignments
-			db.DB.Exec("UPDATE room_assignments SET is_active=false, updated_at=NOW() WHERE tenant_id=$1 AND is_active IS TRUE", id)
+			db.DB.Exec("UPDATE room_assignments SET is_active=0, updated_at=NOW() WHERE tenant_id=$1 AND is_active = 1", id)
 			assignID := fmt.Sprintf("RA%d", time.Now().UnixNano())
 			db.DB.Exec(`INSERT INTO room_assignments (id, tenant_id, room_id, rent_amount, start_date, is_active)
 				VALUES ($1, $2, $3, $4, $5, true)`, assignID, id, roomID, rent, startDate)
@@ -245,9 +245,9 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 		rent, _ := strconv.ParseFloat(r.FormValue("rent"), 64)
 		startDate := r.FormValue("start_date")
 		if roomID != "" {
-			db.DB.Exec("UPDATE room_assignments SET is_active=false, updated_at=NOW() WHERE tenant_id=$1 AND is_active IS TRUE", id)
+			db.DB.Exec("UPDATE room_assignments SET is_active=0, updated_at=NOW() WHERE tenant_id=$1 AND is_active = 1", id)
 			var existing int
-			db.DB.QueryRow("SELECT COUNT(*) FROM room_assignments WHERE tenant_id=$1 AND room_id=$2 AND is_active IS TRUE", id, roomID).Scan(&existing)
+			db.DB.QueryRow("SELECT COUNT(*) FROM room_assignments WHERE tenant_id=$1 AND room_id=$2 AND is_active = 1", id, roomID).Scan(&existing)
 			if existing == 0 {
 				assignID := fmt.Sprintf("RA%d", time.Now().UnixNano())
 				db.DB.Exec(`INSERT INTO room_assignments (id, tenant_id, room_id, rent_amount, start_date, is_active)
@@ -489,7 +489,7 @@ func handleAdminPasses(w http.ResponseWriter, r *http.Request) {
 			COALESCE(tp.id,'') as pass_id, COALESCE(tp.pass_number,'') as pass_number,
 			COALESCE(tp.is_active,0) as pass_active
 		FROM tenants t
-		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active IS TRUE
+		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active = 1
 		LEFT JOIN rooms r ON ra.room_id = r.id
 		LEFT JOIN tenant_passes tp ON t.id = tp.tenant_id AND tp.is_active = 1
 		WHERE t.status = 'active'
@@ -545,7 +545,7 @@ func handleAdminPassGenerate(w http.ResponseWriter, r *http.Request) {
 	db.DB.QueryRow(`
 		SELECT t.name, COALESCE(r.room_number,'')
 		FROM tenants t
-		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active IS TRUE
+		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active = 1
 		LEFT JOIN rooms r ON ra.room_id = r.id
 		WHERE t.id = $1`, tenantID).Scan(&tenantName, &roomNum)
 
@@ -584,7 +584,7 @@ func handleAdminVerifications(w http.ResponseWriter, r *http.Request) {
 			COALESCE(tv.notes,'')
 		FROM tenant_verifications tv
 		JOIN tenants t ON tv.tenant_id = t.id
-		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active IS TRUE
+		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active = 1
 		LEFT JOIN rooms r ON ra.room_id = r.id
 		ORDER BY tv.submitted_at DESC NULLS LAST, tv.created_at DESC`)
 	if err != nil {
