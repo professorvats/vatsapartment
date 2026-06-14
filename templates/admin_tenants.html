@@ -1,5 +1,8 @@
 {{template "admin_header" .}}
-<h1 class="text-xl font-bold mb-6">Manage Tenants</h1>
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-xl font-bold">Manage Tenants</h1>
+  <button onclick="openAdd()" class="bg-secondary text-on-secondary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-secondary/90">+ Add Tenant</button>
+</div>
 
 {{if .Tenants}}
 <div class="bg-sf-lowest border border-ol-variant rounded-lg overflow-hidden">
@@ -74,11 +77,11 @@
 <!-- Combined Edit Modal -->
 <div id="edit-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
   <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-lg my-8">
-    <h3 class="font-semibold text-lg mb-1">Edit Tenant</h3>
+    <h3 class="font-semibold text-lg mb-1" id="modal-title">Edit Tenant</h3>
     <p class="text-xs text-on-sf-variant mb-4" id="edit-subtitle">Room: <span id="edit-room-display"></span></p>
 
     <form method="POST" action="/admin/tenants/save" class="space-y-4">
-      <input type="hidden" name="action" value="save_all">
+      <input type="hidden" name="action" value="save_all" id="form-action">
       <input type="hidden" name="id" id="edit-id">
 
       <!-- Personal Info -->
@@ -98,6 +101,10 @@
             <input name="email" id="edit-email" type="email" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
           </div>
           <div>
+            <label class="block text-xs text-on-sf-variant mb-1">Check-in Date</label>
+            <input name="check_in_date" id="edit-check-in" type="date" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+          </div>
+          <div>
             <label class="block text-xs text-on-sf-variant mb-1">Status</label>
             <select name="status" id="edit-status" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
               <option value="active">Active</option>
@@ -105,7 +112,7 @@
             </select>
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Password <span class="text-on-sf-variant/60">(leave blank to keep)</span></label>
+            <label class="block text-xs text-on-sf-variant mb-1">Password <span class="text-on-sf-variant/60" id="pw-hint">(leave blank to keep)</span></label>
             <input name="password" id="edit-password" type="text" placeholder="Set new password"
               class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
           </div>
@@ -151,20 +158,44 @@
 </div>
 
 <script>
+function openAdd() {
+  document.getElementById('modal-title').textContent = 'Add Tenant';
+  document.getElementById('form-action').value = 'add';
+  document.getElementById('edit-id').value = '';
+  document.getElementById('edit-name').value = '';
+  document.getElementById('edit-phone').value = '';
+  document.getElementById('edit-email').value = '';
+  document.getElementById('edit-status').value = 'active';
+  document.getElementById('edit-check-in').value = '';
+  document.getElementById('edit-room-display').textContent = 'New tenant';
+  document.getElementById('edit-room').value = '';
+  document.getElementById('edit-start-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('edit-rent').value = '9000';
+  document.getElementById('edit-sec-deposit').value = '';
+  document.getElementById('edit-lock-in').value = '';
+  document.getElementById('edit-password').value = '';
+  document.getElementById('pw-hint').textContent = '(set password for tenant login)';
+  document.getElementById('edit-modal').classList.remove('hidden');
+}
+
 function openEdit(id, name, phone, email, status, roomId, roomNumber, secDeposit, lockIn, rent, startDate, hasPw) {
+  document.getElementById('modal-title').textContent = 'Edit Tenant';
+  document.getElementById('form-action').value = 'save_all';
   document.getElementById('edit-id').value = id;
   document.getElementById('edit-name').value = name;
   document.getElementById('edit-phone').value = phone;
   document.getElementById('edit-email').value = email;
   document.getElementById('edit-status').value = status;
+  document.getElementById('edit-check-in').value = '';
   document.getElementById('edit-room-display').textContent = roomNumber || 'No room assigned';
   if (roomId) document.getElementById('edit-room').value = roomId;
   else document.getElementById('edit-room').value = '';
-  document.getElementById('edit-start-date').value = startDate || new Date().toISOString().split('T')[0];
+  document.getElementById('edit-start-date').value = startDate ? startDate.split('T')[0] : new Date().toISOString().split('T')[0];
   document.getElementById('edit-rent').value = rent || '9000';
   document.getElementById('edit-sec-deposit').value = secDeposit || '';
   document.getElementById('edit-lock-in').value = lockIn || '';
   document.getElementById('edit-password').value = '';
+  document.getElementById('pw-hint').textContent = '(leave blank to keep)';
   document.getElementById('edit-modal').classList.remove('hidden');
 }
 function closeEdit() {

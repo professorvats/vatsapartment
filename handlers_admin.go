@@ -125,6 +125,16 @@ func handleAdminRoomAdd(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/admin/rooms", http.StatusSeeOther)
 }
 
+func toFloat(s string) float64 {
+	f, _ := strconv.ParseFloat(s, 64)
+	return f
+}
+
+func toInt(s string) int {
+	i, _ := strconv.Atoi(s)
+	return i
+}
+
 // ─── Tenants ───────────────────────────────────────────────────
 
 func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
