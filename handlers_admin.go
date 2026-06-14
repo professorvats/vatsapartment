@@ -160,13 +160,11 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 		COALESCE(ra.room_id, '') as room_id, COALESCE(r.room_number, '') as room_number,
 		COALESCE(ra.rent_amount, 0) as rent_amount, COALESCE(ra.start_date::text, '') as start_date,
 		COALESCE(t.password_hash, '') as password_hash,
-		COALESCE(tv.status, 'not_submitted') as ver_status,
-		COALESCE(tp.pass_number, '') as pass_number, COALESCE(tp.is_active, 0) as pass_active
+		COALESCE(tv.status, 'not_submitted') as ver_status
 		FROM tenants t
 		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active
 		LEFT JOIN rooms r ON ra.room_id = r.id
 		LEFT JOIN tenant_verifications tv ON t.id = tv.tenant_id
-		LEFT JOIN tenant_passes tp ON t.id = tp.tenant_id AND tp.is_active = 1
 		ORDER BY t.name`)
 	if err != nil {
 		log.Printf("ERROR loading tenants: %v", err); renderAdminError(w, "Failed to load tenants")
@@ -175,27 +173,25 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	type TenantAdmin struct {
-		ID, Name, Email, Phone, Status, CheckInDate, RoomID, RoomNumber, PassNumber string
+		ID, Name, Email, Phone, Status, CheckInDate, RoomID, RoomNumber string
 		SecurityDeposit                                                  float64
 		LockInPeriod                                                     int
 		RentAmount                                                       float64
 		StartDate                                                        string
-		HasPassword, PassActive                                          bool
+		HasPassword                                                      bool
 		VerificationStatus                                                string
 	}
 	var tenants []TenantAdmin
 	for rows.Next() {
 		var t TenantAdmin
 		var pwHash, verStatus string
-		var pa int
 		if err := rows.Scan(&t.ID, &t.Name, &t.Email, &t.Phone, &t.Status, &t.CheckInDate,
 			&t.SecurityDeposit, &t.LockInPeriod, &t.RoomID, &t.RoomNumber, &t.RentAmount, &t.StartDate,
-			&pwHash, &verStatus, &t.PassNumber, &pa); err != nil {
+			&pwHash, &verStatus); err != nil {
 			log.Printf("ERROR scanning tenant row: %v", err)
 			continue
 		}
 		t.HasPassword = pwHash != ""
-		t.PassActive = pa == 1
 		t.VerificationStatus = verStatus
 		tenants = append(tenants, t)
 	}
@@ -407,40 +403,33 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/admin/tenants?msg=Tenant+updated", http.StatusSeeOther)
 			return
 		} else if action == "generate_pass" || action == "reset_pass" {
-			// Deactivate any existing active pass
-			db.DB.Exec("UPDATE tenant_passes SET is_active = 0, updated_at = NOW() WHERE tenant_id = $1 AND is_active = 1", id)
-			// Get room number and tenant name for pass generation
-			var roomNum, tenantName, tenantPhone, tenantHash string
-			db.DB.QueryRow(`SELECT COALESCE(r.room_number, 'XX'), t.name, t.phone, COALESCE(t.password_hash, '')
-				FROM tenants t
-				LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active
-				LEFT JOIN rooms r ON ra.room_id = r.id WHERE t.id = $1`, id).Scan(&roomNum, &tenantName, &tenantPhone, &tenantHash)
-			passNum := fmt.Sprintf("VATS%s%s", roomNum, time.Now().Format("20060102"))
-			passID := fmt.Sprintf("PASS%d", time.Now().UnixNano())
-			db.DB.Exec(`INSERT INTO tenant_passes (id, tenant_id, pass_number, issued_by, issued_at, is_active)
-				VALUES ($1, $2, $3, 'admin', NOW(), 1)`, passID, id, passNum)
+			// Get tenant phone for auto password generation
+			var tenantPhone, tenantHash string
+			db.DB.QueryRow(`SELECT t.phone, COALESCE(t.password_hash, '') FROM tenants t WHERE t.id = $1`, id).Scan(&tenantPhone, &tenantHash)
 
-			// Auto-generate password if none exists
 			autoPass := ""
 			if tenantHash == "" {
-				// Use last 4 digits of phone as password
 				phone := strings.ReplaceAll(tenantPhone, " ", "")
 				if len(phone) >= 4 {
 					autoPass = "vats" + phone[len(phone)-4:]
 				} else {
 					autoPass = "vats" + phone
 				}
-				hash, err := bcrypt.GenerateFromPassword([]byte(autoPass), bcrypt.DefaultCost)
-				if err == nil {
-					db.DB.Exec("UPDATE tenants SET password_hash = $1, updated_at = NOW() WHERE id = $2", string(hash), id)
+			} else {
+				// Reset: generate new random password
+				phone := strings.ReplaceAll(tenantPhone, " ", "")
+				if len(phone) >= 4 {
+					autoPass = "vats" + phone[len(phone)-4:]
+				} else {
+					autoPass = "vats" + phone
 				}
 			}
-
-			msg := "Pass+generated:+ " + passNum
-			if autoPass != "" {
-				msg += "+|+Auto+password:+ " + autoPass
+			hash, err := bcrypt.GenerateFromPassword([]byte(autoPass), bcrypt.DefaultCost)
+			if err == nil {
+				db.DB.Exec("UPDATE tenants SET password_hash = $1, updated_at = NOW() WHERE id = $2", string(hash), id)
 			}
-			http.Redirect(w, r, "/admin/tenants?msg="+url.QueryEscape(msg), http.StatusSeeOther)
+
+			http.Redirect(w, r, "/admin/tenants?msg="+url.QueryEscape("Login+created+|+Password:+ "+autoPass), http.StatusSeeOther)
 			return
 		} else if action == "delete" {
 			db.DB.Exec("DELETE FROM room_assignments WHERE tenant_id = $1", id)

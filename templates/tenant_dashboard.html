@@ -200,12 +200,11 @@ function sendPassTo(phone) {
   if (num.length === 10) num = "91" + num;
   var msg = "🏠 *Welcome to Vats Apartment!*\n\n" +
     "Hi {{.Tenant.Name}}, your room is ready! 🎉\n\n" +
-    "*Room:* {{.Tenant.RoomNumber}}\n" +
-    "*Pass No:* {{.PassNumber}}\n\n" +
-    "🔑 *Login here:* https://vatsapartment.com/login?mode=tenant&phone={{.Tenant.Phone}}\n" +
-    "*Username:* {{.Tenant.Phone}} (your phone number)\n" +
+    "*Room:* {{.Tenant.RoomNumber}}\n\n" +
+    "🔑 *Login:* https://vatsapartment.com/login?mode=tenant&phone={{.Tenant.Phone}}\n" +
+    "*Username:* {{.Tenant.Phone}}\n" +
     "*Password:* Use the password shared by admin\n\n" +
-    "Access your dashboard, payments & digital pass anytime.\n\n" +
+    "Access your dashboard & payments anytime.\n\n" +
     "Enjoy your stay! 📍 Near LPU, Jalandhar";
   window.open("https://wa.me/" + num + "?text=" + encodeURIComponent(msg), '_blank');
 }

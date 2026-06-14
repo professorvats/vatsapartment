@@ -14,7 +14,6 @@
         <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Room</th>
         <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Verification</th>
         <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Login</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Pass</th>
         <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Status</th>
         <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Actions</th>
       </tr>
@@ -35,24 +34,17 @@
         </td>
         <td class="px-4 py-3">
           {{if .HasPassword}}
-          <span class="text-xs text-success">✓ Active</span>
-          {{else}}
-          <span class="text-xs text-on-sf-variant">No password</span>
-          {{end}}
-        </td>
-        <td class="px-4 py-3">
-          {{if .PassActive}}
           <form method="POST" action="/admin/tenants/save" class="inline-flex items-center gap-1">
             <input type="hidden" name="action" value="reset_pass">
             <input type="hidden" name="id" value="{{.ID}}">
-            <span class="text-xs text-success font-medium">{{.PassNumber}}</span>
+            <span class="text-xs text-success">✓ Active</span>
             <button type="submit" class="text-[10px] text-primary hover:underline ml-1">Reset</button>
           </form>
           {{else}}
           <form method="POST" action="/admin/tenants/save" class="inline">
             <input type="hidden" name="action" value="generate_pass">
             <input type="hidden" name="id" value="{{.ID}}">
-            <button type="submit" class="text-xs text-primary hover:underline font-medium">Generate</button>
+            <button type="submit" class="text-xs text-primary hover:underline font-medium">Create Login</button>
           </form>
           {{end}}
         </td>
@@ -71,7 +63,7 @@
         </td>
         <td class="px-4 py-3">
           <div class="flex items-center gap-1">
-            <button onclick="openEdit('{{.ID}}', '{{.Name}}', '{{.Phone}}', '{{.Email}}', '{{.Status}}', '{{.CheckInDate}}', '{{.RoomID}}', '{{.RentAmount}}', '{{.StartDate}}', '{{.SecurityDeposit}}', '{{.LockInPeriod}}', '{{.PassNumber}}', {{.PassActive}})"
+            <button onclick="openEdit('{{.ID}}', '{{.Name}}', '{{.Phone}}', '{{.Email}}', '{{.Status}}', '{{.CheckInDate}}', '{{.RoomID}}', '{{.RentAmount}}', '{{.StartDate}}', '{{.SecurityDeposit}}', '{{.LockInPeriod}}')"
               class="text-primary hover:bg-primary/10 rounded px-2 py-1 text-xs font-medium">Edit</button>
             <button onclick="confirmDelete('{{.ID}}', '{{.Name}}')"
               class="text-error hover:bg-error/10 rounded px-2 py-1 text-xs font-medium">Delete</button>
@@ -245,14 +237,14 @@
         </div>
       </div>
 
-      <!-- Pass Section -->
+      <!-- Login Section -->
       <div class="bg-sf-low rounded-lg p-4 space-y-3">
-        <h4 class="text-xs font-semibold uppercase tracking-wider text-on-sf-variant">Digital Pass</h4>
-        <p class="text-xs text-on-sf-variant" id="edit-pass-status">Loading...</p>
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-on-sf-variant">Tenant Login</h4>
+        <p class="text-xs text-on-sf-variant">Reset password and generate new credentials</p>
         <form method="POST" action="/admin/tenants/save" class="inline">
           <input type="hidden" name="action" value="reset_pass">
           <input type="hidden" name="id" id="edit-pass-id">
-          <button type="submit" class="text-xs bg-secondary text-white px-4 py-2 rounded-lg font-semibold hover:bg-secondary/90">Generate / Reset Pass</button>
+          <button type="submit" class="text-xs bg-secondary text-white px-4 py-2 rounded-lg font-semibold hover:bg-secondary/90">Reset Password</button>
         </form>
       </div>
 
@@ -299,7 +291,7 @@ function closeAdd() {
   document.getElementById('add-modal').classList.add('hidden');
 }
 
-function openEdit(id, name, phone, email, status, checkIn, roomId, rent, startDate, secDeposit, lockIn, passNumber, passActive) {
+function openEdit(id, name, phone, email, status, checkIn, roomId, rent, startDate, secDeposit, lockIn) {
   document.getElementById('edit-id').value = id;
   document.getElementById('edit-name').value = name;
   document.getElementById('edit-phone').value = phone;
