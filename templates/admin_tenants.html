@@ -42,9 +42,18 @@
         </td>
         <td class="px-4 py-3">
           {{if .PassActive}}
-          <span class="text-xs text-success font-medium">{{.PassNumber}}</span>
+          <form method="POST" action="/admin/tenants/save" class="inline-flex items-center gap-1">
+            <input type="hidden" name="action" value="revoke_pass">
+            <input type="hidden" name="id" value="{{.ID}}">
+            <span class="text-xs text-success font-medium">{{.PassNumber}}</span>
+            <button type="submit" class="text-[10px] text-error hover:underline ml-1">Revoke</button>
+          </form>
           {{else}}
-          <span class="text-xs text-on-sf-variant">—</span>
+          <form method="POST" action="/admin/tenants/save" class="inline">
+            <input type="hidden" name="action" value="generate_pass">
+            <input type="hidden" name="id" value="{{.ID}}">
+            <button type="submit" class="text-xs text-primary hover:underline font-medium">Generate</button>
+          </form>
           {{end}}
         </td>
         <td class="px-4 py-3">
