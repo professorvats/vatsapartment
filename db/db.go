@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
@@ -24,6 +25,9 @@ func Init() error {
 		return fmt.Errorf("sql.Open: %w", err)
 	}
 	DB.SetMaxOpenConns(5)
+	DB.SetMaxIdleConns(5)
+	DB.SetConnMaxLifetime(5 * time.Minute)
+	DB.SetConnMaxIdleTime(1 * time.Minute)
 	if err = DB.Ping(); err != nil {
 		return fmt.Errorf("db ping: %w", err)
 	}
@@ -232,6 +236,10 @@ func runMigrations() error {
 				created_at TIMESTAMPTZ DEFAULT NOW(),
 				updated_at TIMESTAMPTZ DEFAULT NOW()
 			)`},
+		{"idx_tv_tenant", `CREATE INDEX IF NOT EXISTS idx_tv_tenant ON tenant_verifications(tenant_id)`},
+		{"idx_ra_tenant", `CREATE INDEX IF NOT EXISTS idx_ra_tenant ON room_assignments(tenant_id)`},
+		{"idx_pay_tenant", `CREATE INDEX IF NOT EXISTS idx_pay_tenant ON payments(tenant_id)`},
+		{"idx_tenants_status", `CREATE INDEX IF NOT EXISTS idx_tenants_status ON tenants(status)`},
 	}
 
 	for _, m := range migrations {

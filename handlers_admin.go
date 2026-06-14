@@ -63,7 +63,8 @@ func handleAdminRooms(w http.ResponseWriter, r *http.Request) {
 		LEFT JOIN bookings b ON r.id = b.room_id AND b.status = 'active'
 		ORDER BY r.floor, r.id`)
 	if err != nil {
-		http.Error(w, "Failed to load rooms", 500)
+		log.Printf("ERROR loading rooms: %v", err)
+		renderAdminError(w, "Failed to load rooms")
 		return
 	}
 	defer rows.Close()
@@ -76,8 +77,16 @@ func handleAdminRooms(w http.ResponseWriter, r *http.Request) {
 	var rooms []RoomAdmin
 	for rows.Next() {
 		var r RoomAdmin
-		rows.Scan(&r.ID, &r.RoomNumber, &r.Floor, &r.RoomType, &r.Price, &r.Status)
+		if err := rows.Scan(&r.ID, &r.RoomNumber, &r.Floor, &r.RoomType, &r.Price, &r.Status); err != nil {
+			log.Printf("ERROR scanning room row: %v", err)
+			continue
+		}
 		rooms = append(rooms, r)
+	}
+	if err := rows.Err(); err != nil {
+		log.Printf("ERROR iterating room rows: %v", err)
+		renderAdminError(w, "Data error loading rooms")
+		return
 	}
 	render(w, "admin_rooms.html", map[string]interface{}{"Rooms": rooms, "Active": "rooms", "Title": "Manage Rooms"})
 }
@@ -87,7 +96,20 @@ func handleAdminRoomsSave(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	r.ParseForm()
+	action := r.FormValue("action")
 	id := r.FormValue("id")
+
+	if action == "edit" {
+		roomNum := r.FormValue("room_number")
+		roomType := r.FormValue("type")
+		floor, _ := strconv.Atoi(r.FormValue("floor"))
+		price, _ := strconv.ParseFloat(r.FormValue("price"), 64)
+		db.DB.Exec(`UPDATE rooms SET room_number=$1, type=$2, floor=$3, price=$4, updated_at=NOW() WHERE id=$5`,
+			roomNum, roomType, floor, price, id)
+		http.Redirect(w, r, "/admin/rooms?msg=Room+updated", http.StatusSeeOther)
+		return
+	}
+
 	price, _ := strconv.ParseFloat(r.FormValue("price"), 64)
 	status := r.FormValue("status")
 
@@ -136,13 +158,14 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 		COALESCE(ra.room_id, '') as room_id, COALESCE(r.room_number, '') as room_number,
 		COALESCE(ra.rent_amount, 0) as rent_amount, COALESCE(ra.start_date::text, '') as start_date,
 		COALESCE(t.password_hash, '') as password_hash,
-		COALESCE((SELECT status FROM tenant_verifications WHERE tenant_id = t.id LIMIT 1), 'not_submitted') as ver_status
+		COALESCE(tv.status, 'not_submitted') as ver_status
 		FROM tenants t
 		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active
 		LEFT JOIN rooms r ON ra.room_id = r.id
+		LEFT JOIN tenant_verifications tv ON t.id = tv.tenant_id
 		ORDER BY t.name`)
 	if err != nil {
-		log.Printf("ERROR loading tenants: %v", err); http.Error(w, "Failed to load tenants", 500)
+		log.Printf("ERROR loading tenants: %v", err); renderAdminError(w, "Failed to load tenants")
 		return
 	}
 	defer rows.Close()
@@ -160,12 +183,20 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var t TenantAdmin
 		var pwHash, verStatus string
-		rows.Scan(&t.ID, &t.Name, &t.Email, &t.Phone, &t.Status, &t.CheckInDate,
+		if err := rows.Scan(&t.ID, &t.Name, &t.Email, &t.Phone, &t.Status, &t.CheckInDate,
 			&t.SecurityDeposit, &t.LockInPeriod, &t.RoomID, &t.RoomNumber, &t.RentAmount, &t.StartDate,
-			&pwHash, &verStatus)
+			&pwHash, &verStatus); err != nil {
+			log.Printf("ERROR scanning tenant row: %v", err)
+			continue
+		}
 		t.HasPassword = pwHash != ""
 		t.VerificationStatus = verStatus
 		tenants = append(tenants, t)
+	}
+	if err := rows.Err(); err != nil {
+		log.Printf("ERROR iterating tenant rows: %v", err)
+		renderAdminError(w, "Data error loading tenants")
+		return
 	}
 	if tenants == nil {
 		tenants = []TenantAdmin{}
@@ -173,12 +204,17 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 	// Rooms for assign dropdown
 	type RoomOpt struct{ ID, Number string }
 	var roomOpts []RoomOpt
-	roomRows, _ := db.DB.Query("SELECT id, room_number FROM rooms ORDER BY room_number")
-	if roomRows != nil {
+	roomRows, err := db.DB.Query("SELECT id, room_number FROM rooms ORDER BY room_number")
+	if err != nil {
+		log.Printf("ERROR loading room options: %v", err)
+	} else {
 		defer roomRows.Close()
 		for roomRows.Next() {
 			var r RoomOpt
-			roomRows.Scan(&r.ID, &r.Number)
+			if err := roomRows.Scan(&r.ID, &r.Number); err != nil {
+				log.Printf("ERROR scanning room option: %v", err)
+				continue
+			}
 			roomOpts = append(roomOpts, r)
 		}
 	}
@@ -228,7 +264,7 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 					id, name, phone, emailPtr, status, checkInDate, secDeposit, lockIn)
 				if err != nil {
 					log.Printf("ERROR adding tenant: %v", err)
-					http.Error(w, "Failed to add tenant: "+err.Error(), 500)
+					renderAdminError(w, "Failed to add tenant: "+err.Error())
 					return
 				}
 			} else {
@@ -237,7 +273,7 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 					id, name, phone, emailPtr, status, secDeposit, lockIn)
 				if err != nil {
 					log.Printf("ERROR adding tenant: %v", err)
-					http.Error(w, "Failed to add tenant: "+err.Error(), 500)
+					renderAdminError(w, "Failed to add tenant: "+err.Error())
 					return
 				}
 			}
@@ -317,9 +353,63 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 					VALUES ($1, $2, $3, $4, $5, true)`, assignID, id, roomID, rent, startDate)
 			}
 		}
+		} else if action == "edit" {
+			name := r.FormValue("name")
+			phone := r.FormValue("phone")
+			email := r.FormValue("email")
+			status := r.FormValue("status")
+			checkInDate := r.FormValue("check_in_date")
+			secDeposit, _ := strconv.ParseFloat(r.FormValue("security_deposit"), 64)
+			lockIn, _ := strconv.Atoi(r.FormValue("lock_in_period"))
+			newPass := r.FormValue("password")
+
+			if checkInDate != "" {
+				db.DB.Exec(`UPDATE tenants SET name=$1, phone=$2, email=$3, status=$4,
+					check_in_date=$5::timestamp, security_deposit=$6, security_lock_in_period=$7,
+					updated_at=NOW() WHERE id=$8`,
+					name, phone, email, status, checkInDate, secDeposit, lockIn, id)
+			} else {
+				db.DB.Exec(`UPDATE tenants SET name=$1, phone=$2, email=$3, status=$4,
+					security_deposit=$5, security_lock_in_period=$6, updated_at=NOW() WHERE id=$7`,
+					name, phone, email, status, secDeposit, lockIn, id)
+			}
+
+			if newPass != "" {
+				hash, err := bcrypt.GenerateFromPassword([]byte(newPass), bcrypt.DefaultCost)
+				if err == nil {
+					db.DB.Exec("UPDATE tenants SET password_hash=$1, updated_at=NOW() WHERE id=$2", string(hash), id)
+				}
+			}
+
+			roomID := r.FormValue("room_id")
+			rent, _ := strconv.ParseFloat(r.FormValue("rent"), 64)
+			startDate := r.FormValue("start_date")
+			if roomID != "" {
+				db.DB.Exec("UPDATE room_assignments SET is_active=false, updated_at=NOW() WHERE tenant_id=$1 AND is_active", id)
+				assignID := fmt.Sprintf("RA%d", time.Now().UnixNano())
+				db.DB.Exec(`INSERT INTO room_assignments (id, tenant_id, room_id, rent_amount, start_date, is_active)
+					VALUES ($1, $2, $3, $4, $5, true)`, assignID, id, roomID, rent, startDate)
+			}
+
+			http.Redirect(w, r, "/admin/tenants?msg=Tenant+updated", http.StatusSeeOther)
+			return
+		} else if action == "delete" {
+			db.DB.Exec("DELETE FROM room_assignments WHERE tenant_id = $1", id)
+			db.DB.Exec("DELETE FROM tenant_verifications WHERE tenant_id = $1", id)
+			db.DB.Exec("DELETE FROM tenant_passes WHERE tenant_id = $1", id)
+			db.DB.Exec("DELETE FROM payments WHERE tenant_id = $1", id)
+			_, err := db.DB.Exec("DELETE FROM tenants WHERE id = $1", id)
+			if err != nil {
+				log.Printf("ERROR deleting tenant %s: %v", id, err)
+				http.Redirect(w, r, "/admin/tenants?error=Failed+to+delete+tenant", http.StatusSeeOther)
+				return
+			}
+			http.Redirect(w, r, "/admin/tenants?msg=Tenant+deleted", http.StatusSeeOther)
+			return
+		}
+		http.Redirect(w, r, "/admin/tenants", http.StatusSeeOther)
 	}
-	http.Redirect(w, r, "/admin/tenants", http.StatusSeeOther)
-}
+
 
 // ─── Payments ──────────────────────────────────────────────────
 
@@ -333,7 +423,8 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 		LEFT JOIN tenants t ON p.tenant_id = t.id
 		ORDER BY p.created_at DESC LIMIT 100`)
 	if err != nil {
-		http.Error(w, "Failed to load payments", 500)
+		log.Printf("ERROR loading payments: %v", err)
+		renderAdminError(w, "Failed to load payments")
 		return
 	}
 	defer rows.Close()
@@ -345,22 +436,37 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 	var payments []PaymentAdmin
 	for rows.Next() {
 		var p PaymentAdmin
-		rows.Scan(&p.ID, &p.TenantID, &p.TenantName, &p.Amount, &p.Date, &p.Method, &p.Status, &p.MonthCovered, &p.LateFee, &p.Notes)
+		if err := rows.Scan(&p.ID, &p.TenantID, &p.TenantName, &p.Amount, &p.Date, &p.Method, &p.Status, &p.MonthCovered, &p.LateFee, &p.Notes); err != nil {
+			log.Printf("ERROR scanning payment row: %v", err)
+			continue
+		}
 		payments = append(payments, p)
+	}
+	if err := rows.Err(); err != nil {
+		log.Printf("ERROR iterating payment rows: %v", err)
+		renderAdminError(w, "Data error loading payments")
+		return
 	}
 	if payments == nil {
 		payments = []PaymentAdmin{}
 	}
 
 	// Tenant list for dropdown
-	tenantRows, _ := db.DB.Query("SELECT id, name FROM tenants WHERE status = 'active' ORDER BY name")
-	defer tenantRows.Close()
 	type TenantOpt struct{ ID, Name string }
 	var tenantOpts []TenantOpt
-	for tenantRows.Next() {
-		var t TenantOpt
-		tenantRows.Scan(&t.ID, &t.Name)
-		tenantOpts = append(tenantOpts, t)
+	tenantRows, err := db.DB.Query("SELECT id, name FROM tenants WHERE status = 'active' ORDER BY name")
+	if err != nil {
+		log.Printf("ERROR loading tenant options: %v", err)
+	} else {
+		defer tenantRows.Close()
+		for tenantRows.Next() {
+			var t TenantOpt
+			if err := tenantRows.Scan(&t.ID, &t.Name); err != nil {
+				log.Printf("ERROR scanning tenant option: %v", err)
+				continue
+			}
+			tenantOpts = append(tenantOpts, t)
+		}
 	}
 
 	render(w, "admin_payments.html", map[string]interface{}{
@@ -415,7 +521,8 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 		LEFT JOIN bookings b ON m.room_id = b.room_id AND b.status = 'active'
 		ORDER BY r.room_number, m.meter_type`)
 	if err != nil {
-		http.Error(w, "Failed to load meters", 500)
+		log.Printf("ERROR loading meters: %v", err)
+		renderAdminError(w, "Failed to load meters")
 		return
 	}
 	defer rows.Close()
@@ -429,9 +536,17 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var m MeterAdmin
 		var active bool
-		rows.Scan(&m.ID, &m.RoomID, &m.RoomNumber, &m.MeterType, &m.MeterNumber, &m.CurrentReading, &m.InitialReading, &active, &m.BookingStatus)
+		if err := rows.Scan(&m.ID, &m.RoomID, &m.RoomNumber, &m.MeterType, &m.MeterNumber, &m.CurrentReading, &m.InitialReading, &active, &m.BookingStatus); err != nil {
+			log.Printf("ERROR scanning meter row: %v", err)
+			continue
+		}
 		m.IsActive = active
 		meters = append(meters, m)
+	}
+	if err := rows.Err(); err != nil {
+		log.Printf("ERROR iterating meter rows: %v", err)
+		renderAdminError(w, "Data error loading meters")
+		return
 	}
 	if meters == nil {
 		meters = []MeterAdmin{}
@@ -521,7 +636,8 @@ func handleAdminMeterReadings(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.DB.Query(`SELECT id, meter_id, reading, reading_date, billing_period, created_at
 		FROM meter_readings WHERE meter_id = $1 ORDER BY reading_date DESC LIMIT 50`, meterID)
 	if err != nil {
-		http.Error(w, "Failed to load readings", 500)
+		log.Printf("ERROR loading readings: %v", err)
+		renderAdminError(w, "Failed to load readings")
 		return
 	}
 	defer rows.Close()
@@ -533,8 +649,14 @@ func handleAdminMeterReadings(w http.ResponseWriter, r *http.Request) {
 	var readings []Reading
 	for rows.Next() {
 		var rd Reading
-		rows.Scan(&rd.ID, &rd.MeterID, &rd.Value, &rd.Date, &rd.Period, &rd.CreatedAt)
+		if err := rows.Scan(&rd.ID, &rd.MeterID, &rd.Value, &rd.Date, &rd.Period, &rd.CreatedAt); err != nil {
+			log.Printf("ERROR scanning reading row: %v", err)
+			continue
+		}
 		readings = append(readings, rd)
+	}
+	if err := rows.Err(); err != nil {
+		log.Printf("ERROR iterating reading rows: %v", err)
 	}
 	jsonContent(w)
 	json.NewEncoder(w).Encode(map[string]interface{}{"readings": readings})
@@ -558,7 +680,7 @@ func handleAdminPasses(w http.ResponseWriter, r *http.Request) {
 		WHERE t.status = 'active'
 		ORDER BY t.name`)
 	if err != nil {
-		log.Printf("ERROR loading tenants: %v", err); http.Error(w, "Failed to load tenants", 500)
+		log.Printf("ERROR loading passes: %v", err); renderAdminError(w, "Failed to load passes")
 		return
 	}
 	defer rows.Close()
@@ -571,9 +693,17 @@ func handleAdminPasses(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var t PassTenant
 		var pa int
-		rows.Scan(&t.ID, &t.Name, &t.Phone, &t.RoomNumber, &t.PassID, &t.PassNumber, &pa)
+		if err := rows.Scan(&t.ID, &t.Name, &t.Phone, &t.RoomNumber, &t.PassID, &t.PassNumber, &pa); err != nil {
+			log.Printf("ERROR scanning pass row: %v", err)
+			continue
+		}
 		t.PassActive = pa == 1
 		tenants = append(tenants, t)
+	}
+	if err := rows.Err(); err != nil {
+		log.Printf("ERROR iterating pass rows: %v", err)
+		renderAdminError(w, "Data error loading passes")
+		return
 	}
 	if tenants == nil {
 		tenants = []PassTenant{}
@@ -651,7 +781,8 @@ func handleAdminVerifications(w http.ResponseWriter, r *http.Request) {
 		LEFT JOIN rooms r ON ra.room_id = r.id
 		ORDER BY tv.submitted_at DESC NULLS LAST, tv.created_at DESC`)
 	if err != nil {
-		http.Error(w, "Failed to load verifications", 500)
+		log.Printf("ERROR loading verifications: %v", err)
+		renderAdminError(w, "Failed to load verifications")
 		return
 	}
 	defer rows.Close()
@@ -662,9 +793,17 @@ func handleAdminVerifications(w http.ResponseWriter, r *http.Request) {
 	var verifications []VerificationAdmin
 	for rows.Next() {
 		var v VerificationAdmin
-		rows.Scan(&v.ID, &v.TenantID, &v.Name, &v.Phone, &v.Room,
-			&v.LpuPhoto, &v.AadharPhoto, &v.Status, &v.SubmittedAt, &v.Notes)
+		if err := rows.Scan(&v.ID, &v.TenantID, &v.Name, &v.Phone, &v.Room,
+			&v.LpuPhoto, &v.AadharPhoto, &v.Status, &v.SubmittedAt, &v.Notes); err != nil {
+			log.Printf("ERROR scanning verification row: %v", err)
+			continue
+		}
 		verifications = append(verifications, v)
+	}
+	if err := rows.Err(); err != nil {
+		log.Printf("ERROR iterating verification rows: %v", err)
+		renderAdminError(w, "Data error loading verifications")
+		return
 	}
 	if verifications == nil {
 		verifications = []VerificationAdmin{}
@@ -695,6 +834,14 @@ func handleAdminVerificationAction(w http.ResponseWriter, r *http.Request) {
 }
 
 // ─── Helpers ───────────────────────────────────────────────────
+
+func renderAdminError(w http.ResponseWriter, message string) {
+	render(w, "admin_error.html", map[string]interface{}{
+		"ErrorMessage": message,
+		"Active":       "dashboard",
+		"Title":        "Error",
+	})
+}
 
 func formatCurrency(amount float64) string {
 	return fmt.Sprintf("₹%.0f", amount)

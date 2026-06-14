@@ -35,9 +35,58 @@
     <span class="text-xs {{if eq .Status "active"}}text-secondary{{else}}text-on-sf-variant{{end}}">
       {{if eq .Status "active"}}Occupied{{else}}Available{{end}}
     </span>
+    <button onclick="openRoomEdit('{{.ID}}', '{{.RoomNumber}}', '{{.RoomType}}', '{{.Floor}}', '{{printf "%.0f" .Price}}')" class="text-xs text-primary hover:bg-primary/10 rounded px-2 py-1 font-medium ml-auto">Edit</button>
   </div>
   {{end}}
 </div>
+
+<!-- Edit Room Modal -->
+<div id="room-edit-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-md">
+    <h3 class="font-semibold text-lg mb-1">Edit Room</h3>
+    <p class="text-xs text-on-sf-variant mb-4">Update room details</p>
+    <form method="POST" action="/admin/rooms/save" class="space-y-4">
+      <input type="hidden" name="action" value="edit">
+      <input type="hidden" name="id" id="room-edit-id">
+      <div>
+        <label class="block text-xs text-on-sf-variant mb-1">Room Number</label>
+        <input name="room_number" id="room-edit-number" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs text-on-sf-variant mb-1">Type</label>
+        <select name="type" id="room-edit-type" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+          <option>Standard Single</option><option>Deluxe Single</option><option>Standard Double</option><option>Deluxe Double</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-on-sf-variant mb-1">Floor</label>
+        <input name="floor" id="room-edit-floor" type="number" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs text-on-sf-variant mb-1">Monthly Rent (₹)</label>
+        <input name="price" id="room-edit-price" type="number" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="bg-primary text-on-primary px-6 py-2.5 rounded-lg text-sm font-semibold flex-1">Save Changes</button>
+        <button type="button" onclick="closeRoomEdit()" class="border border-ol-variant px-6 py-2.5 rounded-lg text-sm">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openRoomEdit(id, number, type, floor, price) {
+  document.getElementById('room-edit-id').value = id;
+  document.getElementById('room-edit-number').value = number;
+  document.getElementById('room-edit-type').value = type;
+  document.getElementById('room-edit-floor').value = floor;
+  document.getElementById('room-edit-price').value = price;
+  document.getElementById('room-edit-modal').classList.remove('hidden');
+}
+function closeRoomEdit() {
+  document.getElementById('room-edit-modal').classList.add('hidden');
+}
+</script>
 {{else}}
 <div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-lg"><p class="text-on-sf-variant">No rooms configured.</p></div>
 {{end}}
