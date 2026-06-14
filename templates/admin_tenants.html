@@ -43,10 +43,10 @@
         <td class="px-4 py-3">
           {{if .PassActive}}
           <form method="POST" action="/admin/tenants/save" class="inline-flex items-center gap-1">
-            <input type="hidden" name="action" value="revoke_pass">
+            <input type="hidden" name="action" value="reset_pass">
             <input type="hidden" name="id" value="{{.ID}}">
             <span class="text-xs text-success font-medium">{{.PassNumber}}</span>
-            <button type="submit" class="text-[10px] text-error hover:underline ml-1">Revoke</button>
+            <button type="submit" class="text-[10px] text-primary hover:underline ml-1">Reset</button>
           </form>
           {{else}}
           <form method="POST" action="/admin/tenants/save" class="inline">
@@ -71,7 +71,7 @@
         </td>
         <td class="px-4 py-3">
           <div class="flex items-center gap-1">
-            <button onclick="openEdit('{{.ID}}', '{{.Name}}', '{{.Phone}}', '{{.Email}}', '{{.Status}}', '{{.CheckInDate}}', '{{.RoomID}}', '{{.RentAmount}}', '{{.StartDate}}', '{{.SecurityDeposit}}', '{{.LockInPeriod}}')"
+            <button onclick="openEdit('{{.ID}}', '{{.Name}}', '{{.Phone}}', '{{.Email}}', '{{.Status}}', '{{.CheckInDate}}', '{{.RoomID}}', '{{.RentAmount}}', '{{.StartDate}}', '{{.SecurityDeposit}}', '{{.LockInPeriod}}', '{{.PassNumber}}', {{.PassActive}})"
               class="text-primary hover:bg-primary/10 rounded px-2 py-1 text-xs font-medium">Edit</button>
             <button onclick="confirmDelete('{{.ID}}', '{{.Name}}')"
               class="text-error hover:bg-error/10 rounded px-2 py-1 text-xs font-medium">Delete</button>
@@ -245,6 +245,17 @@
         </div>
       </div>
 
+      <!-- Pass Section -->
+      <div class="bg-sf-low rounded-lg p-4 space-y-3">
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-on-sf-variant">Digital Pass</h4>
+        <p class="text-xs text-on-sf-variant" id="edit-pass-status">Loading...</p>
+        <form method="POST" action="/admin/tenants/save" class="inline">
+          <input type="hidden" name="action" value="reset_pass">
+          <input type="hidden" name="id" id="edit-pass-id">
+          <button type="submit" class="text-xs bg-secondary text-white px-4 py-2 rounded-lg font-semibold hover:bg-secondary/90">Generate / Reset Pass</button>
+        </form>
+      </div>
+
       <div class="flex gap-3 pt-2">
         <button type="submit" class="bg-primary text-on-primary px-6 py-2.5 rounded-lg text-sm font-semibold flex-1">Save Changes</button>
         <button type="button" onclick="closeEdit()" class="border border-ol-variant px-6 py-2.5 rounded-lg text-sm">Cancel</button>
@@ -288,7 +299,7 @@ function closeAdd() {
   document.getElementById('add-modal').classList.add('hidden');
 }
 
-function openEdit(id, name, phone, email, status, checkIn, roomId, rent, startDate, secDeposit, lockIn) {
+function openEdit(id, name, phone, email, status, checkIn, roomId, rent, startDate, secDeposit, lockIn, passNumber, passActive) {
   document.getElementById('edit-id').value = id;
   document.getElementById('edit-name').value = name;
   document.getElementById('edit-phone').value = phone;
@@ -301,6 +312,13 @@ function openEdit(id, name, phone, email, status, checkIn, roomId, rent, startDa
   document.getElementById('edit-sec-deposit').value = secDeposit || '';
   document.getElementById('edit-lock-in').value = lockIn || '';
   document.getElementById('edit-password').value = '';
+  document.getElementById('edit-pass-id').value = id;
+  var passStatus = document.getElementById('edit-pass-status');
+  if (passActive) {
+    passStatus.innerHTML = 'Current pass: <span class=\"text-success font-medium\">' + passNumber + '</span>';
+  } else {
+    passStatus.textContent = 'No active pass. Generate one below.';
+  }
   document.getElementById('edit-modal').classList.remove('hidden');
 }
 function closeEdit() {

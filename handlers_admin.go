@@ -406,14 +406,9 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 
 			http.Redirect(w, r, "/admin/tenants?msg=Tenant+updated", http.StatusSeeOther)
 			return
-		} else if action == "generate_pass" {
-			// Check existing active pass
-			var existing string
-			db.DB.QueryRow("SELECT pass_number FROM tenant_passes WHERE tenant_id = $1 AND is_active = 1", id).Scan(&existing)
-			if existing != "" {
-				http.Redirect(w, r, "/admin/tenants?error=Pass+already+exists:+ "+existing, http.StatusSeeOther)
-				return
-			}
+		} else if action == "generate_pass" || action == "reset_pass" {
+			// Deactivate any existing active pass
+			db.DB.Exec("UPDATE tenant_passes SET is_active = 0, updated_at = NOW() WHERE tenant_id = $1 AND is_active = 1", id)
 			// Get room number for pass generation
 			var roomNum string
 			db.DB.QueryRow(`SELECT COALESCE(r.room_number, 'XX') FROM tenants t
@@ -424,10 +419,6 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			db.DB.Exec(`INSERT INTO tenant_passes (id, tenant_id, pass_number, issued_by, issued_at, is_active)
 				VALUES ($1, $2, $3, 'admin', NOW(), 1)`, passID, id, passNum)
 			http.Redirect(w, r, "/admin/tenants?msg=Pass+generated:+ "+passNum, http.StatusSeeOther)
-			return
-		} else if action == "revoke_pass" {
-			db.DB.Exec("UPDATE tenant_passes SET is_active = 0, updated_at = NOW() WHERE tenant_id = $1 AND is_active = 1", id)
-			http.Redirect(w, r, "/admin/tenants?msg=Pass+revoked", http.StatusSeeOther)
 			return
 		} else if action == "delete" {
 			db.DB.Exec("DELETE FROM room_assignments WHERE tenant_id = $1", id)
