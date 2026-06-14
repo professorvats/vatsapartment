@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"vatsapartment-go/db"
+	"net/url"
+	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -264,7 +266,7 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 					id, name, phone, emailPtr, status, checkInDate, secDeposit, lockIn)
 				if err != nil {
 					log.Printf("ERROR adding tenant: %v", err)
-					renderAdminError(w, "Failed to add tenant: "+err.Error())
+					renderAdminError(w, "Failed to add tenant: "+friendlyDBError(err))
 					return
 				}
 			} else {
@@ -273,7 +275,7 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 					id, name, phone, emailPtr, status, secDeposit, lockIn)
 				if err != nil {
 					log.Printf("ERROR adding tenant: %v", err)
-					renderAdminError(w, "Failed to add tenant: "+err.Error())
+					renderAdminError(w, "Failed to add tenant: "+friendlyDBError(err))
 					return
 				}
 			}
@@ -363,15 +365,22 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			lockIn, _ := strconv.Atoi(r.FormValue("lock_in_period"))
 			newPass := r.FormValue("password")
 
+			var updateErr error
 			if checkInDate != "" {
-				db.DB.Exec(`UPDATE tenants SET name=$1, phone=$2, email=$3, status=$4,
+				_, updateErr = db.DB.Exec(`UPDATE tenants SET name=$1, phone=$2, email=$3, status=$4,
 					check_in_date=$5::timestamp, security_deposit=$6, security_lock_in_period=$7,
 					updated_at=NOW() WHERE id=$8`,
 					name, phone, email, status, checkInDate, secDeposit, lockIn, id)
 			} else {
-				db.DB.Exec(`UPDATE tenants SET name=$1, phone=$2, email=$3, status=$4,
+				_, updateErr = db.DB.Exec(`UPDATE tenants SET name=$1, phone=$2, email=$3, status=$4,
 					security_deposit=$5, security_lock_in_period=$6, updated_at=NOW() WHERE id=$7`,
 					name, phone, email, status, secDeposit, lockIn, id)
+			}
+
+			if updateErr != nil {
+				log.Printf("ERROR updating tenant: %v", updateErr)
+				http.Redirect(w, r, "/admin/tenants?error="+url.QueryEscape(friendlyDBError(updateErr)), http.StatusSeeOther)
+				return
 			}
 
 			if newPass != "" {
@@ -834,6 +843,22 @@ func handleAdminVerificationAction(w http.ResponseWriter, r *http.Request) {
 }
 
 // ─── Helpers ───────────────────────────────────────────────────
+
+// friendlyDBError converts PostgreSQL unique violations into user-friendly messages
+func friendlyDBError(err error) string {
+	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+		constraint := pqErr.Constraint
+		switch constraint {
+		case "tenants_phone_unique", "tenants_phone_key":
+			return "A tenant with this phone number already exists"
+		case "tenants_email_unique", "tenants_email_key":
+			return "A tenant with this email address already exists"
+		default:
+			return "This record already exists (duplicate: " + constraint + ")"
+		}
+	}
+	return err.Error()
+}
 
 func renderAdminError(w http.ResponseWriter, message string) {
 	render(w, "admin_error.html", map[string]interface{}{
