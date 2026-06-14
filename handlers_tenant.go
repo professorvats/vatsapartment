@@ -50,7 +50,7 @@ func handleTenantDashboard(w http.ResponseWriter, r *http.Request) {
 	err := db.DB.QueryRow(`
 		SELECT t.id, t.name, t.phone, COALESCE(t.email,''),
 			COALESCE(ra.room_id,''), COALESCE(r.room_number,''),
-			COALESCE(t.check_in_date,''),
+			COALESCE(t.check_in_date::text,''),
 			COALESCE(ra.rent_amount,0)
 		FROM tenants t
 		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active
