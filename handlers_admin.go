@@ -125,16 +125,6 @@ func handleAdminRoomAdd(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/admin/rooms", http.StatusSeeOther)
 }
 
-func toFloat(s string) float64 {
-	f, _ := strconv.ParseFloat(s, 64)
-	return f
-}
-
-func toInt(s string) int {
-	i, _ := strconv.Atoi(s)
-	return i
-}
-
 // ─── Tenants ───────────────────────────────────────────────────
 
 func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
@@ -209,7 +199,69 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 	action := r.FormValue("action")
 
-	if action == "update" {
+		if action == "add" {
+			name := r.FormValue("name")
+			phone := r.FormValue("phone")
+			email := r.FormValue("email")
+			status := r.FormValue("status")
+			if status == "" {
+				status = "active"
+			}
+			checkInDate := r.FormValue("check_in_date")
+			secDeposit, _ := strconv.ParseFloat(r.FormValue("security_deposit"), 64)
+			lockIn, _ := strconv.Atoi(r.FormValue("lock_in_period"))
+			newPass := r.FormValue("password")
+
+			// Handle empty email as NULL to avoid unique constraint violation
+			var emailPtr interface{}
+			if email == "" {
+				emailPtr = nil
+			} else {
+				emailPtr = email
+			}
+
+			id := fmt.Sprintf("T%03d", time.Now().UnixNano()%100000)
+
+			if checkInDate != "" {
+				_, err := db.DB.Exec(`INSERT INTO tenants (id, name, phone, email, status, check_in_date, security_deposit, security_lock_in_period)
+					VALUES ($1, $2, $3, $4, $5, $6::timestamp, $7, $8)`,
+					id, name, phone, emailPtr, status, checkInDate, secDeposit, lockIn)
+				if err != nil {
+					log.Printf("ERROR adding tenant: %v", err)
+					http.Error(w, "Failed to add tenant: "+err.Error(), 500)
+					return
+				}
+			} else {
+				_, err := db.DB.Exec(`INSERT INTO tenants (id, name, phone, email, status, security_deposit, security_lock_in_period)
+					VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+					id, name, phone, emailPtr, status, secDeposit, lockIn)
+				if err != nil {
+					log.Printf("ERROR adding tenant: %v", err)
+					http.Error(w, "Failed to add tenant: "+err.Error(), 500)
+					return
+				}
+			}
+
+			if newPass != "" {
+				hash, err := bcrypt.GenerateFromPassword([]byte(newPass), bcrypt.DefaultCost)
+				if err == nil {
+					db.DB.Exec("UPDATE tenants SET password_hash = $1, updated_at = NOW() WHERE id = $2", string(hash), id)
+				}
+			}
+
+			// Room assignment
+			roomID := r.FormValue("room_id")
+			rent, _ := strconv.ParseFloat(r.FormValue("rent"), 64)
+			startDate := r.FormValue("start_date")
+			if roomID != "" {
+				assignID := fmt.Sprintf("RA%d", time.Now().UnixNano())
+				db.DB.Exec(`INSERT INTO room_assignments (id, tenant_id, room_id, rent_amount, start_date, is_active)
+					VALUES ($1, $2, $3, $4, $5::timestamp, true)`, assignID, id, roomID, rent, startDate)
+			}
+
+			http.Redirect(w, r, "/admin/tenants?msg=Tenant+added", http.StatusSeeOther)
+			return
+		} else 	if action == "update" {
 		name := r.FormValue("name")
 		phone := r.FormValue("phone")
 		email := r.FormValue("email")
