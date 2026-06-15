@@ -241,11 +241,7 @@
       <div class="bg-sf-low rounded-lg p-4 space-y-3">
         <h4 class="text-xs font-semibold uppercase tracking-wider text-on-sf-variant">Tenant Login</h4>
         <p class="text-xs text-on-sf-variant">Reset password and generate new credentials</p>
-        <form method="POST" action="/admin/tenants/save" class="inline">
-          <input type="hidden" name="action" value="reset_pass">
-          <input type="hidden" name="id" id="edit-pass-id">
-          <button type="submit" class="text-xs bg-secondary text-white px-4 py-2 rounded-lg font-semibold hover:bg-secondary/90">Reset Password</button>
-        </form>
+        <button type="button" onclick="resetPassword()" class="text-xs bg-secondary text-white px-4 py-2 rounded-lg font-semibold hover:bg-secondary/90">Reset Password</button>
       </div>
 
       <div class="flex gap-3 pt-2">
@@ -318,6 +314,16 @@ function confirmDelete(id, name) {
 }
 function closeDelete() {
   document.getElementById('delete-modal').classList.add('hidden');
+}
+
+function resetPassword() {
+  var form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/admin/tenants/save';
+  form.style.display = 'none';
+  form.innerHTML = '<input type="hidden" name="action" value="reset_pass"><input type="hidden" name="id" value="'+document.getElementById('edit-id').value+'">';
+  document.body.appendChild(form);
+  form.submit();
 }
 </script>
 {{template "admin_footer" .}}

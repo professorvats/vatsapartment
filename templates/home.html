@@ -5,36 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rooms for Rent Near LPU | PG Near LPU University | Vats Apartment</title>
 <meta name="description" content="Premium PG accommodation near LPU. Fully furnished rooms starting ₹9,000/month. Book now!">
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          primary: '#111111',
-          'on-primary': '#ffffff',
-          secondary: '#546255',
-          'on-secondary': '#ffffff',
-          'sec-container': '#d7e7d6',
-          'on-sec-container': '#5a685b',
-          background: '#f9f9f8',
-          'on-background': '#1a1c1c',
-          surface: '#f9f9f8',
-          'on-surface': '#1a1c1c',
-          'sf-variant': '#e2e2e2',
-          'on-sf-variant': '#444748',
-          outline: '#747878',
-          'ol-variant': '#c4c7c7',
-          'sf-low': '#f3f4f3',
-          'sf-high': '#e8e8e7',
-          'sf-highest': '#e2e2e2',
-          'sf-lowest': '#ffffff',
-          error: '#ba1a1a',
-        }
-      }
-    }
-  }
-</script>
+<link rel="stylesheet" href="/static/app-tailwind.css">
 <link rel="icon" href="/static/favicon.ico">
 <style>
   body { font-family: system-ui, -apple-system, sans-serif; }
@@ -130,7 +101,7 @@ window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
   <section class="max-w-6xl mx-auto px-4 py-4 md:py-6">
     <div class="hero-3d relative w-full h-[300px] md:h-[400px] lg:h-[500px] rounded-xl overflow-hidden mb-6 group">
       <div class="hero-inner absolute inset-0 transition-transform duration-500 ease-out">
-        <img src="/static/hero-2.webp" alt="Vats Apartment" class="absolute inset-0 w-full h-full object-cover scale-110">
+        <img src="/static/hero-2.webp" alt="Vats Apartment" loading="eager" fetchpriority="high" class="absolute inset-0 w-full h-full object-cover scale-110">
       </div>
       <div class="absolute inset-0 flex flex-col justify-end p-4 md:p-8 lg:p-16 z-10">
         <div class="flex flex-wrap gap-2 mb-3">
@@ -194,7 +165,7 @@ window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
       <!-- Building Extras -->
       <div class="bg-sf-lowest rounded-xl border border-sf-highest shadow-sm overflow-hidden">
         <div class="w-full h-24 md:h-48 relative">
-          <video src="/static/vats-apartment-tour.mp4" autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover"></video>
+          <video src="/static/vats-apartment-tour.mp4" autoplay loop muted playsinline preload="none" poster="/static/hero-2.webp" class="absolute inset-0 w-full h-full object-cover"></video>
         </div>
         <div class="p-4 md:p-6">
           <h3 class="text-xs text-outline uppercase tracking-wider mb-3">Building Extras</h3>
@@ -458,7 +429,7 @@ window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
 <footer class="bg-primary border-t border-white/10 py-12 px-4 mt-auto">
   <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
     <div class="flex items-center">
-      <img src="/static/white-logo.webp" alt="Vats Apartment" class="h-20 w-auto opacity-90">
+      <img src="/static/white-logo.webp" alt="Vats Apartment" loading="lazy" class="h-20 w-auto opacity-90">
     </div>
     <div class="flex gap-4 text-xs text-white/40 uppercase tracking-wider">
       <a href="/privacy" class="hover:text-white underline underline-offset-4 transition-colors">Privacy</a>
@@ -499,6 +470,7 @@ function closeBookingPopup() {
   popup.classList.add('opacity-0');
   popup.classList.add('pointer-events-none');
   popup.children[0].classList.add('scale-95');
+  localStorage.setItem('booking_popup_dismissed', 'true');
 }
 
 window.addEventListener('load', function() {

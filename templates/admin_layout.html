@@ -3,17 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{.Title}} — Vats Apartment Admin</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: { extend: { colors: {
-      primary: '#111111', 'on-primary': '#ffffff', secondary: '#546255',
-      background: '#f9f9f8', 'on-surface': '#1a1c1c', 'sf-variant': '#e2e2e2',
-      'on-sf-variant': '#444748', outline: '#747878', 'ol-variant': '#c4c7c7',
-      'sf-low': '#f3f4f3', 'sf-lowest': '#ffffff', error: '#ba1a1a',
-    }}}
-  }
-</script>
+<link rel="stylesheet" href="/static/app-tailwind.css">
 <link rel="icon" href="/static/favicon.ico">
 <style>
   .sidebar { transition: transform 0.25s ease; }
@@ -107,17 +97,6 @@
 {{define "admin_footer"}}
   </div>
 </main>
-
-<div id="page-loader" class="fixed inset-0 bg-background/80 z-50 flex items-center justify-center">
-  <div class="flex flex-col items-center gap-3">
-    <svg class="animate-spin h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-    </svg>
-    <span class="text-sm text-on-sf-variant">Loading...</span>
-  </div>
-</div>
-<script>document.getElementById('page-loader').remove();</script>
 
 <script>
 function toggleSidebar() {

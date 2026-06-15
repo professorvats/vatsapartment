@@ -92,7 +92,7 @@ func handleTenantDashboard(w http.ResponseWriter, r *http.Request) {
 		tenantID,
 	).Scan(&totalPending)
 
-	render(w, "tenant_dashboard.html", map[string]interface{}{
+	renderPrivate(w, "tenant_dashboard.html", map[string]interface{}{
 		"Tenant":             ti,
 		"VerificationStatus": verificationStatus,
 		"LpuPhoto":           lpuPhoto,
@@ -257,7 +257,7 @@ func handleTenantPayments(w http.ResponseWriter, r *http.Request) {
 		payments = []TenantPayment{}
 	}
 
-	render(w, "tenant_payments.html", map[string]interface{}{
+	renderPrivate(w, "tenant_payments.html", map[string]interface{}{
 		"Payments": payments,
 		"Active":   "payments",
 	})

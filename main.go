@@ -50,9 +50,8 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	// Static files
-	fs := http.FileServer(http.Dir("static"))
-	mux.Handle("GET /static/", http.StripPrefix("/static/", fs))
+	// Static files with caching (1 year for hashed/versioned assets)
+	mux.Handle("GET /static/", http.StripPrefix("/static/", withCache(http.FileServer(http.Dir("static")), 8760*time.Hour)))
 
 	// Public root files (favicon, robots, etc)
 	mux.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) {
@@ -131,7 +130,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:         ":" + port,
-		Handler:      withLogging(mux),
+		Handler:      withSecurityHeaders(withLogging(mux)),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 30 * time.Second,
 		IdleTimeout:  60 * time.Second,
@@ -142,6 +141,18 @@ func main() {
 	log.Fatal(srv.ListenAndServe())
 }
 
+func withSecurityHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("X-XSS-Protection", "1; mode=block")
+		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		w.Header().Set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+		next.ServeHTTP(w, r)
+	})
+}
+
 func withLogging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
@@ -150,15 +161,28 @@ func withLogging(next http.Handler) http.Handler {
 	})
 }
 
+func withCache(next http.Handler, maxAge time.Duration) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%.0f, immutable", maxAge.Seconds()))
+		next.ServeHTTP(w, r)
+	})
+}
+
 func render(w http.ResponseWriter, name string, data interface{}) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	t, err := tmpl.Clone()
-	if err != nil {
-		log.Printf("Template clone error: %v", err)
+	// Short public cache for edges (CDN), browser revalidates
+	w.Header().Set("Cache-Control", "public, max-age=0, s-maxage=300, must-revalidate")
+	if err := tmpl.ExecuteTemplate(w, name, data); err != nil {
+		log.Printf("Template error (%s): %v", name, err)
 		http.Error(w, "Render error", 500)
-		return
 	}
-	if err := t.ExecuteTemplate(w, name, data); err != nil {
+}
+
+func renderPrivate(w http.ResponseWriter, name string, data interface{}) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	// No caching for admin/tenant pages
+	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, private")
+	if err := tmpl.ExecuteTemplate(w, name, data); err != nil {
 		log.Printf("Template error (%s): %v", name, err)
 		http.Error(w, "Render error", 500)
 	}

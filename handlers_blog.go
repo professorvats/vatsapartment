@@ -101,7 +101,7 @@ func handleAdminBlogList(w http.ResponseWriter, r *http.Request) {
 		posts = []BlogPost{}
 	}
 
-	render(w, "admin_blog_list.html", map[string]interface{}{"Posts": posts, "Active": "blog", "Title": "Blog Posts"})
+	renderPrivate(w, "admin_blog_list.html", map[string]interface{}{"Posts": posts, "Active": "blog", "Title": "Blog Posts"})
 }
 
 func handleAdminBlogForm(w http.ResponseWriter, r *http.Request) {
@@ -126,7 +126,7 @@ func handleAdminBlogForm(w http.ResponseWriter, r *http.Request) {
 
 	data["Active"] = "blog"
 	data["Title"] = data["FormTitle"]
-	render(w, "admin_blog_form.html", data)
+	renderPrivate(w, "admin_blog_form.html", data)
 }
 
 func handleAdminBlogSave(w http.ResponseWriter, r *http.Request) {
@@ -152,7 +152,7 @@ func handleAdminBlogSave(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if title == "" || content == "" {
-		render(w, "admin_blog_form.html", map[string]interface{}{
+		renderPrivate(w, "admin_blog_form.html", map[string]interface{}{
 			"FormTitle": "New Blog Post",
 			"Error":     "Title and content are required",
 			"Active":    "blog",
@@ -174,7 +174,7 @@ func handleAdminBlogSave(w http.ResponseWriter, r *http.Request) {
 		)
 		if err != nil {
 			log.Printf("Blog update error: %v", err)
-			render(w, "admin_blog_form.html", map[string]interface{}{
+			renderPrivate(w, "admin_blog_form.html", map[string]interface{}{
 				"FormTitle":    "Edit Blog Post",
 				"Error":        "Failed to save: " + err.Error(),
 				"Active":       "blog",
@@ -191,7 +191,7 @@ func handleAdminBlogSave(w http.ResponseWriter, r *http.Request) {
 		)
 		if err != nil {
 			log.Printf("Blog insert error: %v", err)
-			render(w, "admin_blog_form.html", map[string]interface{}{
+			renderPrivate(w, "admin_blog_form.html", map[string]interface{}{
 				"FormTitle":    "New Blog Post",
 				"Error":        "Failed to create: " + err.Error(),
 				"Active":       "blog",
@@ -394,7 +394,7 @@ func handleAdminAPIKeys(w http.ResponseWriter, r *http.Request) {
 		keys = []APIKey{}
 	}
 
-	render(w, "admin_api_keys.html", map[string]interface{}{
+	renderPrivate(w, "admin_api_keys.html", map[string]interface{}{
 		"Keys":   keys,
 		"Active": "api_keys",
 		"Title":  "API Keys",

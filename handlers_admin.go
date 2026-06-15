@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"vatsapartment-go/db"
@@ -22,7 +23,7 @@ func handleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	stats := getDashboardStats()
-	render(w, "admin_dashboard.html", map[string]interface{}{"Stats": stats, "Active": "dashboard", "Title": "Dashboard"})
+	renderPrivate(w, "admin_dashboard.html", map[string]interface{}{"Stats": stats, "Active": "dashboard", "Title": "Dashboard"})
 }
 
 type DashboardStats struct {
@@ -37,16 +38,20 @@ type DashboardStats struct {
 
 func getDashboardStats() DashboardStats {
 	var s DashboardStats
-	db.DB.QueryRow("SELECT COUNT(*) FROM rooms").Scan(&s.TotalRooms)
-	db.DB.QueryRow("SELECT COUNT(*) FROM bookings WHERE status = 'active'").Scan(&s.OccupiedRooms)
-	db.DB.QueryRow("SELECT COUNT(*) FROM tenants").Scan(&s.TotalTenants)
-	db.DB.QueryRow("SELECT COUNT(*) FROM tenants WHERE status = 'active'").Scan(&s.ActiveTenants)
-	db.DB.QueryRow("SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'completed' AND payment_date >= date_trunc('month', CURRENT_DATE)").Scan(&s.MonthlyRevenue)
-	db.DB.QueryRow("SELECT COUNT(*) FROM payments WHERE status = 'pending'").Scan(&s.PendingPayments)
-
 	var total, completed float64
-	db.DB.QueryRow("SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payment_date >= date_trunc('month', CURRENT_DATE)").Scan(&total)
-	db.DB.QueryRow("SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'completed' AND payment_date >= date_trunc('month', CURRENT_DATE)").Scan(&completed)
+	var wg sync.WaitGroup
+	wg.Add(8)
+
+	go func() { defer wg.Done(); db.DB.QueryRow("SELECT COUNT(*) FROM rooms").Scan(&s.TotalRooms) }()
+	go func() { defer wg.Done(); db.DB.QueryRow("SELECT COUNT(*) FROM bookings WHERE status = 'active'").Scan(&s.OccupiedRooms) }()
+	go func() { defer wg.Done(); db.DB.QueryRow("SELECT COUNT(*) FROM tenants").Scan(&s.TotalTenants) }()
+	go func() { defer wg.Done(); db.DB.QueryRow("SELECT COUNT(*) FROM tenants WHERE status = 'active'").Scan(&s.ActiveTenants) }()
+	go func() { defer wg.Done(); db.DB.QueryRow("SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'completed' AND payment_date >= date_trunc('month', CURRENT_DATE)").Scan(&s.MonthlyRevenue) }()
+	go func() { defer wg.Done(); db.DB.QueryRow("SELECT COUNT(*) FROM payments WHERE status = 'pending'").Scan(&s.PendingPayments) }()
+	go func() { defer wg.Done(); db.DB.QueryRow("SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payment_date >= date_trunc('month', CURRENT_DATE)").Scan(&total) }()
+	go func() { defer wg.Done(); db.DB.QueryRow("SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'completed' AND payment_date >= date_trunc('month', CURRENT_DATE)").Scan(&completed) }()
+
+	wg.Wait()
 	if total > 0 {
 		s.CollectionRate = (completed / total) * 100
 	}
@@ -90,7 +95,7 @@ func handleAdminRooms(w http.ResponseWriter, r *http.Request) {
 		renderAdminError(w, "Data error loading rooms")
 		return
 	}
-	render(w, "admin_rooms.html", map[string]interface{}{"Rooms": rooms, "Active": "rooms", "Title": "Manage Rooms"})
+	renderPrivate(w, "admin_rooms.html", map[string]interface{}{"Rooms": rooms, "Active": "rooms", "Title": "Manage Rooms"})
 }
 
 func handleAdminRoomsSave(w http.ResponseWriter, r *http.Request) {
@@ -221,7 +226,7 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	render(w, "admin_tenants.html", map[string]interface{}{
+	renderPrivate(w, "admin_tenants.html", map[string]interface{}{
 		"Tenants": tenants,
 		"Rooms":   roomOpts,
 		"Active":  "tenants",
@@ -519,7 +524,7 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	render(w, "admin_payments.html", map[string]interface{}{
+	renderPrivate(w, "admin_payments.html", map[string]interface{}{
 		"Payments": payments,
 		"Tenants":  tenantOpts,
 		"Months":   monthOpts,
@@ -634,7 +639,7 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	render(w, "admin_meters.html", map[string]interface{}{
+	renderPrivate(w, "admin_meters.html", map[string]interface{}{
 		"RoomMeters":  roomGroups,
 		"Meters":      meters,
 		"RatePerUnit": ratePerUnit,
@@ -760,7 +765,7 @@ func handleAdminPasses(w http.ResponseWriter, r *http.Request) {
 		tenants = []PassTenant{}
 	}
 
-	render(w, "admin_passes.html", map[string]interface{}{
+	renderPrivate(w, "admin_passes.html", map[string]interface{}{
 		"Tenants": tenants,
 		"Active":  "passes",
 		"Title":   "Digital Passes",
@@ -860,7 +865,7 @@ func handleAdminVerifications(w http.ResponseWriter, r *http.Request) {
 		verifications = []VerificationAdmin{}
 	}
 
-	render(w, "admin_verifications.html", map[string]interface{}{
+	renderPrivate(w, "admin_verifications.html", map[string]interface{}{
 		"Verifications": verifications,
 		"Active":        "verifications",
 		"Title":         "Verification Requests",
@@ -903,7 +908,7 @@ func friendlyDBError(err error) string {
 }
 
 func renderAdminError(w http.ResponseWriter, message string) {
-	render(w, "admin_error.html", map[string]interface{}{
+	renderPrivate(w, "admin_error.html", map[string]interface{}{
 		"ErrorMessage": message,
 		"Active":       "dashboard",
 		"Title":        "Error",
