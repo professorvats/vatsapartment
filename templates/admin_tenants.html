@@ -63,7 +63,7 @@
         </td>
         <td class="px-4 py-3">
           <div class="flex items-center gap-1">
-            <button onclick="openEdit('{{.ID}}', '{{.Name}}', '{{.Phone}}', '{{.Email}}', '{{.Status}}', '{{.CheckInDate}}', '{{.RoomID}}', '{{.RentAmount}}', '{{.StartDate}}', '{{.SecurityDeposit}}', '{{.LockInPeriod}}')"
+            <button onclick="openEdit('{{jsStr .ID}}', '{{jsStr .Name}}', '{{jsStr .Phone}}', '{{jsStr .Email}}', '{{jsStr .Status}}', '{{jsStr .CheckInDate}}', '{{jsStr .RoomID}}', '{{.RentAmount}}', '{{jsStr .StartDate}}', '{{.SecurityDeposit}}', '{{.LockInPeriod}}')"
               class="text-primary hover:bg-primary/10 rounded px-2 py-1 text-xs font-medium">Edit</button>
             <button onclick="confirmDelete('{{.ID}}', '{{.Name}}')"
               class="text-error hover:bg-error/10 rounded px-2 py-1 text-xs font-medium">Delete</button>
@@ -295,12 +295,11 @@ function openEdit(id, name, phone, email, status, checkIn, roomId, rent, startDa
   document.getElementById('edit-status').value = status;
   document.getElementById('edit-check-in').value = checkIn || '';
   document.getElementById('edit-room').value = roomId || '';
-  document.getElementById('edit-rent').value = rent || '9000';
+  document.getElementById('edit-rent').value = (rent && rent !== '0') ? rent : '9000';
   document.getElementById('edit-start-date').value = startDate || '';
-  document.getElementById('edit-sec-deposit').value = secDeposit || '';
-  document.getElementById('edit-lock-in').value = lockIn || '';
+  document.getElementById('edit-sec-deposit').value = (secDeposit && secDeposit !== '0') ? secDeposit : '';
+  document.getElementById('edit-lock-in').value = (lockIn && lockIn !== '0') ? lockIn : '';
   document.getElementById('edit-password').value = '';
-  document.getElementById('edit-pass-id').value = id;
   document.getElementById('edit-modal').classList.remove('hidden');
 }
 function closeEdit() {

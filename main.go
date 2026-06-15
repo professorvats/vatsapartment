@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"vatsapartment-go/db"
@@ -30,6 +31,12 @@ func main() {
 		"safeHTML": func(s string) template.HTML { return template.HTML(s) },
 		"sub":      func(a, b int) int { return a - b },
 		"urlquery": url.QueryEscape,
+		"jsStr": func(s string) string {
+			s = strings.ReplaceAll(s, `\`, `\\`)
+			s = strings.ReplaceAll(s, `'`, `\'`)
+			s = strings.ReplaceAll(s, "\n", `\n`)
+			return s
+		},
 		"mul": func(a, b interface{}) float64 {
 			toF := func(v interface{}) float64 {
 				switch x := v.(type) {
