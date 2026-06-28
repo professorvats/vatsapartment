@@ -10,6 +10,8 @@ services:
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USER=${SMTP_USER:-hament.mailbox@gmail.com}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-happy@SIGMA12}
     restart: unless-stopped
     dns:
       - 8.8.8.8

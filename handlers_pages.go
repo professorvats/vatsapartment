@@ -132,12 +132,19 @@ func handleLoginPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var hash string
-	err := db.DB.QueryRow("SELECT password_hash FROM users WHERE username = $1", username).Scan(&hash)
-	if err != nil || bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) != nil {
-		render(w, "login.html", map[string]interface{}{"Error": "Invalid username or password"})
-		return
-	}
+		// Admin login: check env vars first, then fall back to DB
+		adminUser := os.Getenv("ADMIN_USERNAME")
+		adminPass := os.Getenv("ADMIN_PASSWORD")
+		if adminUser != "" && adminPass != "" && username == adminUser && password == adminPass {
+			// Env-based admin login — success
+		} else {
+			var hash string
+			err := db.DB.QueryRow("SELECT password_hash FROM users WHERE username = $1", username).Scan(&hash)
+			if err != nil || bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) != nil {
+				render(w, "login.html", map[string]interface{}{"Error": "Invalid username or password"})
+				return
+			}
+		}
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session",
