@@ -50,6 +50,18 @@ func main() {
 			}
 			return toF(a) * toF(b)
 		},
+		"add": func(a, b interface{}) float64 {
+			toF := func(v interface{}) float64 {
+				switch x := v.(type) {
+				case int:
+					return float64(x)
+				case float64:
+					return x
+				}
+				return 0
+			}
+			return toF(a) + toF(b)
+		},
 	})
 	tmpl, err = tmpl.ParseGlob("templates/*.html")
 	if err != nil {

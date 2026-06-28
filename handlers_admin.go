@@ -657,21 +657,40 @@ func handleAdminPaymentsSave(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/admin/payments", http.StatusSeeOther)
 }
 
-// ─── Meters & Utilities ────────────────────────────────────────
+// ─── Meters & Utilities (Monthly Billing) ──────────────────────
 
 func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 	if !requireAdmin(w, r) {
 		return
 	}
-	// Load per-room meters (exclude building-level water meter)
+
+	// Determine billing month (default: current month)
+	month := r.URL.Query().Get("month")
+	if month == "" {
+		month = time.Now().Format("2006-01")
+	}
+	prevMonth := monthOffset(month, -1)
+	nextMonth := monthOffset(month, 1)
+	// Don't allow future months beyond current
+	currentMonth := time.Now().Format("2006-01")
+	if nextMonth > currentMonth {
+		nextMonth = ""
+	}
+
+	// Ensure monthly readings exist for this month (auto-create from previous month)
+	autoCreateMonthlyReadings(month)
+
+	// Load per-room meters with monthly readings
 	rows, err := db.DB.Query(`SELECT m.id, m.room_id, r.room_number, m.meter_type, m.meter_number,
-		m.current_reading, m.initial_reading, m.is_active,
-		COALESCE(b.status, '') as booking_status
+		COALESCE(mr.initial_reading, 0), COALESCE(mr.current_reading, 0), m.is_active,
+		COALESCE(b.status, '') as booking_status,
+		COALESCE(mr.id, '') as reading_id
 		FROM meters m
 		LEFT JOIN rooms r ON m.room_id = r.id
 		LEFT JOIN bookings b ON m.room_id = b.room_id AND b.status = 'active'
+		LEFT JOIN monthly_readings mr ON mr.meter_id = m.id AND mr.billing_month = $1
 		WHERE m.room_id != 'BUILDING'
-		ORDER BY r.room_number, m.meter_type`)
+		ORDER BY r.room_number, m.meter_type`, month)
 	if err != nil {
 		log.Printf("ERROR loading meters: %v", err)
 		renderAdminError(w, "Failed to load meters")
@@ -680,15 +699,16 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	type MeterAdmin struct {
-		ID, RoomID, RoomNumber, MeterType, MeterNumber, BookingStatus string
-		CurrentReading, InitialReading                                int
-		IsActive                                                      bool
+		ID, RoomID, RoomNumber, MeterType, MeterNumber, BookingStatus, ReadingID string
+		CurrentReading, InitialReading                                           int
+		IsActive                                                                 bool
 	}
 	var meters []MeterAdmin
 	for rows.Next() {
 		var m MeterAdmin
 		var active bool
-		if err := rows.Scan(&m.ID, &m.RoomID, &m.RoomNumber, &m.MeterType, &m.MeterNumber, &m.CurrentReading, &m.InitialReading, &active, &m.BookingStatus); err != nil {
+		if err := rows.Scan(&m.ID, &m.RoomID, &m.RoomNumber, &m.MeterType, &m.MeterNumber,
+			&m.InitialReading, &m.CurrentReading, &active, &m.BookingStatus, &m.ReadingID); err != nil {
 			log.Printf("ERROR scanning meter row: %v", err)
 			continue
 		}
@@ -709,6 +729,8 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 		RoomID, RoomNumber string
 		Occupied           bool
 		Meters             []MeterAdmin
+		RoomTotal          float64
+		GrandTotal         float64
 	}
 	var roomGroups []RoomMeterGroup
 	seen := map[string]int{}
@@ -726,53 +748,120 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 		roomGroups[idx].Meters = append(roomGroups[idx].Meters, m)
 	}
 
-	// Electricity rate
+	}
+
+	// Rate settings
 	var ratePerUnit float64 = 12
 	var unitRate string
 	db.DB.QueryRow("SELECT value FROM settings WHERE key = 'electricity_rate'").Scan(&unitRate)
 	if unitRate != "" {
 		if r, err := strconv.ParseFloat(unitRate, 64); err == nil {
 			ratePerUnit = r
+
+	// Compute room totals
+	for i := range roomGroups {
+		var total float64
+		for _, m := range roomGroups[i].Meters {
+			units := m.CurrentReading - m.InitialReading
+			if units > 0 {
+				total += float64(units) * ratePerUnit
+			}
+		}
+		roomGroups[i].RoomTotal = total
+	}
 		}
 	}
 
-	// --- Water meter (building-level) ---
+	// Water meter with monthly reading
 	var waterMeter MeterAdmin
 	var waterActive bool
 	db.DB.QueryRow(`SELECT m.id, m.room_id, 'Building', m.meter_type, m.meter_number,
-		m.current_reading, m.initial_reading, m.is_active
-		FROM meters m WHERE m.room_id = 'BUILDING' AND m.meter_type = 'Water' AND m.is_active = 1`).Scan(
+		COALESCE(mr.initial_reading, 0), COALESCE(mr.current_reading, 0), m.is_active,
+		COALESCE(mr.id, '') as reading_id
+		FROM meters m
+		LEFT JOIN monthly_readings mr ON mr.meter_id = m.id AND mr.billing_month = $1
+		WHERE m.room_id = 'BUILDING' AND m.meter_type = 'Water' AND m.is_active = true`, month).Scan(
 		&waterMeter.ID, &waterMeter.RoomID, &waterMeter.RoomNumber, &waterMeter.MeterType, &waterMeter.MeterNumber,
-		&waterMeter.CurrentReading, &waterMeter.InitialReading, &waterActive)
+		&waterMeter.InitialReading, &waterMeter.CurrentReading, &waterActive, &waterMeter.ReadingID)
 	waterMeter.IsActive = waterActive
 	hasWaterMeter := waterMeter.ID != ""
 
-	// Count occupied rooms for water bill division
+	// Count occupied rooms
 	var occupiedCount int
 	db.DB.QueryRow("SELECT COUNT(*) FROM bookings WHERE status = 'active'").Scan(&occupiedCount)
 
-	// Calculate per-room water share (uses same rate as electricity)
-	var waterPerRoom float64
-	var waterUnitsPerRoom float64
+	// Water calculations
 	waterUnits := waterMeter.CurrentReading - waterMeter.InitialReading
+	var waterUnitsPerRoom, waterPerRoom float64
 	if occupiedCount > 0 && waterUnits > 0 {
 		waterUnitsPerRoom = float64(waterUnits) / float64(occupiedCount)
 		waterPerRoom = waterUnitsPerRoom * ratePerUnit
 	}
 
+	// Grand totals (room total + water share)
+	for i := range roomGroups {
+		roomGroups[i].GrandTotal = roomGroups[i].RoomTotal + waterPerRoom
+	}
+
 	renderPrivate(w, "admin_meters.html", map[string]interface{}{
-		"RoomMeters":         roomGroups,
-		"Meters":             meters,
-		"RatePerUnit":        ratePerUnit,
-		"WaterMeter":         waterMeter,
-		"HasWaterMeter":      hasWaterMeter,
-		"WaterUnits":         waterUnits,
-		"OccupiedCount":      occupiedCount,
-		"WaterPerRoom":       waterPerRoom,
-		"WaterUnitsPerRoom":  waterUnitsPerRoom,
+		"RoomMeters":        roomGroups,
+		"Meters":            meters,
+		"RatePerUnit":       ratePerUnit,
+		"WaterMeter":        waterMeter,
+		"HasWaterMeter":     hasWaterMeter,
+		"WaterUnits":        waterUnits,
+		"OccupiedCount":     occupiedCount,
+		"WaterPerRoom":      waterPerRoom,
+		"WaterUnitsPerRoom": waterUnitsPerRoom,
+		"Month":             month,
+		"MonthLabel":        formatMonthLabel(month),
+		"PrevMonth":         prevMonth,
+		"NextMonth":         nextMonth,
 		"Active":            "meters",
 		"Title":             "Meters & Utilities",
 	})
+}
+
+// autoCreateMonthlyReadings creates monthly_readings rows for the given month
+// by carrying forward current readings from the previous month (or meter defaults if first month).
+func autoCreateMonthlyReadings(month string) {
+	prevMonth := monthOffset(month, -1)
+
+	// For each active meter where no reading exists for this month, create one
+	_, err := db.DB.Exec(`
+		INSERT INTO monthly_readings (id, meter_id, billing_month, initial_reading, current_reading)
+		SELECT 'MR-' || m.id || '-' || $1,
+			m.id, $1,
+			COALESCE(
+				(SELECT mr2.current_reading FROM monthly_readings mr2
+				 WHERE mr2.meter_id = m.id AND mr2.billing_month = $2),
+				m.initial_reading
+			),
+			0
+		FROM meters m
+		WHERE m.is_active = true
+		AND NOT EXISTS (
+			SELECT 1 FROM monthly_readings mr WHERE mr.meter_id = m.id AND mr.billing_month = $1
+		)`, month, prevMonth)
+	if err != nil {
+		log.Printf("autoCreateMonthlyReadings: %v", err)
+	}
+}
+
+func monthOffset(month string, offset int) string {
+	t, err := time.Parse("2006-01", month)
+	if err != nil {
+		return ""
+	}
+	return t.AddDate(0, offset, 0).Format("2006-01")
+}
+
+func formatMonthLabel(month string) string {
+	t, err := time.Parse("2006-01", month)
+	if err != nil {
+		return month
+	}
+	return t.Format("January 2006")
 }
 
 func handleAdminMetersSave(w http.ResponseWriter, r *http.Request) {
@@ -803,6 +892,29 @@ func handleAdminMetersSave(w http.ResponseWriter, r *http.Request) {
 		rate := r.FormValue("rate")
 		db.DB.Exec(`INSERT INTO settings (key, value, description) VALUES ('electricity_rate', $1, 'Shared rate per unit (electricity & water)')
 			ON CONFLICT (key) DO UPDATE SET value=$1, updated_at=NOW()`, rate)
+	} else if action == "save_month" {
+		month := r.FormValue("month")
+		r.ParseMultipartForm(0)
+		for key, vals := range r.Form {
+			if strings.HasPrefix(key, "current_") && len(vals) > 0 && vals[0] != "" {
+				meterID := strings.TrimPrefix(key, "current_")
+				reading, _ := strconv.Atoi(vals[0])
+				db.DB.Exec(`UPDATE monthly_readings SET current_reading = $1, updated_at = NOW()
+					WHERE meter_id = $2 AND billing_month = $3`, reading, meterID, month)
+			}
+		}
+		waterCurrent := r.FormValue("water_current")
+		if waterCurrent != "" {
+			var waterMeterID string
+			db.DB.QueryRow("SELECT id FROM meters WHERE room_id = 'BUILDING' AND meter_type = 'Water' AND is_active = true").Scan(&waterMeterID)
+			if waterMeterID != "" {
+				wc, _ := strconv.Atoi(waterCurrent)
+				db.DB.Exec(`UPDATE monthly_readings SET current_reading = $1, updated_at = NOW()
+					WHERE meter_id = $2 AND billing_month = $3`, wc, waterMeterID, month)
+			}
+		}
+		http.Redirect(w, r, "/admin/meters?month="+month+"&saved=1", http.StatusSeeOther)
+		return
 	}
 	http.Redirect(w, r, "/admin/meters", http.StatusSeeOther)
 }

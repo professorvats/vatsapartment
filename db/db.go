@@ -242,6 +242,25 @@ func runMigrations() error {
 		{"idx_tenants_status", `CREATE INDEX IF NOT EXISTS idx_tenants_status ON tenants(status)`},
 	{"building_room", `INSERT INTO rooms (id, room_number, floor, type, price) VALUES ('BUILDING', 'BLDG', 0, 'Utility', 0) ON CONFLICT (id) DO NOTHING`},
 	{"building_water_meter", `INSERT INTO meters (id, room_id, meter_type, meter_number, initial_reading, current_reading, is_active) VALUES ('MTR-BUILDING-Water', 'BUILDING', 'Water', 'BLDG-Water', 0, 0, true) ON CONFLICT (id) DO NOTHING`},
+	{"monthly_readings", `
+		CREATE TABLE IF NOT EXISTS monthly_readings (
+			id TEXT PRIMARY KEY,
+			meter_id TEXT NOT NULL,
+			billing_month TEXT NOT NULL,
+			initial_reading INTEGER DEFAULT 0,
+			current_reading INTEGER DEFAULT 0,
+			created_at TIMESTAMPTZ DEFAULT NOW(),
+			updated_at TIMESTAMPTZ DEFAULT NOW(),
+			UNIQUE(meter_id, billing_month)
+		)`},
+	{"seed_monthly_readings", `
+		INSERT INTO monthly_readings (id, meter_id, billing_month, initial_reading, current_reading)
+		SELECT 'MR-' || id || '-' || TO_CHAR(NOW(), 'YYYY-MM'),
+			id, TO_CHAR(NOW(), 'YYYY-MM'), initial_reading, current_reading
+		FROM meters WHERE is_active = true
+		ON CONFLICT (meter_id, billing_month) DO NOTHING`},
+	{"idx_mr_month", `CREATE INDEX IF NOT EXISTS idx_mr_month ON monthly_readings(billing_month)`},
+	{"idx_mr_meter", `CREATE INDEX IF NOT EXISTS idx_mr_meter ON monthly_readings(meter_id)`},
 	}
 
 	for _, m := range migrations {
