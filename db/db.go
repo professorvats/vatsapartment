@@ -240,6 +240,8 @@ func runMigrations() error {
 		{"idx_ra_tenant", `CREATE INDEX IF NOT EXISTS idx_ra_tenant ON room_assignments(tenant_id)`},
 		{"idx_pay_tenant", `CREATE INDEX IF NOT EXISTS idx_pay_tenant ON payments(tenant_id)`},
 		{"idx_tenants_status", `CREATE INDEX IF NOT EXISTS idx_tenants_status ON tenants(status)`},
+	{"building_room", `INSERT INTO rooms (id, room_number, floor, type, price) VALUES ('BUILDING', 'BLDG', 0, 'Utility', 0) ON CONFLICT (id) DO NOTHING`},
+	{"building_water_meter", `INSERT INTO meters (id, room_id, meter_type, meter_number, initial_reading, current_reading, is_active) VALUES ('MTR-BUILDING-Water', 'BUILDING', 'Water', 'BLDG-Water', 0, 0, true) ON CONFLICT (id) DO NOTHING`},
 	}
 
 	for _, m := range migrations {
@@ -394,7 +396,7 @@ func SeedMeters() error {
 				id := fmt.Sprintf("MTR-%s-%s", r.number, mt)
 				num := fmt.Sprintf("%s-%s", r.number, mt)
 				_, err := DB.Exec(`INSERT INTO meters (id, room_id, meter_type, meter_number, initial_reading, current_reading, is_active)
-					VALUES ($1, $2, $3, $4, 0, 0, 1)`, id, r.id, mt, num)
+					VALUES ($1, $2, $3, $4, 0, 0, true)`, id, r.id, mt, num)
 				if err != nil {
 					return fmt.Errorf("seed meter %s/%s: %w", r.number, mt, err)
 				}
@@ -411,7 +413,7 @@ func SeedMeters() error {
 	DB.QueryRow("SELECT COUNT(*) FROM meters WHERE room_id = 'BUILDING' AND meter_type = 'Water'").Scan(&bcount)
 	if bcount == 0 {
 		_, err := DB.Exec(`INSERT INTO meters (id, room_id, meter_type, meter_number, initial_reading, current_reading, is_active)
-			VALUES ('MTR-BUILDING-Water', 'BUILDING', 'Water', 'BLDG-Water', 0, 0, 1)`)
+			VALUES ('MTR-BUILDING-Water', 'BUILDING', 'Water', 'BLDG-Water', 0, 0, true)`)
 		if err != nil {
 			return fmt.Errorf("seed building water meter: %w", err)
 		}
