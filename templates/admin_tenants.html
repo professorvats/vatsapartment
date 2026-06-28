@@ -5,34 +5,94 @@
 </div>
 
 {{if .Tenants}}
-<div class="bg-sf-lowest border border-ol-variant rounded-lg overflow-hidden">
-  <table class="w-full text-sm">
+<div class="bg-sf-lowest border border-ol-variant rounded-lg overflow-x-auto">
+  <table class="w-full text-sm min-w-[900px]">
     <thead>
       <tr class="border-b border-ol-variant bg-sf-low">
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Name</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Contact</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Room</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Verification</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Login</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Status</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Actions</th>
+        <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Name</th>
+        <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Contact</th>
+        <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Room</th>
+        <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Pass</th>
+        <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Verification</th>
+        <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Login</th>
+        <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Status</th>
+        <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Actions</th>
       </tr>
     </thead>
     <tbody>
       {{range .Tenants}}
       <tr class="border-b border-ol-variant last:border-0 hover:bg-sf-low/50">
-        <td class="px-4 py-3 font-medium">{{.Name}}</td>
-        <td class="px-4 py-3 text-xs text-on-sf-variant">{{.Phone}}<br>{{.Email}}</td>
-        <td class="px-4 py-3">{{if .RoomNumber}}{{.RoomNumber}}{{else}}<span class="text-on-sf-variant">—</span>{{end}}</td>
-        <td class="px-4 py-3">
-          <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full
-            {{if eq .VerificationStatus "verified"}}bg-green-50 text-success border border-green-200
-            {{else if eq .VerificationStatus "pending"}}bg-amber-50 text-warning border border-amber-200
-            {{else}}bg-gray-50 text-on-sf-variant border border-ol-variant{{end}}">
-            {{.VerificationStatus}}
-          </span>
+        <td class="px-3 py-3 font-medium">{{.Name}}</td>
+        <td class="px-3 py-3 text-xs text-on-sf-variant">{{.Phone}}<br>{{.Email}}</td>
+        <td class="px-3 py-3">{{if .RoomNumber}}{{.RoomNumber}}{{else}}<span class="text-on-sf-variant">—</span>{{end}}</td>
+        <!-- Pass column -->
+        <td class="px-3 py-3 text-xs">
+          {{if .PassActive}}
+          <div class="flex flex-col gap-1">
+            <span class="inline-flex items-center gap-1 text-xs text-success font-medium">
+              <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
+              {{.PassNumber}}
+            </span>
+            <div class="flex items-center gap-1.5">
+              <a href="https://wa.me/91{{.Phone}}?text={{urlquery (printf "🏠 *Welcome to Vats Apartment!*\n\nHi %s, your room is ready! 🎉\n\n*Room:* %s\n\n🔑 *Login:* https://vatsapartment.com/login?mode=tenant&phone=%s\n*Username:* %s\n\nAccess your dashboard & payments anytime.\n\nEnjoy your stay! 📍 Near LPU, Jalandhar" .Name .RoomNumber .Phone .Phone)}}"
+                 target="_blank" class="text-[10px] text-green-600 font-semibold hover:underline">Share</a>
+              <button onclick="customMsg('{{jsStr .Name}}','{{.Phone}}','{{jsStr .PassNumber}}','{{jsStr .RoomNumber}}')"
+                      class="text-[10px] text-secondary font-semibold hover:underline">Custom</button>
+              <form method="POST" action="/admin/tenants/save" class="inline">
+                <input type="hidden" name="action" value="revoke_pass">
+                <input type="hidden" name="id" value="{{.ID}}">
+                <button type="submit" class="text-[10px] text-error font-semibold hover:underline">Revoke</button>
+              </form>
+            </div>
+          </div>
+          {{else}}
+          <form method="POST" action="/admin/tenants/save" class="inline">
+            <input type="hidden" name="action" value="issue_pass">
+            <input type="hidden" name="id" value="{{.ID}}">
+            <button type="submit" class="text-xs text-primary font-medium hover:underline">Generate</button>
+          </form>
+          {{end}}
         </td>
-        <td class="px-4 py-3">
+        <!-- Verification column -->
+        <td class="px-3 py-3">
+          {{if eq .VerificationStatus "verified"}}
+          <div class="flex flex-col gap-0.5">
+            <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-green-50 text-success border border-green-200 w-fit">Verified</span>
+            {{if .VerificationNotes}}<span class="text-[10px] text-on-sf-variant italic">{{.VerificationNotes}}</span>{{end}}
+          </div>
+          {{else if eq .VerificationStatus "pending"}}
+          <div class="flex flex-col gap-1">
+            <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-amber-50 text-warning border border-amber-200 w-fit">Pending</span>
+            {{if or .LpuPhoto .AadharPhoto}}
+            <div class="flex items-center gap-1.5">
+              {{if .LpuPhoto}}<a href="{{.LpuPhoto}}" target="_blank" class="text-[10px] text-primary font-semibold hover:underline">LPU ID</a>{{end}}
+              {{if .AadharPhoto}}<a href="{{.AadharPhoto}}" target="_blank" class="text-[10px] text-primary font-semibold hover:underline">Aadhar</a>{{end}}
+            </div>
+            {{end}}
+            <div class="flex items-center gap-1.5">
+              <form method="POST" action="/admin/tenants/save" class="inline">
+                <input type="hidden" name="action" value="verify_tenant">
+                <input type="hidden" name="verification_id" value="{{.VerificationID}}">
+                <button type="submit" class="text-[10px] text-success font-semibold hover:underline">Approve</button>
+              </form>
+              <form method="POST" action="/admin/tenants/save" class="inline flex items-center gap-0.5">
+                <input type="hidden" name="action" value="reject_tenant">
+                <input type="hidden" name="verification_id" value="{{.VerificationID}}">
+                <input type="text" name="notes" placeholder="Reason" class="w-14 text-[10px] border border-ol-variant rounded px-1 py-0.5">
+                <button type="submit" class="text-[10px] text-error font-semibold hover:underline">Reject</button>
+              </form>
+            </div>
+          </div>
+          {{else if eq .VerificationStatus "rejected"}}
+          <div class="flex flex-col gap-0.5">
+            <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-red-50 text-error border border-red-200 w-fit">Rejected</span>
+            {{if .VerificationNotes}}<span class="text-[10px] text-error italic">{{.VerificationNotes}}</span>{{end}}
+          </div>
+          {{else}}
+          <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-gray-50 text-on-sf-variant border border-ol-variant">Not Submitted</span>
+          {{end}}
+        </td>
+        <td class="px-3 py-3">
           {{if .HasPassword}}
           <form method="POST" action="/admin/tenants/save" class="inline-flex items-center gap-1">
             <input type="hidden" name="action" value="reset_pass">
@@ -48,7 +108,7 @@
           </form>
           {{end}}
         </td>
-        <td class="px-4 py-3">
+        <td class="px-3 py-3">
           <form method="POST" action="/admin/tenants/save" class="inline">
             <input type="hidden" name="action" value="update">
             <input type="hidden" name="id" value="{{.ID}}">
@@ -61,7 +121,7 @@
             </select>
           </form>
         </td>
-        <td class="px-4 py-3">
+        <td class="px-3 py-3">
           <div class="flex items-center gap-1">
             <button onclick="openEdit('{{jsStr .ID}}', '{{jsStr .Name}}', '{{jsStr .Phone}}', '{{jsStr .Email}}', '{{jsStr .Status}}', '{{jsStr .CheckInDate}}', '{{jsStr .RoomID}}', '{{.RentAmount}}', '{{jsStr .StartDate}}', '{{.SecurityDeposit}}', '{{.LockInPeriod}}', {{.HasPassword}})"
               class="text-primary hover:bg-primary/10 rounded px-2 py-1 text-xs font-medium">Edit</button>
@@ -269,7 +329,52 @@
   </div>
 </div>
 
+<!-- Custom Message Modal -->
+<div id="custom-msg-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-md">
+    <h3 class="font-semibold mb-1">Send Custom Message</h3>
+    <p class="text-xs text-on-sf-variant mb-4">To: <span id="custom-tenant-name" class="font-medium"></span></p>
+    <div class="space-y-3">
+      <div>
+        <label class="block text-xs text-on-sf-variant mb-1">Message</label>
+        <textarea id="custom-msg-text" rows="4"
+          class="w-full border border-ol-variant rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder="Type your message here...">Hello! Here is your digital pass for Vats Apartment.</textarea>
+      </div>
+      <button onclick="sendCustomMsg()"
+        class="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Send via WhatsApp
+      </button>
+      <button type="button" onclick="document.getElementById('custom-msg-modal').classList.add('hidden')"
+        class="w-full border border-ol-variant py-2 rounded-lg text-sm">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script>
+var customPhone = "";
+function customMsg(name, phone, pass, room) {
+  customPhone = phone;
+  document.getElementById('custom-tenant-name').textContent = name + " (" + phone + ")";
+  document.getElementById('custom-msg-text').value =
+    "\u{1F3E0} *Welcome to Vats Apartment!*\n\n" +
+    "Hi " + name + ", your room is ready! \u{1F389}\n\n" +
+    "Room: " + room + "\n\n" +
+    "\u{1F511} *Login:* https://vatsapartment.com/login?mode=tenant&phone=" + phone + "\n" +
+    "Username: " + phone + "\n" +
+    "Password: Use the password shared by admin\n\n" +
+    "Access your dashboard & payments anytime.\n\n" +
+    "Enjoy your stay! \u{1F4CD} Near LPU, Jalandhar";
+  document.getElementById('custom-msg-modal').classList.remove('hidden');
+}
+function sendCustomMsg() {
+  var msg = document.getElementById('custom-msg-text').value;
+  var url = "https://wa.me/91" + customPhone + "?text=" + encodeURIComponent(msg);
+  window.open(url, '_blank');
+  document.getElementById('custom-msg-modal').classList.add('hidden');
+}
+
 function openAdd() {
   document.getElementById('add-name').value = '';
   document.getElementById('add-phone').value = '';

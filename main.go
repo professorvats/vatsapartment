@@ -108,13 +108,6 @@ func main() {
 	// Static uploads
 	mux.HandleFunc("GET /uploads/", handleTenantUploadedFile)
 
-	// Admin Passes & Verifications
-	mux.HandleFunc("GET /admin/passes", handleAdminPasses)
-	mux.HandleFunc("POST /admin/passes/generate", handleAdminPassGenerate)
-	mux.HandleFunc("POST /admin/passes/revoke", handleAdminPassRevoke)
-	mux.HandleFunc("GET /admin/verifications", handleAdminVerifications)
-	mux.HandleFunc("POST /admin/verifications/action", handleAdminVerificationAction)
-
 	// API
 	mux.HandleFunc("GET /api/rooms", handleAPIRooms)
 	mux.HandleFunc("GET /api/booking-management", handleAPIBookings)
