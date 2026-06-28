@@ -657,18 +657,20 @@ func handleAdminPaymentsSave(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/admin/payments", http.StatusSeeOther)
 }
 
-// ─── Meters (Electricity) ──────────────────────────────────────
+// ─── Meters & Utilities ────────────────────────────────────────
 
 func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 	if !requireAdmin(w, r) {
 		return
 	}
+	// Load per-room meters (exclude building-level water meter)
 	rows, err := db.DB.Query(`SELECT m.id, m.room_id, r.room_number, m.meter_type, m.meter_number,
 		m.current_reading, m.initial_reading, m.is_active,
 		COALESCE(b.status, '') as booking_status
 		FROM meters m
 		LEFT JOIN rooms r ON m.room_id = r.id
 		LEFT JOIN bookings b ON m.room_id = b.room_id AND b.status = 'active'
+		WHERE m.room_id != 'BUILDING'
 		ORDER BY r.room_number, m.meter_type`)
 	if err != nil {
 		log.Printf("ERROR loading meters: %v", err)
@@ -724,6 +726,7 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 		roomGroups[idx].Meters = append(roomGroups[idx].Meters, m)
 	}
 
+	// Electricity rate
 	var ratePerUnit float64 = 12
 	var unitRate string
 	db.DB.QueryRow("SELECT value FROM settings WHERE key = 'electricity_rate'").Scan(&unitRate)
@@ -733,12 +736,51 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// --- Water meter (building-level) ---
+	var waterMeter MeterAdmin
+	var waterActive bool
+	db.DB.QueryRow(`SELECT m.id, m.room_id, 'Building', m.meter_type, m.meter_number,
+		m.current_reading, m.initial_reading, m.is_active
+		FROM meters m WHERE m.room_id = 'BUILDING' AND m.meter_type = 'Water' AND m.is_active = 1`).Scan(
+		&waterMeter.ID, &waterMeter.RoomID, &waterMeter.RoomNumber, &waterMeter.MeterType, &waterMeter.MeterNumber,
+		&waterMeter.CurrentReading, &waterMeter.InitialReading, &waterActive)
+	waterMeter.IsActive = waterActive
+	hasWaterMeter := waterMeter.ID != ""
+
+	// Water rate
+	var waterRate float64
+	var waterRateStr string
+	db.DB.QueryRow("SELECT value FROM settings WHERE key = 'water_rate'").Scan(&waterRateStr)
+	if waterRateStr != "" {
+		if wr, err := strconv.ParseFloat(waterRateStr, 64); err == nil {
+			waterRate = wr
+		}
+	}
+
+	// Count occupied rooms for water bill division
+	var occupiedCount int
+	db.DB.QueryRow("SELECT COUNT(*) FROM bookings WHERE status = 'active'").Scan(&occupiedCount)
+
+	// Calculate per-room water share
+	var waterPerRoom float64
+	waterUnits := waterMeter.CurrentReading - waterMeter.InitialReading
+	if occupiedCount > 0 && waterUnits > 0 && waterRate > 0 {
+		waterPerRoom = (float64(waterUnits) * waterRate) / float64(occupiedCount)
+	}
+
 	renderPrivate(w, "admin_meters.html", map[string]interface{}{
-		"RoomMeters":  roomGroups,
-		"Meters":      meters,
-		"RatePerUnit": ratePerUnit,
-		"Active":      "meters",
-		"Title":       "Electricity Meters",
+		"RoomMeters":        roomGroups,
+		"Meters":            meters,
+		"RatePerUnit":       ratePerUnit,
+		"WaterMeter":        waterMeter,
+		"HasWaterMeter":     hasWaterMeter,
+		"WaterRate":         waterRate,
+		"WaterUnits":        waterUnits,
+		"WaterTotal":        float64(waterUnits) * waterRate,
+		"OccupiedCount":     occupiedCount,
+		"WaterPerRoom":      waterPerRoom,
+		"Active":            "meters",
+		"Title":             "Meters & Utilities",
 	})
 }
 
@@ -768,8 +810,14 @@ func handleAdminMetersSave(w http.ResponseWriter, r *http.Request) {
 		db.DB.Exec("UPDATE meters SET current_reading = $1 WHERE id = $2", reading, meterID)
 	} else if action == "update_rate" {
 		rate := r.FormValue("rate")
-		db.DB.Exec(`INSERT INTO settings (key, value, description) VALUES ('electricity_rate', $1, 'Electricity rate per unit')
-			ON CONFLICT (key) DO UPDATE SET value=$1, updated_at=NOW()`, rate)
+		rateType := r.FormValue("rate_type")
+		if rateType == "water" {
+			db.DB.Exec(`INSERT INTO settings (key, value, description) VALUES ('water_rate', $1, 'Water rate per unit')
+				ON CONFLICT (key) DO UPDATE SET value=$1, updated_at=NOW()`, rate)
+		} else {
+			db.DB.Exec(`INSERT INTO settings (key, value, description) VALUES ('electricity_rate', $1, 'Electricity rate per unit')
+				ON CONFLICT (key) DO UPDATE SET value=$1, updated_at=NOW()`, rate)
+		}
 	}
 	http.Redirect(w, r, "/admin/meters", http.StatusSeeOther)
 }
