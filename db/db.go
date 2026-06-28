@@ -341,3 +341,79 @@ func SeedMedia() error {
 	}
 	return nil
 }
+
+// SeedMeters creates default meters for all rooms (Electric, Inverter, Water)
+// plus a building-level water meter. Safe to run multiple times (idempotent).
+// Also deduplicates — keeps only 1 meter per room+type (best one: has meter_number or highest reading).
+func SeedMeters() error {
+	// Deduplicate: keep only the best meter per room_id + meter_type
+	dedupRows, err := DB.Query(`SELECT room_id, meter_type FROM meters WHERE room_id != 'BUILDING' GROUP BY room_id, meter_type HAVING COUNT(*) > 1`)
+	if err == nil {
+		defer dedupRows.Close()
+		for dedupRows.Next() {
+			var rid, mtype string
+			dedupRows.Scan(&rid, &mtype)
+			// Keep the one with a non-empty meter_number, or highest current_reading
+			var bestID string
+			DB.QueryRow(`SELECT id FROM meters WHERE room_id = $1 AND meter_type = $2
+				ORDER BY CASE WHEN meter_number != '' THEN 0 ELSE 1 END, current_reading DESC LIMIT 1`, rid, mtype).Scan(&bestID)
+			if bestID != "" {
+				res, _ := DB.Exec(`DELETE FROM meters WHERE room_id = $1 AND meter_type = $2 AND id != $3`, rid, mtype, bestID)
+				if n, _ := res.RowsAffected(); n > 0 {
+					log.Printf("  ✓ Dedup: Room %s %s — removed %d duplicate(s)", rid, mtype, n)
+				}
+			}
+		}
+	}
+
+	type roomInfo struct{ id, number string }
+	rows, err := DB.Query("SELECT id, room_number FROM rooms ORDER BY room_number")
+	if err != nil {
+		return fmt.Errorf("seed meters: %w", err)
+	}
+	defer rows.Close()
+
+	var rooms []roomInfo
+	for rows.Next() {
+		var r roomInfo
+		if err := rows.Scan(&r.id, &r.number); err != nil {
+			return err
+		}
+		rooms = append(rooms, r)
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+
+	meterTypes := []string{"Electric", "Inverter", "Water"}
+	for _, r := range rooms {
+		for _, mt := range meterTypes {
+			var count int
+			DB.QueryRow("SELECT COUNT(*) FROM meters WHERE room_id = $1 AND meter_type = $2", r.id, mt).Scan(&count)
+			if count == 0 {
+				id := fmt.Sprintf("MTR-%s-%s", r.number, mt)
+				num := fmt.Sprintf("%s-%s", r.number, mt)
+				_, err := DB.Exec(`INSERT INTO meters (id, room_id, meter_type, meter_number, initial_reading, current_reading, is_active)
+					VALUES ($1, $2, $3, $4, 0, 0, 1)`, id, r.id, mt, num)
+				if err != nil {
+					return fmt.Errorf("seed meter %s/%s: %w", r.number, mt, err)
+				}
+				log.Printf("  ✓ Meter: Room %s — %s", r.number, mt)
+			}
+		}
+	}
+
+	// Building-level water meter
+	var bcount int
+	DB.QueryRow("SELECT COUNT(*) FROM meters WHERE room_id = 'BUILDING' AND meter_type = 'Water'").Scan(&bcount)
+	if bcount == 0 {
+		_, err := DB.Exec(`INSERT INTO meters (id, room_id, meter_type, meter_number, initial_reading, current_reading, is_active)
+			VALUES ('MTR-BUILDING-Water', 'BUILDING', 'Water', 'BLDG-Water', 0, 0, 1)`)
+		if err != nil {
+			return fmt.Errorf("seed building water meter: %w", err)
+		}
+		log.Println("  ✓ Building Water Meter created")
+	}
+
+	return nil
+}
