@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "google-ads-script-1-keywords.js",
   "scripts": {
-    "build:css": "npx @tailwindcss/cli -i src/app.css -o static/app-tailwind.css --minify",
-    "watch:css": "npx @tailwindcss/cli -i src/app.css -o static/app-tailwind.css --watch",
+    "build:css": "npx @tailwindcss/cli -i src/app.css -o static/app-tailwind.v2.css --minify",
+    "watch:css": "npx @tailwindcss/cli -i src/app.css -o static/app-tailwind.v2.css --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
