@@ -753,20 +753,23 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 
 	// Calculate per-room water share (uses same rate as electricity)
 	var waterPerRoom float64
+	var waterUnitsPerRoom float64
 	waterUnits := waterMeter.CurrentReading - waterMeter.InitialReading
-	if occupiedCount > 0 && waterUnits > 0 && ratePerUnit > 0 {
-		waterPerRoom = (float64(waterUnits) * ratePerUnit) / float64(occupiedCount)
+	if occupiedCount > 0 && waterUnits > 0 {
+		waterUnitsPerRoom = float64(waterUnits) / float64(occupiedCount)
+		waterPerRoom = waterUnitsPerRoom * ratePerUnit
 	}
 
 	renderPrivate(w, "admin_meters.html", map[string]interface{}{
-		"RoomMeters":        roomGroups,
-		"Meters":            meters,
-		"RatePerUnit":       ratePerUnit,
-		"WaterMeter":        waterMeter,
-		"HasWaterMeter":     hasWaterMeter,
-		"WaterUnits":        waterUnits,
-		"OccupiedCount":     occupiedCount,
-		"WaterPerRoom":      waterPerRoom,
+		"RoomMeters":         roomGroups,
+		"Meters":             meters,
+		"RatePerUnit":        ratePerUnit,
+		"WaterMeter":         waterMeter,
+		"HasWaterMeter":      hasWaterMeter,
+		"WaterUnits":         waterUnits,
+		"OccupiedCount":      occupiedCount,
+		"WaterPerRoom":       waterPerRoom,
+		"WaterUnitsPerRoom":  waterUnitsPerRoom,
 		"Active":            "meters",
 		"Title":             "Meters & Utilities",
 	})
