@@ -274,7 +274,7 @@ func SeedRooms() error {
 			return err
 		}
 	}
-	_, err := DB.Exec(`DELETE FROM rooms WHERE id NOT IN ('101', '102', '201', '202', '301', '302')`)
+	_, err := DB.Exec(`DELETE FROM rooms WHERE id NOT IN ('101', '102', '201', '202', '301', '302', 'BUILDING')`)
 	return err
 }
 
@@ -402,6 +402,9 @@ func SeedMeters() error {
 			}
 		}
 	}
+
+	// Ensure BUILDING room exists for utility meters (FK constraint)
+	DB.Exec(`INSERT INTO rooms (id, room_number, floor, type, price) VALUES ('BUILDING', 'BLDG', 0, 'Utility', 0) ON CONFLICT (id) DO NOTHING`)
 
 	// Building-level water meter
 	var bcount int
