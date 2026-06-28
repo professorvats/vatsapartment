@@ -4,30 +4,15 @@
   <button onclick="document.getElementById('reading-form').classList.toggle('hidden')" class="bg-secondary text-white px-4 py-2 rounded-lg text-sm font-semibold">+ Record Reading</button>
 </div>
 
-<!-- Rate Settings -->
-<div class="bg-sf-lowest border border-ol-variant rounded-lg p-4 mb-6 space-y-3">
-  <!-- Electricity Rate -->
-  <div class="flex flex-wrap items-center gap-4">
-    <span class="text-sm font-semibold w-28">⚡ Electricity:</span>
-    <form method="POST" action="/admin/meters/save" class="flex items-center gap-3">
-      <input type="hidden" name="action" value="update_rate">
-      <input type="hidden" name="rate_type" value="electricity">
-      <span>₹</span><input name="rate" type="number" step="0.01" value="{{printf "%.2f" .RatePerUnit}}" class="w-24 border border-ol-variant rounded px-2 py-1 text-sm">
-      <span class="text-sm text-on-sf-variant">/ unit</span>
-      <button type="submit" class="text-sm text-primary font-semibold hover:underline">Update</button>
-    </form>
-  </div>
-  <!-- Water Rate -->
-  <div class="flex flex-wrap items-center gap-4">
-    <span class="text-sm font-semibold w-28">💧 Water:</span>
-    <form method="POST" action="/admin/meters/save" class="flex items-center gap-3">
-      <input type="hidden" name="action" value="update_rate">
-      <input type="hidden" name="rate_type" value="water">
-      <span>₹</span><input name="rate" type="number" step="0.01" value="{{printf "%.2f" .WaterRate}}" class="w-24 border border-ol-variant rounded px-2 py-1 text-sm">
-      <span class="text-sm text-on-sf-variant">/ unit</span>
-      <button type="submit" class="text-sm text-primary font-semibold hover:underline">Update</button>
-    </form>
-  </div>
+<!-- Rate Setting -->
+<div class="bg-sf-lowest border border-ol-variant rounded-lg p-4 mb-6 flex flex-wrap items-center gap-4">
+  <span class="text-sm font-semibold">⚡ Electricity & 💧 Water Rate:</span>
+  <form method="POST" action="/admin/meters/save" class="flex items-center gap-3">
+    <input type="hidden" name="action" value="update_rate">
+    <span>₹</span><input name="rate" type="number" step="0.01" value="{{printf "%.2f" .RatePerUnit}}" class="w-24 border border-ol-variant rounded px-2 py-1 text-sm">
+    <span class="text-sm text-on-sf-variant">/ unit (shared)</span>
+    <button type="submit" class="text-sm text-primary font-semibold hover:underline">Update</button>
+  </form>
 </div>
 
 <!-- Record Reading Form -->
@@ -72,15 +57,15 @@
     <div><span class="text-xs text-blue-600">Initial Reading</span><div class="font-semibold">{{.WaterMeter.InitialReading}}</div></div>
     <div><span class="text-xs text-blue-600">Current Reading</span><div class="font-semibold">{{.WaterMeter.CurrentReading}}</div></div>
     <div><span class="text-xs text-blue-600">Units Used</span><div class="font-semibold">{{.WaterUnits}}</div></div>
-    <div><span class="text-xs text-blue-600">Rate</span><div class="font-semibold">₹{{printf "%.2f" .WaterRate}}/unit</div></div>
-    <div><span class="text-xs text-blue-600">Total Bill</span><div class="font-semibold">₹{{printf "%.0f" .WaterTotal}}</div></div>
+    <div><span class="text-xs text-blue-600">Rate</span><div class="font-semibold">₹{{printf "%.2f" $.RatePerUnit}}/unit</div></div>
+    <div><span class="text-xs text-blue-600">Total Bill</span><div class="font-semibold">₹{{printf "%.0f" (mul $.WaterUnits $.RatePerUnit)}}</div></div>
   </div>
   <div class="mt-3 pt-3 border-t border-blue-200 flex flex-wrap items-center gap-4">
     <div class="text-sm text-blue-900">
       <span class="font-semibold">Per Room Share:</span>
       <span class="text-lg font-bold">₹{{printf "%.0f" .WaterPerRoom}}</span>
     </div>
-    <span class="text-xs text-blue-600">(₹{{printf "%.0f" .WaterTotal}} ÷ {{.OccupiedCount}} occupied room{{if gt .OccupiedCount 1}}s{{end}})</span>
+    <span class="text-xs text-blue-600">(₹{{printf "%.0f" (mul $.WaterUnits $.RatePerUnit)}} ÷ {{$.OccupiedCount}} occupied room{{if gt $.OccupiedCount 1}}s{{end}})</span>
   </div>
 </div>
 {{else}}
@@ -103,16 +88,6 @@
   <div class="bg-sf-lowest border border-ol-variant rounded-lg p-5">
     <div class="flex items-center justify-between mb-3">
       <h3 class="font-semibold">Room {{.RoomNumber}} {{if .Occupied}}<span class="text-xs text-secondary ml-2">Occupied</span>{{else}}<span class="text-xs text-on-sf-variant ml-2">Vacant</span>{{end}}</h3>
-      <form method="POST" action="/admin/meters/save" class="flex items-center gap-2">
-        <input type="hidden" name="action" value="add_meter">
-        <input type="hidden" name="room_id" value="{{.RoomID}}">
-        <select name="meter_type" class="border border-ol-variant rounded px-2 py-1 text-xs">
-          <option>Electric</option><option>Inverter</option><option>Water</option>
-        </select>
-        <input name="meter_number" placeholder="Meter #" class="w-24 border border-ol-variant rounded px-2 py-1 text-xs">
-        <input name="initial_reading" type="number" placeholder="Initial" value="0" class="w-16 border border-ol-variant rounded px-2 py-1 text-xs">
-        <button type="submit" class="text-xs bg-primary text-on-primary px-2 py-1 rounded">+ Add Meter</button>
-      </form>
     </div>
     <table class="w-full text-sm">
       <thead>
