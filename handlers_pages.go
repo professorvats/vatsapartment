@@ -83,12 +83,7 @@ func handleContact(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleLogin(w http.ResponseWriter, r *http.Request) {
-	mode := r.URL.Query().Get("mode")
-	data := map[string]interface{}{}
-	if mode == "tenant" {
-		data["TenantMode"] = true
-	}
-	render(w, "login.html", data)
+	render(w, "login.html", nil)
 }
 
 func handlePrivacy(w http.ResponseWriter, r *http.Request) {
@@ -106,56 +101,87 @@ func handleSupport(w http.ResponseWriter, r *http.Request) {
 func handleLoginPost(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	loginType := r.FormValue("login_type")
 
-	if loginType == "tenant" {
-		var tenantID, hash string
-		err := db.DB.QueryRow("SELECT id, COALESCE(password_hash,'') FROM tenants WHERE phone = $1 AND status = 'active'", username).Scan(&tenantID, &hash)
-		if err != nil {
-			render(w, "login.html", map[string]interface{}{"Error": "Invalid phone or password", "TenantMode": true})
-			return
-		}
-		if hash == "" || bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) != nil {
-			render(w, "login.html", map[string]interface{}{"Error": "Invalid phone or password", "TenantMode": true})
-			return
-		}
-		http.SetCookie(w, &http.Cookie{
-			Name:     "tenant_session",
-			Value:    "tenant:" + tenantID,
-			Path:     "/",
-			HttpOnly: true,
-			Secure:   r.TLS != nil,
-			SameSite: http.SameSiteLaxMode,
-			Expires:  time.Now().Add(24 * time.Hour),
-		})
-		http.Redirect(w, r, "/tenant/dashboard", http.StatusSeeOther)
-		return
-	}
-
-		// Admin login: check env vars first, then fall back to DB
+	// Helper: try admin login
+	tryAdmin := func() bool {
 		adminUser := os.Getenv("ADMIN_USERNAME")
 		adminPass := os.Getenv("ADMIN_PASSWORD")
 		if adminUser != "" && adminPass != "" && username == adminUser && password == adminPass {
-			// Env-based admin login — success
-		} else {
-			var hash string
-			err := db.DB.QueryRow("SELECT password_hash FROM users WHERE username = $1", username).Scan(&hash)
-			if err != nil || bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) != nil {
-				render(w, "login.html", map[string]interface{}{"Error": "Invalid username or password"})
-				return
-			}
+			return true
 		}
+		var hash string
+		err := db.DB.QueryRow("SELECT password_hash FROM users WHERE username = $1", username).Scan(&hash)
+		if err != nil {
+			return false
+		}
+		return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) == nil
+	}
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     "session",
-		Value:    username,
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   r.TLS != nil,
-		SameSite: http.SameSiteLaxMode,
-		Expires:  time.Now().Add(24 * time.Hour),
-	})
-	http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
+	// Helper: try tenant login, returns tenantID
+	tryTenant := func() string {
+		var tenantID, hash string
+		err := db.DB.QueryRow("SELECT id, COALESCE(password_hash,'') FROM tenants WHERE phone = $1 AND status = 'active'", username).Scan(&tenantID, &hash)
+		if err != nil || hash == "" {
+			return ""
+		}
+		if bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) != nil {
+			return ""
+		}
+		return tenantID
+	}
+
+	// Auto-detect: if input looks like a phone number, try tenant first
+	isPhone := len(username) >= 10
+	for _, c := range username {
+		if c != '+' && (c < '0' || c > '9') {
+			isPhone = false
+			break
+		}
+	}
+
+	if isPhone {
+		if tid := tryTenant(); tid != "" {
+			http.SetCookie(w, &http.Cookie{
+				Name: "tenant_session", Value: "tenant:" + tid,
+				Path: "/", HttpOnly: true, Secure: r.TLS != nil,
+				SameSite: http.SameSiteLaxMode, Expires: time.Now().Add(24 * time.Hour),
+			})
+			http.Redirect(w, r, "/tenant/dashboard", http.StatusSeeOther)
+			return
+		}
+		// phone-based tenant failed, try admin with same phone
+		if tryAdmin() {
+			http.SetCookie(w, &http.Cookie{
+				Name: "session", Value: username,
+				Path: "/", HttpOnly: true, Secure: r.TLS != nil,
+				SameSite: http.SameSiteLaxMode, Expires: time.Now().Add(24 * time.Hour),
+			})
+			http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
+			return
+		}
+	} else {
+		if tryAdmin() {
+			http.SetCookie(w, &http.Cookie{
+				Name: "session", Value: username,
+				Path: "/", HttpOnly: true, Secure: r.TLS != nil,
+				SameSite: http.SameSiteLaxMode, Expires: time.Now().Add(24 * time.Hour),
+			})
+			http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
+			return
+		}
+		// admin failed, try tenant
+		if tid := tryTenant(); tid != "" {
+			http.SetCookie(w, &http.Cookie{
+				Name: "tenant_session", Value: "tenant:" + tid,
+				Path: "/", HttpOnly: true, Secure: r.TLS != nil,
+				SameSite: http.SameSiteLaxMode, Expires: time.Now().Add(24 * time.Hour),
+			})
+			http.Redirect(w, r, "/tenant/dashboard", http.StatusSeeOther)
+			return
+		}
+	}
+
+	render(w, "login.html", map[string]interface{}{"Error": "Invalid credentials. Please try again."})
 }
 
 func getRooms() ([]Room, error) {
