@@ -87,7 +87,7 @@
   {{range .RoomMeters}}
   <div class="bg-sf-lowest border border-ol-variant rounded-lg p-5">
     <div class="flex items-center justify-between mb-3">
-      <h3 class="font-semibold">Room {{.RoomNumber}} {{if .Occupied}}<span class="text-xs text-secondary ml-2">Occupied</span>{{else}}<span class="text-xs text-on-sf-variant ml-2">Vacant</span>{{end}}</h3>
+      <h3 class="font-semibold">Room {{.RoomNumber}} {{if .Occupied}}<span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-green-50 text-success border border-green-200 ml-2">Occupied</span>{{else}}<span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-gray-50 text-on-sf-variant border border-ol-variant ml-2">Vacant</span>{{end}}</h3>
     </div>
     <table class="w-full text-sm">
       <thead>
