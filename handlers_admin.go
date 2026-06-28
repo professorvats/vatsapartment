@@ -309,8 +309,15 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 		phone := r.FormValue("phone")
 		email := r.FormValue("email")
 		status := r.FormValue("status")
+		// Handle empty email as NULL to avoid unique constraint violations
+		var emailPtr interface{}
+		if email == "" {
+			emailPtr = nil
+		} else {
+			emailPtr = email
+		}
 		db.DB.Exec(`UPDATE tenants SET name=$1, phone=$2, email=$3, status=$4, updated_at=NOW() WHERE id=$5`,
-			name, phone, email, status, id)
+			name, phone, emailPtr, status, id)
 	} else if action == "assign" {
 		roomID := r.FormValue("room_id")
 		rent, _ := strconv.ParseFloat(r.FormValue("rent"), 64)
@@ -338,9 +345,16 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 		secDeposit, _ := strconv.ParseFloat(r.FormValue("security_deposit"), 64)
 		lockIn, _ := strconv.Atoi(r.FormValue("lock_in_period"))
 		newPass := r.FormValue("password")
+		// Handle empty email as NULL to avoid unique constraint violations
+		var emailPtr interface{}
+		if email == "" {
+			emailPtr = nil
+		} else {
+			emailPtr = email
+		}
 		db.DB.Exec(`UPDATE tenants SET name=$1, phone=$2, email=$3, status=$4,
 			security_deposit=$5, security_lock_in_period=$6, updated_at=NOW() WHERE id=$7`,
-			name, phone, email, status, secDeposit, lockIn, id)
+			name, phone, emailPtr, status, secDeposit, lockIn, id)
 		if newPass != "" {
 			hash, err := bcrypt.GenerateFromPassword([]byte(newPass), bcrypt.DefaultCost)
 			if err == nil {
@@ -370,16 +384,24 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			lockIn, _ := strconv.Atoi(r.FormValue("lock_in_period"))
 			newPass := r.FormValue("password")
 
+			// Handle empty email as NULL to avoid unique constraint violations
+			var emailPtr interface{}
+			if email == "" {
+				emailPtr = nil
+			} else {
+				emailPtr = email
+			}
+
 			var updateErr error
 			if checkInDate != "" {
 				_, updateErr = db.DB.Exec(`UPDATE tenants SET name=$1, phone=$2, email=$3, status=$4,
 					check_in_date=$5::timestamp, security_deposit=$6, security_lock_in_period=$7,
 					updated_at=NOW() WHERE id=$8`,
-					name, phone, email, status, checkInDate, secDeposit, lockIn, id)
+					name, phone, emailPtr, status, checkInDate, secDeposit, lockIn, id)
 			} else {
 				_, updateErr = db.DB.Exec(`UPDATE tenants SET name=$1, phone=$2, email=$3, status=$4,
 					security_deposit=$5, security_lock_in_period=$6, updated_at=NOW() WHERE id=$7`,
-					name, phone, email, status, secDeposit, lockIn, id)
+					name, phone, emailPtr, status, secDeposit, lockIn, id)
 			}
 
 			if updateErr != nil {

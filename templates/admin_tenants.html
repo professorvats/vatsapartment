@@ -63,7 +63,7 @@
         </td>
         <td class="px-4 py-3">
           <div class="flex items-center gap-1">
-            <button onclick="openEdit('{{jsStr .ID}}', '{{jsStr .Name}}', '{{jsStr .Phone}}', '{{jsStr .Email}}', '{{jsStr .Status}}', '{{jsStr .CheckInDate}}', '{{jsStr .RoomID}}', '{{.RentAmount}}', '{{jsStr .StartDate}}', '{{.SecurityDeposit}}', '{{.LockInPeriod}}')"
+            <button onclick="openEdit('{{jsStr .ID}}', '{{jsStr .Name}}', '{{jsStr .Phone}}', '{{jsStr .Email}}', '{{jsStr .Status}}', '{{jsStr .CheckInDate}}', '{{jsStr .RoomID}}', '{{.RentAmount}}', '{{jsStr .StartDate}}', '{{.SecurityDeposit}}', '{{.LockInPeriod}}', {{.HasPassword}})"
               class="text-primary hover:bg-primary/10 rounded px-2 py-1 text-xs font-medium">Edit</button>
             <button onclick="confirmDelete('{{.ID}}', '{{.Name}}')"
               class="text-error hover:bg-error/10 rounded px-2 py-1 text-xs font-medium">Delete</button>
@@ -203,6 +203,7 @@
             <label class="block text-xs text-on-sf-variant mb-1">New Password</label>
             <input name="password" id="edit-password" type="text" placeholder="Leave blank to keep current"
               class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <p id="password-status" class="text-xs mt-1"></p>
           </div>
         </div>
       </div>
@@ -287,7 +288,7 @@ function closeAdd() {
   document.getElementById('add-modal').classList.add('hidden');
 }
 
-function openEdit(id, name, phone, email, status, checkIn, roomId, rent, startDate, secDeposit, lockIn) {
+function openEdit(id, name, phone, email, status, checkIn, roomId, rent, startDate, secDeposit, lockIn, hasPassword) {
   document.getElementById('edit-id').value = id;
   document.getElementById('edit-name').value = name;
   document.getElementById('edit-phone').value = phone;
@@ -300,6 +301,12 @@ function openEdit(id, name, phone, email, status, checkIn, roomId, rent, startDa
   document.getElementById('edit-sec-deposit').value = (secDeposit && secDeposit !== '0') ? secDeposit : '';
   document.getElementById('edit-lock-in').value = (lockIn && lockIn !== '0') ? lockIn : '';
   document.getElementById('edit-password').value = '';
+  // Show password status indicator
+  var pwStatus = document.getElementById('password-status');
+  if (pwStatus) {
+    pwStatus.textContent = hasPassword ? '✓ Password is set (leave blank to keep, enter new to change)' : '⚠ No password set — tenant cannot log in';
+    pwStatus.className = hasPassword ? 'text-xs text-success mt-1' : 'text-xs text-warning mt-1';
+  }
   document.getElementById('edit-modal').classList.remove('hidden');
 }
 function closeEdit() {
