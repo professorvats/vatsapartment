@@ -748,8 +748,6 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 		roomGroups[idx].Meters = append(roomGroups[idx].Meters, m)
 	}
 
-	}
-
 	// Rate settings
 	var ratePerUnit float64 = 12
 	var unitRate string
@@ -757,6 +755,8 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 	if unitRate != "" {
 		if r, err := strconv.ParseFloat(unitRate, 64); err == nil {
 			ratePerUnit = r
+		}
+	}
 
 	// Compute room totals
 	for i := range roomGroups {
@@ -768,8 +768,6 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		roomGroups[i].RoomTotal = total
-	}
-		}
 	}
 
 	// Water meter with monthly reading
