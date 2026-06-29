@@ -8,8 +8,8 @@ services:
       - WHATSAPP_API_PORT=3000
       - WHATSAPP_DEFAULT_ENGINE=WEBJS
       - WHATSAPP_SWAGGER_ENABLED=true
-      - WHATSAPP_API_USERNAME=admin
-      - WHATSAPP_API_PASSWORD=happy@SIGMA12
+      - WAHA_DASHBOARD_USERNAME=${ADMIN_USERNAME:-admin}
+      - WAHA_DASHBOARD_PASSWORD=${ADMIN_PASSWORD:-happy@SIGMA12}
     volumes:
       - waha-sessions:/app/sessions
     networks:
