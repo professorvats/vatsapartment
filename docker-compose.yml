@@ -10,7 +10,7 @@ services:
       - WHATSAPP_SWAGGER_ENABLED=true
       - WAHA_DASHBOARD_USERNAME=${ADMIN_USERNAME:-admin}
       - WAHA_DASHBOARD_PASSWORD=${ADMIN_PASSWORD:-happy@SIGMA12}
-      - WAHA_API_KEY=vats-waha-api-key-2026-secure
+      - WAHA_API_KEY=${WAHA_API_KEY:-vats-waha-api-key-2026-secure}
     volumes:
       - waha-sessions:/app/sessions
     networks:
