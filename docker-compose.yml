@@ -1,4 +1,24 @@
 services:
+  waha:
+    image: devlikeapro/waha:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - WHATSAPP_API_PORT=3000
+      - WHATSAPP_DEFAULT_ENGINE=WEBJS
+      - WHATSAPP_SWAGGER_ENABLED=true
+    volumes:
+      - waha-sessions:/app/sessions
+    networks:
+      - default
+      - dokploy-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   app:
     build: .
     ports:
@@ -34,6 +54,9 @@ services:
       resources:
         limits:
           memory: 256M
+
+volumes:
+  waha-sessions:
 
 networks:
   default:
