@@ -3,7 +3,7 @@ services:
     image: devlikeapro/waha:latest
     restart: unless-stopped
     ports:
-      - "3001:3000"
+      - "3456:3000"
     environment:
       - WHATSAPP_API_PORT=3000
       - WHATSAPP_DEFAULT_ENGINE=WEBJS
