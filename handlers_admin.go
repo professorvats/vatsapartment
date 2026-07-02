@@ -858,6 +858,44 @@ func monthOffset(month string, offset int) string {
 	return t.AddDate(0, offset, 0).Format("2006-01")
 }
 
+// cascadeMonthlyReadings propagates a meter's current_reading change forward
+// to subsequent months. When a month's current_reading is updated, the next
+// month's initial_reading must be updated to match. If the next month's
+// current_reading is also below the new initial (e.g., it was auto-created
+// and not yet manually set), it gets bumped up too and the cascade continues.
+func cascadeMonthlyReadings(meterID, month string, newCurrent int) {
+	for {
+		nextMonth := monthOffset(month, 1)
+		if nextMonth == "" {
+			break
+		}
+
+		var oldCurrent int
+		err := db.DB.QueryRow(
+			`SELECT current_reading FROM monthly_readings
+			 WHERE meter_id = $1 AND billing_month = $2`,
+			meterID, nextMonth,
+		).Scan(&oldCurrent)
+		if err != nil {
+			break // no row for next month, cascade stops
+		}
+
+		// Update next month's initial to reflect this month's new current
+		db.DB.Exec(`UPDATE monthly_readings SET initial_reading = $1, updated_at = NOW()
+			WHERE meter_id = $2 AND billing_month = $3`, newCurrent, meterID, nextMonth)
+
+		// If the next month's current was auto-set or is now below the
+		// new initial, bump it up and continue cascading forward
+		if oldCurrent < newCurrent {
+			db.DB.Exec(`UPDATE monthly_readings SET current_reading = $1, updated_at = NOW()
+				WHERE meter_id = $2 AND billing_month = $3`, newCurrent, meterID, nextMonth)
+			month = nextMonth
+		} else {
+			break // manually set to a higher value, cascade stops
+		}
+	}
+}
+
 func formatMonthLabel(month string) string {
 	t, err := time.Parse("2006-01", month)
 	if err != nil {
@@ -902,6 +940,8 @@ func handleAdminMetersSave(w http.ResponseWriter, r *http.Request) {
 				reading, _ := strconv.Atoi(vals[0])
 				db.DB.Exec(`UPDATE monthly_readings SET current_reading = $1, updated_at = NOW()
 					WHERE meter_id = $2 AND billing_month = $3`, reading, meterID, month)
+				// Cascade forward: update subsequent months' initial_readings
+				cascadeMonthlyReadings(meterID, month, reading)
 			}
 		}
 		waterCurrent := r.FormValue("water_current")
@@ -912,6 +952,8 @@ func handleAdminMetersSave(w http.ResponseWriter, r *http.Request) {
 				wc, _ := strconv.Atoi(waterCurrent)
 				db.DB.Exec(`UPDATE monthly_readings SET current_reading = $1, updated_at = NOW()
 					WHERE meter_id = $2 AND billing_month = $3`, wc, waterMeterID, month)
+				// Cascade forward for water meter
+				cascadeMonthlyReadings(waterMeterID, month, wc)
 			}
 		}
 		http.Redirect(w, r, "/admin/meters?month="+month+"&saved=1", http.StatusSeeOther)
