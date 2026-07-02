@@ -32,26 +32,51 @@
     <h3 class="text-lg font-bold text-blue-900">💧 Building Water Meter</h3>
     <span class="text-sm text-blue-600">{{.WaterMeter.MeterNumber}}</span>
   </div>
-  <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-base">
-    <div>
-      <span class="text-sm text-blue-600 block mb-1">Initial</span>
-      <input name="water_initial" form="save-form" type="number" class="water-initial w-24 border border-blue-300 rounded px-2 py-1.5 text-base font-bold" value="{{.WaterMeter.InitialReading}}" oninput="recalcAll()">
+  <!-- Desktop: single-row table -->
+  <div class="hidden md:block">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-blue-200">
+          <th class="text-left py-2 text-xs uppercase tracking-wider text-blue-600">Meter</th>
+          <th class="text-right py-2 text-xs uppercase tracking-wider text-blue-600">Initial</th>
+          <th class="text-right py-2 text-xs uppercase tracking-wider text-blue-600">Current</th>
+          <th class="text-right py-2 text-xs uppercase tracking-wider text-blue-600">Units</th>
+          <th class="text-right py-2 text-xs uppercase tracking-wider text-blue-600">Amount</th>
+          <th class="text-right py-2 text-xs uppercase tracking-wider text-blue-600">Per Room</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="py-2 font-medium text-sm">Water <span class="text-blue-600 font-normal text-xs">{{.WaterMeter.MeterNumber}}</span></td>
+          <td class="py-2 text-right">
+            <input name="water_initial" form="save-form" type="number" class="water-initial w-20 border border-blue-300 rounded px-2 py-1 text-sm text-right" value="{{.WaterMeter.InitialReading}}" oninput="recalcAll()">
+          </td>
+          <td class="py-2 text-right">
+            <input name="water_current" form="save-form" type="number" class="water-current w-20 border border-blue-300 rounded px-2 py-1 text-sm text-right" value="{{.WaterMeter.CurrentReading}}" oninput="recalcAll()">
+          </td>
+          <td class="py-2 text-right"><span class="water-units font-semibold text-sm">--</span></td>
+          <td class="py-2 text-right"><span class="water-bill font-semibold text-sm">--</span></td>
+          <td class="py-2 text-right"><span class="water-per-room font-semibold text-sm">--</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <!-- Mobile: stacked -->
+  <div class="md:hidden space-y-2">
+    <div class="grid grid-cols-2 gap-2">
+      <div>
+        <label class="text-xs text-blue-600 block mb-0.5">Initial</label>
+        <input name="water_initial" form="save-form" type="number" class="water-initial w-full border border-blue-300 rounded px-2 py-1 text-sm" value="{{.WaterMeter.InitialReading}}" oninput="recalcAll()">
+      </div>
+      <div>
+        <label class="text-xs text-blue-600 block mb-0.5">Current</label>
+        <input name="water_current" form="save-form" type="number" class="water-current w-full border border-blue-300 rounded px-2 py-1 text-sm" value="{{.WaterMeter.CurrentReading}}" oninput="recalcAll()">
+      </div>
     </div>
-    <div>
-      <span class="text-sm text-blue-600 block mb-1">Current</span>
-      <input name="water_current" form="save-form" type="number" class="water-current w-24 border border-blue-300 rounded px-2 py-1.5 text-base font-bold" value="{{.WaterMeter.CurrentReading}}" oninput="recalcAll()">
-    </div>
-    <div>
-      <span class="text-sm text-blue-600 block mb-1">Units Used</span>
-      <div class="water-units font-bold text-lg">--</div>
-    </div>
-    <div>
-      <span class="text-sm text-blue-600 block mb-1">Total Bill</span>
-      <div class="water-bill font-bold text-lg">--</div>
-    </div>
-    <div>
-      <span class="text-sm text-blue-600 block mb-1">Per Room</span>
-      <div class="water-per-room font-bold text-lg">--</div>
+    <div class="flex justify-between text-sm">
+      <span class="text-blue-600">Units: <span class="water-units font-semibold">--</span></span>
+      <span class="text-blue-600">Bill: <span class="water-bill font-semibold">--</span></span>
+      <span class="text-blue-600">Per Room: <span class="water-per-room font-semibold">--</span></span>
     </div>
   </div>
 </div>
