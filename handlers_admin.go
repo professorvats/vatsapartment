@@ -848,6 +848,25 @@ func autoCreateMonthlyReadings(month string) {
 	if err != nil {
 		log.Printf("autoCreateMonthlyReadings: %v", err)
 	}
+
+	// Repair existing rows whose initial_reading is stale because the
+	// previous month's current_reading was entered after this month was created.
+	if prevMonth != "" {
+		db.DB.Exec(`
+			UPDATE monthly_readings mr
+			SET initial_reading = mr2.current_reading,
+				current_reading = CASE
+					WHEN mr.current_reading < mr2.current_reading
+					THEN mr2.current_reading
+					ELSE mr.current_reading
+				END,
+				updated_at = NOW()
+			FROM monthly_readings mr2
+			WHERE mr.meter_id = mr2.meter_id
+			  AND mr.billing_month = $1
+			  AND mr2.billing_month = $2
+			  AND mr.initial_reading < mr2.current_reading`, month, prevMonth)
+	}
 }
 
 func monthOffset(month string, offset int) string {
