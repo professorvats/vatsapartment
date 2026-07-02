@@ -835,7 +835,11 @@ func autoCreateMonthlyReadings(month string) {
 				 WHERE mr2.meter_id = m.id AND mr2.billing_month = $2),
 				m.initial_reading
 			),
-			0
+			COALESCE(
+				(SELECT mr2.current_reading FROM monthly_readings mr2
+				 WHERE mr2.meter_id = m.id AND mr2.billing_month = $2),
+				m.initial_reading
+			)
 		FROM meters m
 		WHERE m.is_active = true
 		AND NOT EXISTS (
@@ -892,7 +896,6 @@ func handleAdminMetersSave(w http.ResponseWriter, r *http.Request) {
 			ON CONFLICT (key) DO UPDATE SET value=$1, updated_at=NOW()`, rate)
 	} else if action == "save_month" {
 		month := r.FormValue("month")
-		r.ParseMultipartForm(0)
 		for key, vals := range r.Form {
 			if strings.HasPrefix(key, "current_") && len(vals) > 0 && vals[0] != "" {
 				meterID := strings.TrimPrefix(key, "current_")

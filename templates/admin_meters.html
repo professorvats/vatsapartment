@@ -3,20 +3,20 @@
 <!-- Month Selector + Rate + Edit Toggle -->
 <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
   <div class="flex items-center gap-2">
-    {{if .PrevMonth}}<a href="?month={{.PrevMonth}}" class="text-on-sf-variant hover:text-primary p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></a>{{end}}
-    <h1 class="text-lg font-bold min-w-[140px] text-center">{{.MonthLabel}}</h1>
-    {{if .NextMonth}}<a href="?month={{.NextMonth}}" class="text-on-sf-variant hover:text-primary p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>{{end}}
+    {{if .PrevMonth}}<a href="?month={{.PrevMonth}}" class="text-on-sf-variant hover:text-primary p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></a>{{end}}
+    <h1 class="text-2xl font-bold min-w-[160px] text-center">{{.MonthLabel}}</h1>
+    {{if .NextMonth}}<a href="?month={{.NextMonth}}" class="text-on-sf-variant hover:text-primary p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>{{end}}
   </div>
   <div class="flex items-center gap-3 flex-wrap">
-    <form method="POST" action="/admin/meters/save" class="flex items-center gap-2 text-sm">
+    <form method="POST" action="/admin/meters/save" class="flex items-center gap-2 text-base">
       <input type="hidden" name="action" value="update_rate">
       <span class="text-on-sf-variant">Rate: ₹</span>
-      <input name="rate" type="number" step="0.01" value="{{printf "%.2f" .RatePerUnit}}" class="w-20 border border-ol-variant rounded px-2 py-1 text-sm">
+      <input name="rate" type="number" step="0.01" value="{{printf "%.2f" .RatePerUnit}}" class="w-24 border border-ol-variant rounded px-3 py-1.5 text-base">
       <span class="text-on-sf-variant">/unit</span>
-      <button type="submit" class="text-primary font-semibold hover:underline text-xs">Update</button>
+      <button type="submit" class="text-primary font-semibold hover:underline text-sm">Update</button>
     </form>
-    <button onclick="toggleEdit()" id="edit-toggle" class="bg-primary text-on-primary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90">✏️ Edit</button>
-    <button onclick="saveAll()" id="save-btn" class="hidden bg-success text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700">💾 Save All</button>
+    <button onclick="toggleEdit()" id="edit-toggle" class="bg-primary text-on-primary px-5 py-2.5 rounded-lg text-base font-semibold hover:bg-primary/90">✏️ Edit</button>
+    <button onclick="saveAll()" id="save-btn" class="hidden bg-success text-white px-5 py-2.5 rounded-lg text-base font-semibold hover:bg-green-700">💾 Save All</button>
   </div>
 </div>
 
@@ -28,23 +28,23 @@
 
 <!-- Building Water Meter -->
 {{if .HasWaterMeter}}
-<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-5">
+<div class="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-5">
   <div class="flex items-center justify-between mb-3">
-    <h3 class="font-semibold text-blue-900">💧 Building Water Meter</h3>
-    <span class="text-xs text-blue-600">{{.WaterMeter.MeterNumber}}</span>
+    <h3 class="text-lg font-bold text-blue-900">💧 Building Water Meter</h3>
+    <span class="text-sm text-blue-600">{{.WaterMeter.MeterNumber}}</span>
   </div>
-  <div class="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
-    <div><span class="text-xs text-blue-600">Initial</span><div class="font-semibold">{{.WaterMeter.InitialReading}}</div></div>
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-base">
+    <div><span class="text-sm text-blue-600">Initial</span><div class="font-bold text-lg">{{.WaterMeter.InitialReading}}</div></div>
     <div>
-      <span class="text-xs text-blue-600">Current</span>
-      <div class="font-semibold"><span class="view-val">{{.WaterMeter.CurrentReading}}</span><input name="water_current" form="save-form" type="number" class="edit-val hidden w-20 border border-blue-300 rounded px-1 py-0.5 text-sm" value="{{.WaterMeter.CurrentReading}}"></div>
+      <span class="text-sm text-blue-600">Current</span>
+      <div class="font-bold text-lg"><span class="view-val">{{.WaterMeter.CurrentReading}}</span><input name="water_current" form="save-form" type="number" class="edit-val hidden w-24 border border-blue-300 rounded px-2 py-1.5 text-base" value="{{.WaterMeter.CurrentReading}}"></div>
     </div>
-    <div><span class="text-xs text-blue-600">Units Used</span><div class="font-semibold">{{.WaterUnits}}</div></div>
-    <div><span class="text-xs text-blue-600">Total Bill</span><div class="font-semibold">₹{{printf "%.0f" (mul .WaterUnits .RatePerUnit)}}</div></div>
+    <div><span class="text-sm text-blue-600">Units Used</span><div class="font-bold text-lg">{{.WaterUnits}}</div></div>
+    <div><span class="text-sm text-blue-600">Total Bill</span><div class="font-bold text-lg">₹{{printf "%.0f" (mul .WaterUnits .RatePerUnit)}}</div></div>
     <div>
-      <span class="text-xs text-blue-600">Per Room</span>
-      <div class="font-semibold">{{printf "%.1f" .WaterUnitsPerRoom}} u / ₹{{printf "%.0f" .WaterPerRoom}}</div>
-      <span class="text-[10px] text-blue-600">(÷ {{.OccupiedCount}} rooms)</span>
+      <span class="text-sm text-blue-600">Per Room</span>
+      <div class="font-bold text-lg">{{printf "%.1f" .WaterUnitsPerRoom}} u / ₹{{printf "%.0f" .WaterPerRoom}}</div>
+      <span class="text-xs text-blue-600">(÷ {{.OccupiedCount}} rooms)</span>
     </div>
   </div>
 </div>
@@ -52,59 +52,59 @@
 
 <!-- Room Cards -->
 {{if .RoomMeters}}
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
   {{range .RoomMeters}}
-  <div class="bg-sf-lowest border border-ol-variant rounded-lg p-4">
+  <div class="bg-sf-lowest border border-ol-variant rounded-lg p-5">
     <div class="flex items-center justify-between mb-3">
-      <h3 class="font-semibold">Room {{.RoomNumber}} {{if .Occupied}}<span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-green-700 text-white ml-2">Occupied</span>{{else}}<span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-on-sf-variant text-white ml-2">Vacant</span>{{end}}</h3>
+      <h3 class="text-lg font-bold">Room {{.RoomNumber}} {{if .Occupied}}<span class="inline-flex items-center gap-1 text-sm font-medium px-2.5 py-1 rounded-full bg-green-700 text-white ml-2">Occupied</span>{{else}}<span class="inline-flex items-center gap-1 text-sm font-medium px-2.5 py-1 rounded-full bg-on-sf-variant text-white ml-2">Vacant</span>{{end}}</h3>
     </div>
-    <table class="w-full text-sm">
+    <table class="w-full text-base">
       <thead>
         <tr class="border-b border-ol-variant">
-          <th class="text-left py-2 text-xs uppercase tracking-wider text-on-sf-variant">Meter</th>
-          <th class="text-right py-2 text-xs uppercase tracking-wider text-on-sf-variant">Initial</th>
-          <th class="text-right py-2 text-xs uppercase tracking-wider text-on-sf-variant">Current</th>
-          <th class="text-right py-2 text-xs uppercase tracking-wider text-on-sf-variant">Units</th>
-          <th class="text-right py-2 text-xs uppercase tracking-wider text-on-sf-variant">Amount</th>
+          <th class="text-left py-2 text-sm uppercase tracking-wider text-on-sf-variant">Meter</th>
+          <th class="text-right py-2 text-sm uppercase tracking-wider text-on-sf-variant">Initial</th>
+          <th class="text-right py-2 text-sm uppercase tracking-wider text-on-sf-variant">Current</th>
+          <th class="text-right py-2 text-sm uppercase tracking-wider text-on-sf-variant">Units</th>
+          <th class="text-right py-2 text-sm uppercase tracking-wider text-on-sf-variant">Amount</th>
         </tr>
       </thead>
       <tbody>
         {{range .Meters}}
         {{$units := sub .CurrentReading .InitialReading}}
         <tr class="border-b border-ol-variant last:border-0">
-          <td class="py-2 font-medium text-xs">{{.MeterType}} <span class="text-on-sf-variant font-normal">{{.MeterNumber}}</span></td>
-          <td class="py-2 text-right text-xs text-on-sf-variant">{{.InitialReading}}</td>
-          <td class="py-2 text-right">
-            <span class="view-val font-semibold">{{.CurrentReading}}</span>
-            <input name="current_{{.ID}}" form="save-form" type="number" class="edit-val hidden w-20 border border-ol-variant rounded px-1 py-0.5 text-xs text-right" value="{{.CurrentReading}}">
+          <td class="py-2.5 font-medium text-base">{{.MeterType}} <span class="text-on-sf-variant font-normal">{{.MeterNumber}}</span></td>
+          <td class="py-2.5 text-right text-on-sf-variant text-base">{{.InitialReading}}</td>
+          <td class="py-2.5 text-right">
+            <span class="view-val font-semibold text-base">{{.CurrentReading}}</span>
+            <input name="current_{{.ID}}" form="save-form" type="number" class="edit-val hidden w-24 border border-ol-variant rounded px-2 py-1.5 text-base text-right" value="{{.CurrentReading}}">
           </td>
-          <td class="py-2 text-right font-semibold">{{$units}}</td>
-          <td class="py-2 text-right font-semibold">₹{{printf "%.0f" (mul $units $.RatePerUnit)}}</td>
+          <td class="py-2.5 text-right font-semibold text-base">{{$units}}</td>
+          <td class="py-2.5 text-right font-semibold text-base">₹{{printf "%.0f" (mul $units $.RatePerUnit)}}</td>
         </tr>
         {{end}}
       </tbody>
       <tfoot>
         <tr class="border-t-2 border-ol-variant">
-          <td class="py-2 font-semibold text-xs">Room Total</td>
+          <td class="py-2.5 font-bold text-base">Room Total</td>
           <td></td>
           <td></td>
           <td></td>
-          <td class="py-2 text-right font-bold">₹{{printf "%.0f" .RoomTotal}}</td>
+          <td class="py-2.5 text-right font-bold text-lg">₹{{printf "%.0f" .RoomTotal}}</td>
         </tr>
         {{if and $.HasWaterMeter $.WaterPerRoom}}
         <tr>
-          <td class="py-1 text-xs text-on-sf-variant">💧 Water Share</td>
+          <td class="py-1.5 text-sm text-on-sf-variant">💧 Water Share</td>
           <td></td>
           <td></td>
-          <td class="py-1 text-right text-xs text-on-sf-variant">{{printf "%.1f" $.WaterUnitsPerRoom}} u</td>
-          <td class="py-1 text-right font-semibold text-blue-700">+ ₹{{printf "%.0f" $.WaterPerRoom}}</td>
+          <td class="py-1.5 text-right text-sm text-on-sf-variant">{{printf "%.1f" $.WaterUnitsPerRoom}} u</td>
+          <td class="py-1.5 text-right font-semibold text-base text-blue-700">+ ₹{{printf "%.0f" $.WaterPerRoom}}</td>
         </tr>
         <tr>
-          <td class="py-1 font-semibold text-xs">Grand Total</td>
+          <td class="py-1.5 font-bold text-base">Grand Total</td>
           <td></td>
           <td></td>
           <td></td>
-          <td class="py-1 text-right font-bold text-primary">₹{{printf "%.0f" .GrandTotal}}</td>
+          <td class="py-1.5 text-right font-bold text-xl text-primary">₹{{printf "%.0f" .GrandTotal}}</td>
         </tr>
         {{end}}
       </tfoot>
@@ -114,7 +114,7 @@
 </div>
 {{else}}
 <div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-lg">
-  <p class="text-on-sf-variant">No meters configured.</p>
+  <p class="text-on-sf-variant text-base">No meters configured.</p>
 </div>
 {{end}}
 
@@ -124,12 +124,16 @@ function toggleEdit() {
   editing = !editing;
   document.querySelectorAll('.view-val').forEach(function(el) { el.classList.toggle('hidden', editing); });
   document.querySelectorAll('.edit-val').forEach(function(el) { el.classList.toggle('hidden', !editing); });
-  document.getElementById('edit-toggle').classList.toggle('hidden', editing);
-  document.getElementById('save-btn').classList.toggle('hidden', !editing);
-  document.getElementById('save-form').classList.toggle('hidden', !editing);
+  var editToggle = document.getElementById('edit-toggle');
+  var saveBtn = document.getElementById('save-btn');
+  var saveForm = document.getElementById('save-form');
+  if (editToggle) editToggle.classList.toggle('hidden', editing);
+  if (saveBtn) saveBtn.classList.toggle('hidden', !editing);
+  if (saveForm) saveForm.classList.toggle('hidden', !editing);
 }
 function saveAll() {
-  document.getElementById('save-form').submit();
+  var form = document.getElementById('save-form');
+  if (form) form.submit();
 }
 </script>
 
