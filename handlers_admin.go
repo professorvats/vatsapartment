@@ -795,6 +795,32 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 		waterUnitsPerRoom = float64(waterUnits) / float64(occupiedCount)
 		waterPerRoom = waterUnitsPerRoom * ratePerUnit
 	}
+	// Load any manual water overrides for this month from settings
+	waterBill := waterPerRoom * float64(occupiedCount)
+	waterPerRoomOverride := waterPerRoom
+	var savedUnits, savedAmount, savedPerRoom string
+	db.DB.QueryRow("SELECT value FROM settings WHERE key = 'water_units_' || $1", month).Scan(&savedUnits)
+	db.DB.QueryRow("SELECT value FROM settings WHERE key = 'water_amount_' || $1", month).Scan(&savedAmount)
+	db.DB.QueryRow("SELECT value FROM settings WHERE key = 'water_per_room_' || $1", month).Scan(&savedPerRoom)
+	if savedUnits != "" {
+		if v, err := strconv.Atoi(savedUnits); err == nil {
+			waterUnits = v
+			waterUnitsPerRoom = float64(v) / float64(max(occupiedCount, 1))
+		}
+	}
+	if savedAmount != "" {
+		if v, err := strconv.ParseFloat(savedAmount, 64); err == nil {
+			waterBill = v
+		}
+	}
+	if savedPerRoom != "" {
+		if v, err := strconv.ParseFloat(savedPerRoom, 64); err == nil {
+			waterPerRoomOverride = v
+			waterPerRoom = v
+		}
+	} else if waterBill > 0 && occupiedCount > 0 {
+		waterPerRoomOverride = waterBill / float64(occupiedCount)
+	}
 
 	// Grand totals (room total + water share)
 	for i := range roomGroups {
@@ -807,10 +833,12 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 		"RatePerUnit":       ratePerUnit,
 		"WaterMeter":        waterMeter,
 		"HasWaterMeter":     hasWaterMeter,
-		"WaterUnits":        waterUnits,
-		"OccupiedCount":     occupiedCount,
-		"WaterPerRoom":      waterPerRoom,
-		"WaterUnitsPerRoom": waterUnitsPerRoom,
+		"WaterUnits":            waterUnits,
+		"WaterBill":             waterBill,
+		"WaterPerRoomOverride":  waterPerRoomOverride,
+		"OccupiedCount":         occupiedCount,
+		"WaterPerRoom":          waterPerRoom,
+		"WaterUnitsPerRoom":     waterUnitsPerRoom,
 		"Month":             month,
 		"MonthLabel":        formatMonthLabel(month),
 		"PrevMonth":         prevMonth,
@@ -989,6 +1017,17 @@ func handleAdminMetersSave(w http.ResponseWriter, r *http.Request) {
 				cascadeMonthlyReadings(waterMeterID, month, w)
 			}
 		}
+		// Save water manual override values (units, amount, per-room)
+		saveWaterSetting := func(key, val string) {
+			if val != "" {
+				db.DB.Exec(`INSERT INTO settings (key, value, description) VALUES ($1, $2, 'water override')
+					ON CONFLICT (key) DO UPDATE SET value=$2, updated_at=NOW()`,
+					"water_"+key+"_"+month, val)
+			}
+		}
+		saveWaterSetting("units", r.FormValue("water_units"))
+		saveWaterSetting("amount", r.FormValue("water_amount"))
+		saveWaterSetting("per_room", r.FormValue("water_per_room"))
 		http.Redirect(w, r, "/admin/meters?month="+month+"&saved=1", http.StatusSeeOther)
 		return
 	}

@@ -54,9 +54,15 @@
           <td class="py-2 text-right">
             <input name="water_current" form="save-form" type="number" class="water-current w-20 border border-blue-300 rounded px-2 py-1 text-sm text-right" value="{{.WaterMeter.CurrentReading}}" oninput="recalcAll()">
           </td>
-          <td class="py-2 text-right"><span class="water-units font-semibold text-sm">--</span></td>
-          <td class="py-2 text-right"><span class="water-bill font-semibold text-sm">--</span></td>
-          <td class="py-2 text-right"><span class="water-per-room font-semibold text-sm">--</span></td>
+          <td class="py-2 text-right">
+            <input name="water_units" form="save-form" type="number" class="water-units w-20 border border-blue-300 rounded px-2 py-1 text-sm text-right" value="{{.WaterUnits}}" oninput="onWaterManual()">
+          </td>
+          <td class="py-2 text-right">
+            <input name="water_amount" form="save-form" type="number" class="water-bill w-20 border border-blue-300 rounded px-2 py-1 text-sm text-right" value="{{printf "%.0f" .WaterBill}}" oninput="onWaterManual()">
+          </td>
+          <td class="py-2 text-right">
+            <input name="water_per_room" form="save-form" type="number" class="water-per-room w-20 border border-blue-300 rounded px-2 py-1 text-sm text-right" value="{{printf "%.0f" .WaterPerRoomOverride}}" oninput="onWaterManual()">
+          </td>
         </tr>
       </tbody>
     </table>
@@ -74,9 +80,9 @@
       </div>
     </div>
     <div class="flex justify-between text-sm">
-      <span class="text-blue-600">Units: <span class="water-units font-semibold">--</span></span>
-      <span class="text-blue-600">Bill: <span class="water-bill font-semibold">--</span></span>
-      <span class="text-blue-600">Per Room: <span class="water-per-room font-semibold">--</span></span>
+      <span class="text-blue-600">Units: <input name="water_units" form="save-form" type="number" class="water-units w-16 border border-blue-300 rounded px-1 py-0.5 text-sm" value="{{.WaterUnits}}" oninput="onWaterManual()"></span>
+      <span class="text-blue-600">Bill: <input name="water_amount" form="save-form" type="number" class="water-bill w-16 border border-blue-300 rounded px-1 py-0.5 text-sm" value="{{printf "%.0f" .WaterBill}}" oninput="onWaterManual()"></span>
+      <span class="text-blue-600">Per Room: <input name="water_per_room" form="save-form" type="number" class="water-per-room w-16 border border-blue-300 rounded px-1 py-0.5 text-sm" value="{{printf "%.0f" .WaterPerRoomOverride}}" oninput="onWaterManual()"></span>
     </div>
   </div>
 </div>
@@ -206,20 +212,42 @@ function recalcAll() {
   var perRoomUnits = 0;
 
   if (waterCard) {
-    var wi = parseFloat(waterCard.querySelector('.water-initial').value) || 0;
-    var wc = parseFloat(waterCard.querySelector('.water-current').value) || 0;
-    var waterUnits = Math.max(0, wc - wi);
-    var waterBill = waterUnits * rate;
+    // Helper: get value from visible input (handles desktop/mobile twins)
+    function wVal(cls) {
+      var els = waterCard.querySelectorAll('.' + cls);
+      for (var i = 0; i < els.length; i++) {
+        if (els[i].offsetParent !== null) return parseFloat(els[i].value) || 0;
+      }
+      return parseFloat(els[0] && els[0].value) || 0;
+    }
+    // Helper: set all twin inputs (respects manual flag)
+    function wSet(cls, val, force) {
+      waterCard.querySelectorAll('.' + cls).forEach(function(el) {
+        if (force || !el.dataset.manual) el.value = val;
+      });
+    }
 
-    waterCard.querySelector('.water-units').textContent = waterUnits;
-    waterCard.querySelector('.water-bill').textContent = '₹' + Math.round(waterBill);
+    var wi = wVal('water-initial');
+    var wc = wVal('water-current');
+    var autoUnits = Math.max(0, wc - wi);
 
+    // Auto-fill units from readings (unless manually overridden)
+    wSet('water-units', autoUnits, false);
+
+    var unitsVal = wVal('water-units');
+    var autoBill = Math.round(unitsVal * rate);
+
+    // Auto-fill bill from units x rate
+    wSet('water-bill', autoBill, false);
+
+    var billVal = wVal('water-bill');
     var occupiedCount = parseInt(waterCard.dataset.occupiedCount) || 0;
+
     if (occupiedCount > 0) {
-      perRoomUnits = waterUnits / occupiedCount;
-      perRoomBill = perRoomUnits * rate;
-      waterCard.querySelector('.water-per-room').textContent =
-        perRoomUnits.toFixed(1) + ' u / ₹' + Math.round(perRoomBill);
+      var autoPerRoom = Math.round(billVal / occupiedCount);
+      wSet('water-per-room', autoPerRoom, false);
+      perRoomBill = wVal('water-per-room');
+      perRoomUnits = occupiedCount > 0 ? unitsVal / occupiedCount : 0;
     }
   }
 
@@ -235,6 +263,20 @@ function recalcAll() {
     if (shareUnits) shareUnits.textContent = perRoomUnits.toFixed(1);
     if (shareAmount) shareAmount.textContent = '+ ₹' + Math.round(perRoomBill);
     if (grandTotal) grandTotal.textContent = '₹' + Math.round(grand);
+  });
+}
+
+// ─── Water Manual Override ───────────────────────────────────
+
+function onWaterManual() {
+  // Mark water fields as manually set so auto-calc doesn't overwrite
+  var waterCard = document.getElementById('water-card');
+  if (!waterCard) return;
+  ['water-units', 'water-bill', 'water-per-room'].forEach(function(cls) {
+    waterCard.querySelectorAll('.' + cls).forEach(function(el) {
+      if (el.value !== '') el.dataset.manual = '1';
+      else delete el.dataset.manual;
+    });
   });
 }
 
