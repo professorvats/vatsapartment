@@ -184,6 +184,7 @@ function recalcAll() {
     var roomTotal = 0;
 
     card.querySelectorAll('.meter-row').forEach(function(row) {
+      if (row.offsetParent === null) return; // skip hidden duplicate
       var initial = parseFloat(row.querySelector('.initial-input').value) || 0;
       var current = parseFloat(row.querySelector('.current-input').value) || 0;
       var units = Math.max(0, current - initial);
