@@ -953,6 +953,16 @@ func handleAdminMetersSave(w http.ResponseWriter, r *http.Request) {
 			ON CONFLICT (key) DO UPDATE SET value=$1, updated_at=NOW()`, rate)
 	} else if action == "save_month" {
 		month := r.FormValue("month")
+		// Save initial_ readings
+		for key, vals := range r.Form {
+			if strings.HasPrefix(key, "initial_") && len(vals) > 0 && vals[0] != "" {
+				meterID := strings.TrimPrefix(key, "initial_")
+				reading, _ := strconv.Atoi(vals[0])
+				db.DB.Exec(`UPDATE monthly_readings SET initial_reading = $1, updated_at = NOW()
+					WHERE meter_id = $2 AND billing_month = $3`, reading, meterID, month)
+			}
+		}
+		// Save current_ readings
 		for key, vals := range r.Form {
 			if strings.HasPrefix(key, "current_") && len(vals) > 0 && vals[0] != "" {
 				meterID := strings.TrimPrefix(key, "current_")
@@ -963,16 +973,20 @@ func handleAdminMetersSave(w http.ResponseWriter, r *http.Request) {
 				cascadeMonthlyReadings(meterID, month, reading)
 			}
 		}
-		waterCurrent := r.FormValue("water_current")
-		if waterCurrent != "" {
-			var waterMeterID string
-			db.DB.QueryRow("SELECT id FROM meters WHERE room_id = 'BUILDING' AND meter_type = 'Water' AND is_active = true").Scan(&waterMeterID)
-			if waterMeterID != "" {
-				wc, _ := strconv.Atoi(waterCurrent)
+		// Water meter readings
+		var waterMeterID string
+		db.DB.QueryRow("SELECT id FROM meters WHERE room_id = 'BUILDING' AND meter_type = 'Water' AND is_active = true").Scan(&waterMeterID)
+		if waterMeterID != "" {
+			if wi := r.FormValue("water_initial"); wi != "" {
+				w, _ := strconv.Atoi(wi)
+				db.DB.Exec(`UPDATE monthly_readings SET initial_reading = $1, updated_at = NOW()
+					WHERE meter_id = $2 AND billing_month = $3`, w, waterMeterID, month)
+			}
+			if wc := r.FormValue("water_current"); wc != "" {
+				w, _ := strconv.Atoi(wc)
 				db.DB.Exec(`UPDATE monthly_readings SET current_reading = $1, updated_at = NOW()
-					WHERE meter_id = $2 AND billing_month = $3`, wc, waterMeterID, month)
-				// Cascade forward for water meter
-				cascadeMonthlyReadings(waterMeterID, month, wc)
+					WHERE meter_id = $2 AND billing_month = $3`, w, waterMeterID, month)
+				cascadeMonthlyReadings(waterMeterID, month, w)
 			}
 		}
 		http.Redirect(w, r, "/admin/meters?month="+month+"&saved=1", http.StatusSeeOther)

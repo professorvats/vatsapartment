@@ -1,6 +1,6 @@
 {{template "admin_header" .}}
 
-<!-- Month Selector + Rate + Edit Toggle -->
+<!-- Month Selector + Rate + Save -->
 <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
   <div class="flex items-center gap-2">
     {{if .PrevMonth}}<a href="?month={{.PrevMonth}}" class="text-on-sf-variant hover:text-primary p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></a>{{end}}
@@ -11,40 +11,47 @@
     <form method="POST" action="/admin/meters/save" class="flex items-center gap-2 text-base">
       <input type="hidden" name="action" value="update_rate">
       <span class="text-on-sf-variant">Rate: ₹</span>
-      <input name="rate" type="number" step="0.01" value="{{printf "%.2f" .RatePerUnit}}" class="w-24 border border-ol-variant rounded px-3 py-1.5 text-base">
+      <input id="live-rate" name="rate" type="number" step="0.01" value="{{printf "%.2f" .RatePerUnit}}" class="w-24 border border-ol-variant rounded px-3 py-1.5 text-base" oninput="recalcAll()">
       <span class="text-on-sf-variant">/unit</span>
       <button type="submit" class="text-primary font-semibold hover:underline text-sm">Update</button>
     </form>
-    <button onclick="toggleEdit()" id="edit-toggle" class="bg-primary text-on-primary px-5 py-2.5 rounded-lg text-base font-semibold hover:bg-primary/90">✏️ Edit</button>
-    <button onclick="saveAll()" id="save-btn" class="hidden bg-success text-white px-5 py-2.5 rounded-lg text-base font-semibold hover:bg-green-700">💾 Save All</button>
+    <button onclick="saveAll()" class="bg-primary text-on-primary px-5 py-2.5 rounded-lg text-base font-semibold hover:bg-primary/90">💾 Save All</button>
   </div>
 </div>
 
-<!-- Save All Form -->
-<form id="save-form" method="POST" action="/admin/meters/save" class="hidden">
+<!-- Save Form -->
+<form id="save-form" method="POST" action="/admin/meters/save" style="display:none">
   <input type="hidden" name="action" value="save_month">
   <input type="hidden" name="month" value="{{.Month}}">
 </form>
 
 <!-- Building Water Meter -->
 {{if .HasWaterMeter}}
-<div class="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-5">
+<div id="water-card" data-occupied-count="{{.OccupiedCount}}" class="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-5">
   <div class="flex items-center justify-between mb-3">
     <h3 class="text-lg font-bold text-blue-900">💧 Building Water Meter</h3>
     <span class="text-sm text-blue-600">{{.WaterMeter.MeterNumber}}</span>
   </div>
   <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-base">
-    <div><span class="text-sm text-blue-600">Initial</span><div class="font-bold text-lg">{{.WaterMeter.InitialReading}}</div></div>
     <div>
-      <span class="text-sm text-blue-600">Current</span>
-      <div class="font-bold text-lg"><span class="view-val">{{.WaterMeter.CurrentReading}}</span><input name="water_current" form="save-form" type="number" class="edit-val hidden w-24 border border-blue-300 rounded px-2 py-1.5 text-base" value="{{.WaterMeter.CurrentReading}}"></div>
+      <span class="text-sm text-blue-600 block mb-1">Initial</span>
+      <input name="water_initial" form="save-form" type="number" class="water-initial w-24 border border-blue-300 rounded px-2 py-1.5 text-base font-bold" value="{{.WaterMeter.InitialReading}}" oninput="recalcAll()">
     </div>
-    <div><span class="text-sm text-blue-600">Units Used</span><div class="font-bold text-lg">{{.WaterUnits}}</div></div>
-    <div><span class="text-sm text-blue-600">Total Bill</span><div class="font-bold text-lg">₹{{printf "%.0f" (mul .WaterUnits .RatePerUnit)}}</div></div>
     <div>
-      <span class="text-sm text-blue-600">Per Room</span>
-      <div class="font-bold text-lg">{{printf "%.1f" .WaterUnitsPerRoom}} u / ₹{{printf "%.0f" .WaterPerRoom}}</div>
-      <span class="text-xs text-blue-600">(÷ {{.OccupiedCount}} rooms)</span>
+      <span class="text-sm text-blue-600 block mb-1">Current</span>
+      <input name="water_current" form="save-form" type="number" class="water-current w-24 border border-blue-300 rounded px-2 py-1.5 text-base font-bold" value="{{.WaterMeter.CurrentReading}}" oninput="recalcAll()">
+    </div>
+    <div>
+      <span class="text-sm text-blue-600 block mb-1">Units Used</span>
+      <div class="water-units font-bold text-lg">--</div>
+    </div>
+    <div>
+      <span class="text-sm text-blue-600 block mb-1">Total Bill</span>
+      <div class="water-bill font-bold text-lg">--</div>
+    </div>
+    <div>
+      <span class="text-sm text-blue-600 block mb-1">Per Room</span>
+      <div class="water-per-room font-bold text-lg">--</div>
     </div>
   </div>
 </div>
@@ -54,61 +61,84 @@
 {{if .RoomMeters}}
 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
   {{range .RoomMeters}}
-  <div class="bg-sf-lowest border border-ol-variant rounded-lg p-5">
+  <div class="room-card bg-sf-lowest border border-ol-variant rounded-lg p-5">
     <div class="flex items-center justify-between mb-3">
       <h3 class="text-lg font-bold">Room {{.RoomNumber}} {{if .Occupied}}<span class="inline-flex items-center gap-1 text-sm font-medium px-2.5 py-1 rounded-full bg-green-700 text-white ml-2">Occupied</span>{{else}}<span class="inline-flex items-center gap-1 text-sm font-medium px-2.5 py-1 rounded-full bg-on-sf-variant text-white ml-2">Vacant</span>{{end}}</h3>
     </div>
-    <table class="w-full text-base">
-      <thead>
-        <tr class="border-b border-ol-variant">
-          <th class="text-left py-2 text-sm uppercase tracking-wider text-on-sf-variant">Meter</th>
-          <th class="text-right py-2 text-sm uppercase tracking-wider text-on-sf-variant">Initial</th>
-          <th class="text-right py-2 text-sm uppercase tracking-wider text-on-sf-variant">Current</th>
-          <th class="text-right py-2 text-sm uppercase tracking-wider text-on-sf-variant">Units</th>
-          <th class="text-right py-2 text-sm uppercase tracking-wider text-on-sf-variant">Amount</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{range .Meters}}
-        {{$units := sub .CurrentReading .InitialReading}}
-        <tr class="border-b border-ol-variant last:border-0">
-          <td class="py-2.5 font-medium text-base">{{.MeterType}} <span class="text-on-sf-variant font-normal">{{.MeterNumber}}</span></td>
-          <td class="py-2.5 text-right text-on-sf-variant text-base">{{.InitialReading}}</td>
-          <td class="py-2.5 text-right">
-            <span class="view-val font-semibold text-base">{{.CurrentReading}}</span>
-            <input name="current_{{.ID}}" form="save-form" type="number" class="edit-val hidden w-24 border border-ol-variant rounded px-2 py-1.5 text-base text-right" value="{{.CurrentReading}}">
-          </td>
-          <td class="py-2.5 text-right font-semibold text-base">{{$units}}</td>
-          <td class="py-2.5 text-right font-semibold text-base">₹{{printf "%.0f" (mul $units $.RatePerUnit)}}</td>
-        </tr>
-        {{end}}
-      </tbody>
-      <tfoot>
-        <tr class="border-t-2 border-ol-variant">
-          <td class="py-2.5 font-bold text-base">Room Total</td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td class="py-2.5 text-right font-bold text-lg">₹{{printf "%.0f" .RoomTotal}}</td>
-        </tr>
-        {{if and $.HasWaterMeter $.WaterPerRoom}}
-        <tr>
-          <td class="py-1.5 text-sm text-on-sf-variant">💧 Water Share</td>
-          <td></td>
-          <td></td>
-          <td class="py-1.5 text-right text-sm text-on-sf-variant">{{printf "%.1f" $.WaterUnitsPerRoom}} u</td>
-          <td class="py-1.5 text-right font-semibold text-base text-blue-700">+ ₹{{printf "%.0f" $.WaterPerRoom}}</td>
-        </tr>
-        <tr>
-          <td class="py-1.5 font-bold text-base">Grand Total</td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td class="py-1.5 text-right font-bold text-xl text-primary">₹{{printf "%.0f" .GrandTotal}}</td>
-        </tr>
-        {{end}}
-      </tfoot>
-    </table>
+
+    <!-- Desktop: table layout -->
+    <div class="hidden md:block">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-ol-variant">
+            <th class="text-left py-2 text-xs uppercase tracking-wider text-on-sf-variant">Meter</th>
+            <th class="text-right py-2 text-xs uppercase tracking-wider text-on-sf-variant">Initial</th>
+            <th class="text-right py-2 text-xs uppercase tracking-wider text-on-sf-variant">Current</th>
+            <th class="text-right py-2 text-xs uppercase tracking-wider text-on-sf-variant">Units</th>
+            <th class="text-right py-2 text-xs uppercase tracking-wider text-on-sf-variant">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range .Meters}}
+          <tr class="meter-row border-b border-ol-variant last:border-0">
+            <td class="py-2 pr-2">
+              <span class="font-medium text-sm">{{.MeterType}}</span>
+              <span class="text-on-sf-variant text-xs">{{.MeterNumber}}</span>
+            </td>
+            <td class="py-2 text-right">
+              <input name="initial_{{.ID}}" form="save-form" type="number" class="initial-input w-20 border border-ol-variant rounded px-2 py-1 text-sm text-right" value="{{.InitialReading}}" oninput="recalcAll()">
+            </td>
+            <td class="py-2 text-right">
+              <input name="current_{{.ID}}" form="save-form" type="number" class="current-input w-20 border border-ol-variant rounded px-2 py-1 text-sm text-right" value="{{.CurrentReading}}" oninput="recalcAll()">
+            </td>
+            <td class="py-2 text-right"><span class="units-display font-semibold text-sm">--</span></td>
+            <td class="py-2 text-right"><span class="amount-display font-semibold text-sm">--</span></td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile: stacked layout -->
+    <div class="md:hidden space-y-3">
+      {{range .Meters}}
+      <div class="meter-row bg-sf-low rounded-lg p-3 space-y-2">
+        <div class="font-medium text-sm">{{.MeterType}} <span class="text-on-sf-variant">{{.MeterNumber}}</span></div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-xs text-on-sf-variant block mb-0.5">Initial</label>
+            <input name="initial_{{.ID}}" form="save-form" type="number" class="initial-input w-full border border-ol-variant rounded px-2 py-1 text-sm" value="{{.InitialReading}}" oninput="recalcAll()">
+          </div>
+          <div>
+            <label class="text-xs text-on-sf-variant block mb-0.5">Current</label>
+            <input name="current_{{.ID}}" form="save-form" type="number" class="current-input w-full border border-ol-variant rounded px-2 py-1 text-sm" value="{{.CurrentReading}}" oninput="recalcAll()">
+          </div>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-on-sf-variant">Units: <span class="units-display font-semibold">--</span></span>
+          <span>Amount: <span class="amount-display font-semibold">--</span></span>
+        </div>
+      </div>
+      {{end}}
+    </div>
+
+    <!-- Totals -->
+    <div class="mt-3 pt-3 border-t-2 border-ol-variant space-y-1">
+      <div class="flex justify-between items-center">
+        <span class="font-bold text-sm">Room Total</span>
+        <span class="room-total font-bold text-base">--</span>
+      </div>
+      {{if and $.HasWaterMeter $.WaterPerRoom}}
+      <div class="flex justify-between items-center text-sm text-on-sf-variant">
+        <span>💧 Water Share</span>
+        <span><span class="water-share-units">--</span> u <span class="water-share-amount font-semibold text-blue-700">--</span></span>
+      </div>
+      <div class="flex justify-between items-center pt-1 border-t border-ol-variant">
+        <span class="font-bold text-sm">Grand Total</span>
+        <span class="grand-total font-bold text-base text-primary">--</span>
+      </div>
+      {{end}}
+    </div>
   </div>
   {{end}}
 </div>
@@ -119,22 +149,79 @@
 {{end}}
 
 <script>
-var editing = false;
-function toggleEdit() {
-  editing = !editing;
-  document.querySelectorAll('.view-val').forEach(function(el) { el.classList.toggle('hidden', editing); });
-  document.querySelectorAll('.edit-val').forEach(function(el) { el.classList.toggle('hidden', !editing); });
-  var editToggle = document.getElementById('edit-toggle');
-  var saveBtn = document.getElementById('save-btn');
-  var saveForm = document.getElementById('save-form');
-  if (editToggle) editToggle.classList.toggle('hidden', editing);
-  if (saveBtn) saveBtn.classList.toggle('hidden', !editing);
-  if (saveForm) saveForm.classList.toggle('hidden', !editing);
+// ─── Live Calculation ────────────────────────────────────────
+
+function recalcAll() {
+  var rate = parseFloat(document.getElementById('live-rate').value) || 0;
+
+  // Recalculate each room card
+  document.querySelectorAll('.room-card').forEach(function(card) {
+    var roomTotal = 0;
+
+    card.querySelectorAll('.meter-row').forEach(function(row) {
+      var initial = parseFloat(row.querySelector('.initial-input').value) || 0;
+      var current = parseFloat(row.querySelector('.current-input').value) || 0;
+      var units = Math.max(0, current - initial);
+      var amount = units * rate;
+
+      row.querySelector('.units-display').textContent = units;
+      row.querySelector('.amount-display').textContent = '₹' + Math.round(amount);
+
+      roomTotal += amount;
+    });
+
+    card.querySelector('.room-total').textContent = '₹' + Math.round(roomTotal);
+    card.dataset.roomTotal = roomTotal;
+  });
+
+  // Water meter
+  var waterCard = document.getElementById('water-card');
+  var perRoomBill = 0;
+  var perRoomUnits = 0;
+
+  if (waterCard) {
+    var wi = parseFloat(waterCard.querySelector('.water-initial').value) || 0;
+    var wc = parseFloat(waterCard.querySelector('.water-current').value) || 0;
+    var waterUnits = Math.max(0, wc - wi);
+    var waterBill = waterUnits * rate;
+
+    waterCard.querySelector('.water-units').textContent = waterUnits;
+    waterCard.querySelector('.water-bill').textContent = '₹' + Math.round(waterBill);
+
+    var occupiedCount = parseInt(waterCard.dataset.occupiedCount) || 0;
+    if (occupiedCount > 0) {
+      perRoomUnits = waterUnits / occupiedCount;
+      perRoomBill = perRoomUnits * rate;
+      waterCard.querySelector('.water-per-room').textContent =
+        perRoomUnits.toFixed(1) + ' u / ₹' + Math.round(perRoomBill);
+    }
+  }
+
+  // Update water share + grand total in each room card
+  document.querySelectorAll('.room-card').forEach(function(card) {
+    var roomTotal = parseFloat(card.dataset.roomTotal) || 0;
+    var grand = roomTotal + perRoomBill;
+
+    var shareUnits = card.querySelector('.water-share-units');
+    var shareAmount = card.querySelector('.water-share-amount');
+    var grandTotal = card.querySelector('.grand-total');
+
+    if (shareUnits) shareUnits.textContent = perRoomUnits.toFixed(1);
+    if (shareAmount) shareAmount.textContent = '+ ₹' + Math.round(perRoomBill);
+    if (grandTotal) grandTotal.textContent = '₹' + Math.round(grand);
+  });
 }
+
+// ─── Form Submission ─────────────────────────────────────────
+
 function saveAll() {
   var form = document.getElementById('save-form');
   if (form) form.submit();
 }
+
+// ─── Initialise on page load ─────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', recalcAll);
 </script>
 
 {{template "admin_footer" .}}
