@@ -310,6 +310,10 @@ func runMigrations() error {
 		{"t_room_id", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS room_id TEXT`},
 		{"t_rent_amount", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS rent_amount DOUBLE PRECISION`},
 		{"t_end_date", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS end_date TEXT`},
+		// ─── Backfill from old tables before dropping ─────
+		{"backfill_pass", `UPDATE tenants t SET pass_number = tp.pass_number, pass_issued_at = tp.issued_at FROM tenant_passes tp WHERE tp.tenant_id = t.id AND tp.is_active = 1 AND t.pass_number IS NULL`},
+		{"backfill_ver", `UPDATE tenants t SET lpu_id_photo = tv.lpu_id_photo, aadhar_photo = tv.aadhar_photo, verification_status = COALESCE(tv.status, 'not_submitted'), verification_submitted_at = tv.submitted_at, verification_verified_at = tv.verified_at, verification_notes = tv.notes FROM tenant_verifications tv WHERE tv.tenant_id = t.id AND t.verification_status = 'not_submitted' AND tv.created_at = (SELECT MAX(tv2.created_at) FROM tenant_verifications tv2 WHERE tv2.tenant_id = t.id)`},
+		{"backfill_ra", `UPDATE tenants t SET room_id = ra.room_id, rent_amount = COALESCE(ra.rent_amount, 0), end_date = ra.end_date, check_in_date = COALESCE(t.check_in_date, ra.start_date::text) FROM room_assignments ra WHERE ra.tenant_id = t.id AND ra.is_active = 1 AND t.room_id IS NULL`},
 		// ─── Drop dead/merged tables ──────────────────────
 		{"drop_tp", `DROP TABLE IF EXISTS tenant_passes`},
 		{"drop_tv", `DROP TABLE IF EXISTS tenant_verifications`},
