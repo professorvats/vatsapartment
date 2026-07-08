@@ -653,7 +653,7 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 		if c.DiscountAmount < 0 {
 			c.DiscountAmount = 0
 		}
-		c.TotalDue = c.RentAmount - c.DiscountAmount
+		c.TotalDue = c.RentAmount
 		if c.HasMaintenance {
 			c.TotalDue += c.MaintenanceAmt
 		}

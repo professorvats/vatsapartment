@@ -43,7 +43,7 @@
       {{end}}
       <div class="flex justify-between text-sm font-medium pt-1 border-t border-ol-variant/50">
         <span>Net Rent</span>
-        <span class="net-display">₹{{printf "%.0f" (add .RentAmount (mul .DiscountAmount -1))}}</span>
+        <span class="net-display">₹{{printf "%.0f" .RentAmount}}</span>
       </div>
       <div class="flex justify-between text-sm items-center">
         <span class="text-on-sf-variant">Maintenance</span>
@@ -87,11 +87,8 @@
 function recalcCard(el) {
   var card = el.closest('.room-card');
   var rent = parseFloat(card.dataset.rent) || 0;
-  var discount = parseFloat(card.dataset.discount) || 0;
   var maint = parseFloat(card.querySelector('.maint-amt').value) || 0;
-  var net = rent - discount;
-  var total = net + maint;
-  card.querySelector('.net-display').textContent = '₹' + Math.round(net);
+  var total = rent + maint;
   card.querySelector('.total-display').textContent = '₹' + Math.round(total);
   card.querySelector('.total-input').value = Math.round(total);
 }
