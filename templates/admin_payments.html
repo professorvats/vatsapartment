@@ -66,12 +66,7 @@
         <p>Paid ₹{{printf "%.0f" .PaymentAmount}} on {{.PaymentDate}}{{if .PaymentMethod}} via {{.PaymentMethod}}{{if .PaidTo}} to {{.PaidTo}}{{end}}{{end}}</p>
         {{if .PaymentNotes}}<p class="italic">{{.PaymentNotes}}</p>{{end}}
       </div>
-      <form method="POST" action="/admin/payments/save" onsubmit="return confirm('Undo this payment?')">
-        <input type="hidden" name="action" value="undo">
-        <input type="hidden" name="payment_id" value="{{.PaymentID}}">
-        <input type="hidden" name="month" value="{{$.Month}}">
-        <button type="submit" class="text-xs bg-red-50 text-error border border-red-200 px-3 py-1.5 rounded-lg font-semibold hover:bg-red-100 whitespace-nowrap">↩ Undo</button>
-      </form>
+      <button type="button" onclick="undoPayment('{{.PaymentID}}', '{{$.Month}}')" class="text-xs bg-red-50 text-error border border-red-200 px-3 py-1.5 rounded-lg font-semibold hover:bg-red-100 whitespace-nowrap">↩ Undo</button>
       {{else}}
       <select name="method" class="border border-ol-variant rounded px-2 py-1.5 text-xs">
         <option>Cash</option><option>UPI</option><option>Bank Transfer</option>
@@ -94,5 +89,16 @@
 </div>
 {{end}}
 
+<script>
+function undoPayment(paymentId, month) {
+  if (!confirm('Undo this payment?')) return;
+  var form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/admin/payments/save';
+  form.innerHTML = '<input type="hidden" name="action" value="undo"><input type="hidden" name="payment_id" value="'+paymentId+'"><input type="hidden" name="month" value="'+month+'">';
+  document.body.appendChild(form);
+  form.submit();
+}
+</script>
 
 {{template "admin_footer" .}}
