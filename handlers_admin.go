@@ -635,7 +635,7 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 			COALESCE(t.has_maintenance, false) as has_maintenance,
 			COALESCE(p.id, '') as payment_id,
 			COALESCE(p.amount, 0) as payment_amount,
-			COALESCE(p.payment_date, '') as payment_date,
+			COALESCE(p.payment_date::text, '') as payment_date,
 			COALESCE(p.payment_method, '') as payment_method,
 			COALESCE(p.notes, '') as payment_notes
 		FROM rooms r
