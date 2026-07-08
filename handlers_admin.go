@@ -214,7 +214,7 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 		var pwHash, passID, passNum, verID, lpuPhoto, aadharPhoto, verSubmittedAt, verNotes, verStatus string
 		var passActive int
 		if err := rows.Scan(&t.ID, &t.Name, &t.Email, &t.Phone, &t.Status, &t.CheckInDate,
-			&t.SecurityDeposit, &t.LockInPeriod, &t.HasMaintenance, &t.RoomID, &t.RoomNumber, &t.RentAmount, &t.StartDate,t.RentAmount, &t.StartDate, &t.MaintenanceAmount,
+			&t.SecurityDeposit, &t.LockInPeriod, &t.HasMaintenance, &t.RoomID, &t.RoomNumber, &t.RentAmount, &t.StartDate, &t.MaintenanceAmount,
 			&pwHash, &passID, &passNum, &passActive,
 			&verID, &verStatus, &lpuPhoto, &aadharPhoto, &verSubmittedAt, &verNotes); err != nil {
 			log.Printf("ERROR scanning tenant row: %v", err)
