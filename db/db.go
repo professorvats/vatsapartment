@@ -367,10 +367,14 @@ func SeedMedia() error {
 	return nil
 }
 
-// SeedMeters creates default meters for all rooms (Electric, Inverter, Water)
+// SeedMeters creates default meters for all rooms (Electric, Inverter)
 // plus a building-level water meter. Safe to run multiple times (idempotent).
 // Also deduplicates — keeps only 1 meter per room+type (best one: has meter_number or highest reading).
 func SeedMeters() error {
+		// Remove per-room water meters — only building water meter should exist
+		DB.Exec(`DELETE FROM monthly_readings WHERE meter_id IN (SELECT id FROM meters WHERE meter_type = 'Water' AND room_id != 'BUILDING')`)
+		DB.Exec(`DELETE FROM meter_readings WHERE meter_id IN (SELECT id FROM meters WHERE meter_type = 'Water' AND room_id != 'BUILDING')`)
+			DB.Exec(`DELETE FROM meters WHERE meter_type = 'Water' AND room_id != 'BUILDING'`)
 	// Deduplicate: keep only the best meter per room_id + meter_type
 	dedupRows, err := DB.Query(`SELECT room_id, meter_type FROM meters WHERE room_id != 'BUILDING' GROUP BY room_id, meter_type HAVING COUNT(*) > 1`)
 	if err == nil {
@@ -410,7 +414,7 @@ func SeedMeters() error {
 		return err
 	}
 
-	meterTypes := []string{"Electric", "Inverter", "Water"}
+	meterTypes := []string{"Electric", "Inverter"}
 	for _, r := range rooms {
 		for _, mt := range meterTypes {
 			var count int
