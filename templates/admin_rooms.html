@@ -32,8 +32,8 @@
       </select>
       <button type="submit" class="text-xs bg-primary text-on-primary px-3 py-1 rounded font-semibold hover:bg-primary/90">Update</button>
     </form>
-    <span class="text-xs {{if eq .Status "active"}}text-secondary{{else}}text-on-sf-variant{{end}}">
-      {{if eq .Status "active"}}Occupied{{else}}Available{{end}}
+    <span class="text-xs {{if eq .Status "occupied"}}text-secondary{{else}}text-on-sf-variant{{end}}">
+      {{if eq .Status "occupied"}}Occupied{{else}}Available{{end}}
     </span>
     <button onclick="openRoomEdit('{{.ID}}', '{{.RoomNumber}}', '{{.RoomType}}', '{{.Floor}}', '{{printf "%.0f" .Price}}')" class="text-xs text-primary hover:bg-primary/10 rounded px-2 py-1 font-medium ml-auto">Edit</button>
   </div>

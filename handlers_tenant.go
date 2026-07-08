@@ -45,49 +45,65 @@ func handleTenantDashboard(w http.ResponseWriter, r *http.Request) {
 	type TenantInfo struct {
 		ID, Name, Phone, Email, RoomID, RoomNumber, CheckInDate string
 		RentAmount                                               float64
+		PassNumber                                               string
+		VerificationStatus                                       string
+		LpuPhoto, AadharPhoto                                   string
 	}
 	var ti TenantInfo
 	err := db.DB.QueryRow(`
 		SELECT t.id, t.name, t.phone, COALESCE(t.email,''),
-			COALESCE(ra.room_id,''), COALESCE(r.room_number,''),
+			COALESCE(t.room_id,''), COALESCE(r.room_number,''),
 			COALESCE(t.check_in_date::text,''),
-			COALESCE(ra.rent_amount,0)
+			COALESCE(t.rent_amount,0),
+			COALESCE(t.pass_number,''),
+			COALESCE(t.verification_status,'not_submitted'),
+			COALESCE(t.lpu_id_photo,''), COALESCE(t.aadhar_photo,'')
 		FROM tenants t
-		LEFT JOIN room_assignments ra ON t.id = ra.tenant_id AND ra.is_active
-		LEFT JOIN rooms r ON ra.room_id = r.id
+		LEFT JOIN rooms r ON t.room_id = r.id
 		WHERE t.id = $1`, tenantID,
-	).Scan(&ti.ID, &ti.Name, &ti.Phone, &ti.Email, &ti.RoomID, &ti.RoomNumber, &ti.CheckInDate, &ti.RentAmount)
+	).Scan(&ti.ID, &ti.Name, &ti.Phone, &ti.Email, &ti.RoomID, &ti.RoomNumber, &ti.CheckInDate, &ti.RentAmount,
+		&ti.PassNumber, &ti.VerificationStatus, &ti.LpuPhoto, &ti.AadharPhoto)
 	if err != nil {
 		http.Error(w, "Tenant not found", 404)
 		return
 	}
 
-	var verificationStatus, lpuPhoto, aadharPhoto string
-	db.DB.QueryRow(`
-		SELECT COALESCE(status,'not_submitted'), COALESCE(lpu_id_photo,''), COALESCE(aadhar_photo,'')
-		FROM tenant_verifications WHERE tenant_id = $1`, tenantID,
-	).Scan(&verificationStatus, &lpuPhoto, &aadharPhoto)
+	verificationStatus := ti.VerificationStatus
+	lpuPhoto := ti.LpuPhoto
+	aadharPhoto := ti.AadharPhoto
 	if verificationStatus == "" {
 		verificationStatus = "not_submitted"
 	}
 
-	var passID, passNumber string
+	// Pass data from tenant query above
+	passNumber := ti.PassNumber
+
+	currentMonth := time.Now().Format("2006-01")
+	type BillInfo struct {
+		RentAmount, MaintenanceAmt, ElectricityAmt, WaterAmt, TotalAmount float64
+		Status                                                             string
+	}
+	var currentBill BillInfo
 	db.DB.QueryRow(`
-		SELECT COALESCE(id,''), COALESCE(pass_number,'')
-		FROM tenant_passes WHERE tenant_id = $1 AND is_active = 1`, tenantID,
-	).Scan(&passID, &passNumber)
+		SELECT COALESCE(rent_amount, 0), COALESCE(maintenance_amount, 0),
+			COALESCE(electricity_amount, 0), COALESCE(water_amount, 0),
+			COALESCE(total_amount, 0), COALESCE(status, 'not_generated')
+		FROM bills WHERE tenant_id = $1 AND billing_month = $2`,
+		tenantID, currentMonth,
+	).Scan(&currentBill.RentAmount, &currentBill.MaintenanceAmt, &currentBill.ElectricityAmt,
+		&currentBill.WaterAmt, &currentBill.TotalAmount, &currentBill.Status)
 
 	var prevMonthDue float64
 	prevMonth := time.Now().AddDate(0, -1, 0).Format("2006-01")
 	db.DB.QueryRow(`
-		SELECT COALESCE(SUM(amount),0) FROM payments
-		WHERE tenant_id = $1 AND month_covered = $2 AND status = 'pending'`,
+		SELECT COALESCE(SUM(total_amount),0) FROM bills
+		WHERE tenant_id = $1 AND billing_month = $2 AND status = 'pending'`,
 		tenantID, prevMonth,
 	).Scan(&prevMonthDue)
 
 	var totalPending float64
 	db.DB.QueryRow(`
-		SELECT COALESCE(SUM(amount),0) FROM payments
+		SELECT COALESCE(SUM(total_amount),0) FROM bills
 		WHERE tenant_id = $1 AND status = 'pending'`,
 		tenantID,
 	).Scan(&totalPending)
@@ -97,8 +113,9 @@ func handleTenantDashboard(w http.ResponseWriter, r *http.Request) {
 		"VerificationStatus": verificationStatus,
 		"LpuPhoto":           lpuPhoto,
 		"AadharPhoto":        aadharPhoto,
-		"PassID":             passID,
 		"PassNumber":         passNumber,
+		"CurrentBill":        currentBill,
+		"CurrentMonth":       currentMonth,
 		"PrevMonthDue":       prevMonthDue,
 		"TotalPending":       totalPending,
 		"PrevMonth":          prevMonth,
@@ -162,32 +179,11 @@ func handleTenantVerificationUpload(w http.ResponseWriter, r *http.Request) {
 		aadharPath = saveFile(aadharFile, &hdr, "aadhar")
 	}
 
-	var existingID string
-	db.DB.QueryRow("SELECT id FROM tenant_verifications WHERE tenant_id = $1", tenantID).Scan(&existingID)
-
-	if existingID != "" {
-		if lpuPath != "" {
-			db.DB.Exec("UPDATE tenant_verifications SET lpu_id_photo = $1, updated_at = NOW() WHERE tenant_id = $2", lpuPath, tenantID)
-		}
-		if aadharPath != "" {
-			db.DB.Exec("UPDATE tenant_verifications SET aadhar_photo = $1, updated_at = NOW() WHERE tenant_id = $2", aadharPath, tenantID)
-		}
-		db.DB.Exec(`UPDATE tenant_verifications SET status = 'pending', submitted_at = NOW(), updated_at = NOW() 
-			WHERE tenant_id = $1 AND (lpu_id_photo IS NOT NULL OR aadhar_photo IS NOT NULL)`, tenantID)
-	} else {
-		if lpuPath == "" {
-			lpuPath = ""
-		}
-		if aadharPath == "" {
-			aadharPath = ""
-		}
-		id := fmt.Sprintf("VER%d", time.Now().UnixNano())
-		status := "pending"
-		if lpuPath == "" && aadharPath == "" {
-			status = "not_submitted"
-		}
-		db.DB.Exec(`INSERT INTO tenant_verifications (id, tenant_id, lpu_id_photo, aadhar_photo, status, submitted_at)
-			VALUES ($1, $2, $3, $4, $5, NOW())`, id, tenantID, lpuPath, aadharPath, status)
+	if lpuPath != "" {
+		db.DB.Exec("UPDATE tenants SET lpu_id_photo=$1, verification_status='pending', verification_submitted_at=NOW() WHERE id=$2", lpuPath, tenantID)
+	}
+	if aadharPath != "" {
+		db.DB.Exec("UPDATE tenants SET aadhar_photo=$1, verification_status='pending', verification_submitted_at=NOW() WHERE id=$2", aadharPath, tenantID)
 	}
 
 	http.Redirect(w, r, "/tenant/dashboard", http.StatusSeeOther)

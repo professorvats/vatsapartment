@@ -103,6 +103,7 @@ func main() {
 	mux.HandleFunc("POST /admin/tenants/save", handleAdminTenantsSave)
 	mux.HandleFunc("GET /admin/payments", handleAdminPayments)
 	mux.HandleFunc("POST /admin/payments/save", handleAdminPaymentsSave)
+	mux.HandleFunc("POST /admin/bills/generate", handleGenerateBills)
 	mux.HandleFunc("GET /admin/meters", handleAdminMeters)
 	mux.HandleFunc("POST /admin/meters/save", handleAdminMetersSave)
 	mux.HandleFunc("GET /admin/meter-readings", handleAdminMeterReadings)

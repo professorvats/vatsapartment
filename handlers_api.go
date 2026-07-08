@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"time"
 	"fmt"
 	"log"
 	"net/http"
@@ -23,7 +24,7 @@ func handleAPIRooms(w http.ResponseWriter, r *http.Request) {
 
 func handleAPIBookings(w http.ResponseWriter, r *http.Request) {
 	jsonContent(w)
-	rows, err := db.DB.Query("SELECT id, room_id, status FROM bookings")
+	rows, err := db.DB.Query("SELECT id, COALESCE(room_id,''), CASE WHEN (end_date IS NULL OR end_date = '') AND room_id IS NOT NULL THEN 'active' ELSE 'inactive' END as status FROM tenants")
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]interface{}{"bookings": []interface{}{}})
 		return
@@ -49,7 +50,7 @@ func handleAPIBookings(w http.ResponseWriter, r *http.Request) {
 
 func handleAPIAssignments(w http.ResponseWriter, r *http.Request) {
 	jsonContent(w)
-	rows, err := db.DB.Query("SELECT id, room_id, is_active FROM room_assignments")
+	rows, err := db.DB.Query("SELECT id, COALESCE(room_id,''), CASE WHEN (end_date IS NULL OR end_date = '') AND room_id IS NOT NULL THEN 1 ELSE 0 END as is_active FROM tenants")
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]interface{}{"assignments": []interface{}{}})
 		return
@@ -92,9 +93,9 @@ func handleCreateBooking(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id := fmt.Sprintf("BK%d", len(body.Name)*100+len(body.Phone))
+	id := fmt.Sprintf("T%d", time.Now().UnixNano())
 	_, err := db.DB.Exec(
-		`INSERT INTO bookings (id, room_id, rent_amount, check_in_date, status) VALUES ($1, $2, $3, $4, 'active')`,
+		`INSERT INTO tenants (id, room_id, rent_amount, check_in_date, status) VALUES ($1, $2, $3, $4, 'active')`,
 		id, body.Room, body.Price, body.Date,
 	)
 	if err != nil {

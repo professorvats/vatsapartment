@@ -60,6 +60,29 @@
   </div>
 </div>
 
+<!-- Current Month Bill -->
+{{if .CurrentBill}}
+<div class="bg-sf-lowest rounded-xl p-5 border border-ol-variant mb-4">
+  <h3 class="font-semibold text-sm mb-3">{{.CurrentMonth}} Bill
+    {{if eq .CurrentBill.Status "paid"}}<span class="text-xs text-success font-medium ml-1">â Paid</span>{{else if eq .CurrentBill.Status "pending"}}<span class="text-xs text-warning font-medium ml-1">Pending</span>{{else}}<span class="text-xs text-on-sf-variant ml-1">Not Generated</span>{{end}}
+  </h3>
+  <div class="space-y-1.5 text-sm">
+    <div class="flex justify-between"><span class="text-on-sf-variant">Rent</span><span>â¹{{printf "%.0f" .CurrentBill.RentAmount}}</span></div>
+    {{if gt .CurrentBill.MaintenanceAmt 0.0}}
+    <div class="flex justify-between"><span class="text-on-sf-variant">Maintenance</span><span>â¹{{printf "%.0f" .CurrentBill.MaintenanceAmt}}</span></div>
+    {{end}}
+    {{if gt .CurrentBill.ElectricityAmt 0.0}}
+    <div class="flex justify-between"><span class="text-on-sf-variant">Electricity</span><span>â¹{{printf "%.0f" .CurrentBill.ElectricityAmt}}</span></div>
+    {{end}}
+    {{if gt .CurrentBill.WaterAmt 0.0}}
+    <div class="flex justify-between"><span class="text-on-sf-variant">Water</span><span>â¹{{printf "%.0f" .CurrentBill.WaterAmt}}</span></div>
+    {{end}}
+    <hr class="border-ol-variant">
+    <div class="flex justify-between font-bold"><span>Total</span><span class="text-primary">â¹{{printf "%.0f" .CurrentBill.TotalAmount}}</span></div>
+  </div>
+</div>
+{{end}}
+
 <!-- Rent Due Card -->
 <div class="bg-sf-lowest rounded-xl p-5 border border-ol-variant mb-4">
   <h3 class="font-semibold text-sm mb-3">Payment Summary</h3>

@@ -58,7 +58,7 @@ func handleBookNow(w http.ResponseWriter, r *http.Request) {
 
 	var availableRooms []Room
 	for _, room := range rooms {
-		if room.Status != "active" && room.Price > 0 {
+		if room.Status != "occupied" && room.Price > 0 {
 			availableRooms = append(availableRooms, room)
 		}
 	}
@@ -189,9 +189,10 @@ func handleLoginPost(w http.ResponseWriter, r *http.Request) {
 
 func getRooms() ([]Room, error) {
 	rows, err := db.DB.Query(`SELECT r.id, r.room_number, r.floor, r.type, r.price,
-		COALESCE(b.status, 'available') as status
+		CASE WHEN EXISTS (
+			SELECT 1 FROM tenants t2 WHERE t2.room_id = r.id AND (t2.end_date IS NULL OR t2.end_date = '')
+		) THEN 'occupied' ELSE 'vacant' END as status
 		FROM rooms r
-		LEFT JOIN bookings b ON r.id = b.room_id AND b.status = 'active'
 		ORDER BY r.floor, r.id`)
 	if err != nil {
 		return nil, err

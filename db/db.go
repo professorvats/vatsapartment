@@ -264,6 +264,59 @@ func runMigrations() error {
 		{"tenant_maintenance", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS has_maintenance BOOLEAN DEFAULT false`},
 		{"maintenance_amount_setting", `INSERT INTO settings (key, value) VALUES ('maintenance_amount', '500') ON CONFLICT (key) DO NOTHING`},
 		{"room_maintenance_amount", `ALTER TABLE rooms ADD COLUMN IF NOT EXISTS maintenance_amount DOUBLE PRECISION DEFAULT 500`},
+
+		// ─── Bills table ──────────────────────────────────
+		{"bills", `
+			CREATE TABLE IF NOT EXISTS bills (
+				id TEXT PRIMARY KEY,
+				tenant_id TEXT NOT NULL,
+				room_id TEXT NOT NULL,
+				billing_month TEXT NOT NULL,
+				rent_amount DOUBLE PRECISION NOT NULL,
+				maintenance_amount DOUBLE PRECISION DEFAULT 0,
+				electricity_amount DOUBLE PRECISION DEFAULT 0,
+				water_amount DOUBLE PRECISION DEFAULT 0,
+				late_fee DOUBLE PRECISION DEFAULT 0,
+				total_amount DOUBLE PRECISION NOT NULL,
+				status TEXT DEFAULT 'pending',
+				generated_at TIMESTAMPTZ DEFAULT NOW(),
+				notes TEXT,
+				UNIQUE(tenant_id, billing_month)
+			)`},
+		{"payment_bill_id", `ALTER TABLE payments ADD COLUMN IF NOT EXISTS bill_id TEXT`},
+		// ─── Indexes ──────────────────────────────────────
+		{"idx_ra_room_id", `CREATE INDEX IF NOT EXISTS idx_ra_room_id ON room_assignments(room_id)`},
+		{"idx_ra_tenant_active", `CREATE INDEX IF NOT EXISTS idx_ra_tenant_active ON room_assignments(tenant_id, is_active)`},
+		{"idx_meters_room_id", `CREATE INDEX IF NOT EXISTS idx_meters_room_id ON meters(room_id)`},
+		{"idx_mr_meter_id", `CREATE INDEX IF NOT EXISTS idx_mr_meter_id ON meter_readings(meter_id)`},
+		{"idx_pay_month_covered", `CREATE INDEX IF NOT EXISTS idx_pay_month_covered ON payments(month_covered)`},
+		{"idx_pay_status", `CREATE INDEX IF NOT EXISTS idx_pay_status ON payments(status)`},
+		{"idx_pay_tenant_month", `CREATE INDEX IF NOT EXISTS idx_pay_tenant_month ON payments(tenant_id, month_covered)`},
+		{"idx_tenants_phone", `CREATE INDEX IF NOT EXISTS idx_tenants_phone ON tenants(phone)`},
+		{"idx_blog_slug", `CREATE INDEX IF NOT EXISTS idx_blog_slug ON blog_posts(slug)`},
+		{"idx_blog_status", `CREATE INDEX IF NOT EXISTS idx_blog_status ON blog_posts(status)`},
+		{"idx_bills_tenant_month", `CREATE INDEX IF NOT EXISTS idx_bills_tenant_month ON bills(tenant_id, billing_month)`},
+		{"idx_bills_status", `CREATE INDEX IF NOT EXISTS idx_bills_status ON bills(status)`},
+		// ─── Merge passes+verifications into tenants ─────
+		{"t_pass_number", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS pass_number TEXT`},
+		{"t_pass_issued", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS pass_issued_at TIMESTAMPTZ`},
+		{"t_lpu_photo", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS lpu_id_photo TEXT`},
+		{"t_aadhar_photo", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS aadhar_photo TEXT`},
+		{"t_ver_status", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS verification_status TEXT DEFAULT 'not_submitted'`},
+		{"t_ver_submitted", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS verification_submitted_at TIMESTAMPTZ`},
+		{"t_ver_verified", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS verification_verified_at TIMESTAMPTZ`},
+		{"t_ver_notes", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS verification_notes TEXT`},
+		// ─── Merge room_assignments into tenants ──────────
+		{"t_room_id", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS room_id TEXT`},
+		{"t_rent_amount", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS rent_amount DOUBLE PRECISION`},
+		{"t_end_date", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS end_date TEXT`},
+		// ─── Drop dead/merged tables ──────────────────────
+		{"drop_tp", `DROP TABLE IF EXISTS tenant_passes`},
+		{"drop_tv", `DROP TABLE IF EXISTS tenant_verifications`},
+		{"drop_bk", `DROP TABLE IF EXISTS bookings`},
+		{"drop_pp", `DROP TABLE IF EXISTS people`},
+		{"drop_ra", `DROP TABLE IF EXISTS room_assignments`},
+
 		{"payment_paid_to", `ALTER TABLE payments ADD COLUMN IF NOT EXISTS paid_to TEXT DEFAULT ''`},
 	}
 
