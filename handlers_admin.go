@@ -326,8 +326,17 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			startDate := r.FormValue("start_date")
 			if roomID != "" {
 				assignID := fmt.Sprintf("RA%d", time.Now().UnixNano())
-				db.DB.Exec(`INSERT INTO room_assignments (id, tenant_id, room_id, rent_amount, start_date, is_active)
-					VALUES ($1, $2, $3, $4, $5::timestamp, true)`, assignID, id, roomID, rent, startDate)
+				var startDatePtr interface{}
+				if startDate == "" {
+					startDatePtr = nil
+				} else {
+					startDatePtr = startDate
+				}
+				_, err := db.DB.Exec(`INSERT INTO room_assignments (id, tenant_id, room_id, rent_amount, start_date, is_active)
+					VALUES ($1, $2, $3, $4, $5, true)`, assignID, id, roomID, rent, startDatePtr)
+				if err != nil {
+					log.Printf("ERROR assigning room in add: %v", err)
+				}
 			}
 
 			http.Redirect(w, r, "/admin/tenants?msg=Tenant+added", http.StatusSeeOther)
@@ -354,8 +363,17 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			// First end any active assignments
 			db.DB.Exec("UPDATE room_assignments SET is_active=false, updated_at=NOW() WHERE tenant_id=$1 AND is_active", id)
 			assignID := fmt.Sprintf("RA%d", time.Now().UnixNano())
-			db.DB.Exec(`INSERT INTO room_assignments (id, tenant_id, room_id, rent_amount, start_date, is_active)
-				VALUES ($1, $2, $3, $4, $5, true)`, assignID, id, roomID, rent, startDate)
+			var startDatePtr interface{}
+			if startDate == "" {
+				startDatePtr = nil
+			} else {
+				startDatePtr = startDate
+			}
+			_, err := db.DB.Exec(`INSERT INTO room_assignments (id, tenant_id, room_id, rent_amount, start_date, is_active)
+				VALUES ($1, $2, $3, $4, $5, true)`, assignID, id, roomID, rent, startDatePtr)
+			if err != nil {
+				log.Printf("ERROR assigning room in assign: %v", err)
+			}
 		}
 	} else if action == "set_password" {
 		newPass := r.FormValue("password")
@@ -398,8 +416,17 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			db.DB.QueryRow("SELECT COUNT(*) FROM room_assignments WHERE tenant_id=$1 AND room_id=$2 AND is_active", id, roomID).Scan(&existing)
 			if existing == 0 {
 				assignID := fmt.Sprintf("RA%d", time.Now().UnixNano())
-				db.DB.Exec(`INSERT INTO room_assignments (id, tenant_id, room_id, rent_amount, start_date, is_active)
-					VALUES ($1, $2, $3, $4, $5, true)`, assignID, id, roomID, rent, startDate)
+				var startDatePtr interface{}
+				if startDate == "" {
+					startDatePtr = nil
+				} else {
+					startDatePtr = startDate
+				}
+				_, err := db.DB.Exec(`INSERT INTO room_assignments (id, tenant_id, room_id, rent_amount, start_date, is_active)
+					VALUES ($1, $2, $3, $4, $5, true)`, assignID, id, roomID, rent, startDatePtr)
+				if err != nil {
+					log.Printf("ERROR assigning room in save_all: %v", err)
+				}
 			}
 		}
 		} else if action == "edit" {
@@ -451,8 +478,17 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			if roomID != "" {
 				db.DB.Exec("UPDATE room_assignments SET is_active=false, updated_at=NOW() WHERE tenant_id=$1 AND is_active", id)
 				assignID := fmt.Sprintf("RA%d", time.Now().UnixNano())
-				db.DB.Exec(`INSERT INTO room_assignments (id, tenant_id, room_id, rent_amount, start_date, is_active)
-					VALUES ($1, $2, $3, $4, $5, true)`, assignID, id, roomID, rent, startDate)
+				var startDatePtr interface{}
+				if startDate == "" {
+					startDatePtr = nil
+				} else {
+					startDatePtr = startDate
+				}
+				_, err := db.DB.Exec(`INSERT INTO room_assignments (id, tenant_id, room_id, rent_amount, start_date, is_active)
+					VALUES ($1, $2, $3, $4, $5, true)`, assignID, id, roomID, rent, startDatePtr)
+				if err != nil {
+					log.Printf("ERROR assigning room in edit: %v", err)
+				}
 			}
 
 			http.Redirect(w, r, "/admin/tenants?msg=Tenant+updated", http.StatusSeeOther)
