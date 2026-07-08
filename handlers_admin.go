@@ -166,6 +166,7 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 			COALESCE(t.has_maintenance, false) as has_maintenance,
 		COALESCE(ra.room_id, '') as room_id, COALESCE(r.room_number, '') as room_number,
 		COALESCE(ra.rent_amount, 0) as rent_amount, COALESCE(ra.start_date::text, '') as start_date,
+			COALESCE(r.maintenance_amount, 500) as maintenance_amount,
 		COALESCE(t.password_hash, '') as password_hash,
 		-- Pass data (latest active pass)
 		COALESCE(tp.id, '') as pass_id, COALESCE(tp.pass_number, '') as pass_number,
@@ -201,6 +202,7 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 		StartDate                                                                  string
 		HasPassword                                                                bool
 			HasMaintenance                                                             bool
+			MaintenanceAmount                                                          float64
 		VerificationStatus                                                          string
 		PassID, PassNumber                                                         string
 		PassActive                                                                 bool
@@ -212,7 +214,7 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 		var pwHash, passID, passNum, verID, lpuPhoto, aadharPhoto, verSubmittedAt, verNotes, verStatus string
 		var passActive int
 		if err := rows.Scan(&t.ID, &t.Name, &t.Email, &t.Phone, &t.Status, &t.CheckInDate,
-			&t.SecurityDeposit, &t.LockInPeriod, &t.HasMaintenance, &t.RoomID, &t.RoomNumber, &t.RentAmount, &t.StartDate,
+			&t.SecurityDeposit, &t.LockInPeriod, &t.HasMaintenance, &t.RoomID, &t.RoomNumber, &t.RentAmount, &t.StartDate,t.RentAmount, &t.StartDate, &t.MaintenanceAmount,
 			&pwHash, &passID, &passNum, &passActive,
 			&verID, &verStatus, &lpuPhoto, &aadharPhoto, &verSubmittedAt, &verNotes); err != nil {
 			log.Printf("ERROR scanning tenant row: %v", err)
@@ -280,10 +282,10 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			if status == "" {
 				status = "active"
 			}
-			checkInDate := r.FormValue("check_in_date")
 			secDeposit, _ := strconv.ParseFloat(r.FormValue("security_deposit"), 64)
 			lockIn, _ := strconv.Atoi(r.FormValue("lock_in_period"))
 				hasMaint := r.FormValue("has_maintenance") == "on"
+			maintAmt, _ := strconv.ParseFloat(r.FormValue("maintenance_amount"), 64)
 			newPass := r.FormValue("password")
 
 			// Handle empty email as NULL to avoid unique constraint violation
@@ -295,26 +297,14 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			}
 
 			id := fmt.Sprintf("T%03d", time.Now().UnixNano()%100000)
-
-			if checkInDate != "" {
-				_, err := db.DB.Exec(`INSERT INTO tenants (id, name, phone, email, status, check_in_date, security_deposit, security_lock_in_period, has_maintenance)
-					VALUES ($1, $2, $3, $4, $5, $6::timestamp, $7, $8, $9)`,
-					id, name, phone, emailPtr, status, checkInDate, secDeposit, lockIn, hasMaint)
-				if err != nil {
-					log.Printf("ERROR adding tenant: %v", err)
-					renderAdminError(w, "Failed to add tenant: "+friendlyDBError(err))
-					return
-				}
-			} else {
+			 
 				_, err := db.DB.Exec(`INSERT INTO tenants (id, name, phone, email, status, security_deposit, security_lock_in_period, has_maintenance)
 					VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
 					id, name, phone, emailPtr, status, secDeposit, lockIn, hasMaint)
 				if err != nil {
 					log.Printf("ERROR adding tenant: %v", err)
 					renderAdminError(w, "Failed to add tenant: "+friendlyDBError(err))
-					return
 				}
-			}
 
 			if newPass != "" {
 				hash, err := bcrypt.GenerateFromPassword([]byte(newPass), bcrypt.DefaultCost)
@@ -339,6 +329,10 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 					VALUES ($1, $2, $3, $4, $5, true)`, assignID, id, roomID, rent, startDatePtr)
 				if err != nil {
 					log.Printf("ERROR assigning room in add: %v", err)
+				}
+				// Update room maintenance_amount
+				if maintAmt > 0 {
+					db.DB.Exec("UPDATE rooms SET maintenance_amount = $1, updated_at = NOW() WHERE id = $2", maintAmt, roomID)
 				}
 			}
 
@@ -439,10 +433,10 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			phone := r.FormValue("phone")
 			email := r.FormValue("email")
 			status := r.FormValue("status")
-			checkInDate := r.FormValue("check_in_date")
 			secDeposit, _ := strconv.ParseFloat(r.FormValue("security_deposit"), 64)
 			lockIn, _ := strconv.Atoi(r.FormValue("lock_in_period"))
 			hasMaint := r.FormValue("has_maintenance") == "on"
+			maintAmt, _ := strconv.ParseFloat(r.FormValue("maintenance_amount"), 64)
 			newPass := r.FormValue("password")
 
 			// Handle empty email as NULL to avoid unique constraint violations
@@ -454,18 +448,10 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			}
 
 			var updateErr error
-			if checkInDate != "" {
-				_, updateErr = db.DB.Exec(`UPDATE tenants SET name=$1, phone=$2, email=$3, status=$4,
-					check_in_date=$5::timestamp, security_deposit=$6, security_lock_in_period=$7,
-					has_maintenance=$8, updated_at=NOW() WHERE id=$9`,
-					name, phone, emailPtr, status, checkInDate, secDeposit, lockIn, hasMaint, id)
-			} else {
 				_, updateErr = db.DB.Exec(`UPDATE tenants SET name=$1, phone=$2, email=$3, status=$4,
 					security_deposit=$5, security_lock_in_period=$6, has_maintenance=$7,
 					updated_at=NOW() WHERE id=$8`,
 					name, phone, emailPtr, status, secDeposit, lockIn, hasMaint, id)
-			}
-
 			if updateErr != nil {
 				log.Printf("ERROR updating tenant: %v", updateErr)
 				http.Redirect(w, r, "/admin/tenants?error="+url.QueryEscape(friendlyDBError(updateErr)), http.StatusSeeOther)
@@ -495,6 +481,9 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 					VALUES ($1, $2, $3, $4, $5, true)`, assignID, id, roomID, rent, startDatePtr)
 				if err != nil {
 					log.Printf("ERROR assigning room in edit: %v", err)
+				}
+				if maintAmt > 0 {
+					db.DB.Exec("UPDATE rooms SET maintenance_amount = $1, updated_at = NOW() WHERE id = $2", maintAmt, roomID)
 				}
 			}
 
@@ -596,7 +585,7 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 
 type RoomPaymentCard struct {
 	RoomID, RoomNumber, TenantID, TenantName              string
-	RentAmount                                             float64
+	RentAmount, RoomPrice, DiscountAmount                  float64
 	HasMaintenance                                         bool
 	MaintenanceAmt                                         float64
 	TotalDue                                               float64
@@ -622,24 +611,16 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 		nextMonth = ""
 	}
 
-	// Load maintenance amount from settings
-	var maintenanceAmt float64 = 500
-	var mVal string
-	db.DB.QueryRow("SELECT value FROM settings WHERE key = 'maintenance_amount'").Scan(&mVal)
-	if mVal != "" {
-		if v, err := strconv.ParseFloat(mVal, 64); err == nil {
-			maintenanceAmt = v
-		}
-	}
-
-	// Query: rooms with active tenants, left join payments for this month
+	/// Query: rooms with active tenants + room price/maintenance + payments
 	rows, err := db.DB.Query(`
 		SELECT
 			r.id, r.room_number,
 			COALESCE(t.id, '') as tenant_id,
 			COALESCE(t.name, '') as tenant_name,
 			COALESCE(ra.rent_amount, 0) as rent_amount,
+			COALESCE(r.price, 0) as room_price,
 			COALESCE(t.has_maintenance, false) as has_maintenance,
+			COALESCE(r.maintenance_amount, 500) as maintenance_amount,
 			COALESCE(p.id, '') as payment_id,
 			COALESCE(p.amount, 0) as payment_amount,
 			COALESCE(p.payment_date::text, '') as payment_date,
@@ -663,15 +644,18 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var c RoomPaymentCard
 		if err := rows.Scan(&c.RoomID, &c.RoomNumber, &c.TenantID, &c.TenantName,
-			&c.RentAmount, &c.HasMaintenance, &c.PaymentID, &c.PaymentAmount,
-			&c.PaymentDate, &c.PaymentMethod, &c.PaymentNotes); err != nil {
+			&c.RentAmount, &c.RoomPrice, &c.HasMaintenance, &c.MaintenanceAmt,
+			&c.PaymentID, &c.PaymentAmount, &c.PaymentDate, &c.PaymentMethod, &c.PaymentNotes); err != nil {
 			log.Printf("ERROR scanning payment card: %v", err)
 			continue
 		}
-		c.MaintenanceAmt = maintenanceAmt
-		c.TotalDue = c.RentAmount
+		c.DiscountAmount = c.RoomPrice - c.RentAmount
+		if c.DiscountAmount < 0 {
+			c.DiscountAmount = 0
+		}
+		c.TotalDue = c.RentAmount - c.DiscountAmount
 		if c.HasMaintenance {
-			c.TotalDue += maintenanceAmt
+			c.TotalDue += c.MaintenanceAmt
 		}
 		c.HasPaid = c.PaymentID != ""
 		cards = append(cards, c)
@@ -691,7 +675,6 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 		"MonthLabel":     formatMonthLabel(month),
 		"PrevMonth":      prevMonth,
 		"NextMonth":      nextMonth,
-		"MaintenanceAmt": maintenanceAmt,
 		"Active":         "payments",
 		"Title":          "Payments",
 	})
@@ -721,7 +704,28 @@ func handleAdminPaymentsSave(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/admin/payments?month="+monthCovered, http.StatusSeeOther)
 			return
 		}
-	} else if action == "toggle_maintenance" {
+	} else if action == "complete" {
+			tenantID := r.FormValue("tenant_id")
+			amount, _ := strconv.ParseFloat(r.FormValue("amount"), 64)
+			date := r.FormValue("date")
+			method := r.FormValue("method")
+			monthCovered := r.FormValue("month_covered")
+			notes := r.FormValue("notes")
+			hasMaint := r.FormValue("has_maintenance") == "on"
+			maintAmt, _ := strconv.ParseFloat(r.FormValue("maintenance_amount"), 64)
+			id := fmt.Sprintf("PAY%d", time.Now().UnixNano())
+			db.DB.Exec(`INSERT INTO payments (id, tenant_id, amount, payment_date, payment_method, status, month_covered, notes)
+				VALUES ($1, $2, $3, $4, $5, 'completed', $6, $7)`,
+				id, tenantID, amount, date, method, monthCovered, notes)
+			db.DB.Exec("UPDATE tenants SET has_maintenance = $1, updated_at = NOW() WHERE id = $2", hasMaint, tenantID)
+			// Update room maintenance_amount via room_assignments
+			if maintAmt > 0 {
+				db.DB.Exec(`UPDATE rooms SET maintenance_amount = $1, updated_at = NOW()
+					WHERE id = (SELECT room_id FROM room_assignments WHERE tenant_id = $2 AND is_active = true LIMIT 1)`, maintAmt, tenantID)
+			}
+			http.Redirect(w, r, "/admin/payments?month="+monthCovered, http.StatusSeeOther)
+			return
+		} else if action == "toggle_maintenance" {
 		tenantID := r.FormValue("tenant_id")
 		currentVal := r.FormValue("has_maintenance") == "true"
 		db.DB.Exec("UPDATE tenants SET has_maintenance = $1, updated_at = NOW() WHERE id = $2", !currentVal, tenantID)

@@ -123,7 +123,7 @@
         </td>
         <td class="px-3 py-3">
           <div class="flex items-center gap-1">
-            <button onclick="openEdit('{{jsStr .ID}}', '{{jsStr .Name}}', '{{jsStr .Phone}}', '{{jsStr .Email}}', '{{jsStr .Status}}', '{{jsStr .CheckInDate}}', '{{jsStr .RoomID}}', '{{.RentAmount}}', '{{jsStr .StartDate}}', '{{.SecurityDeposit}}', '{{.LockInPeriod}}', {{.HasPassword}}, {{.HasMaintenance}})"
+            <button onclick="openEdit('{{jsStr .ID}}', '{{jsStr .Name}}', '{{jsStr .Phone}}', '{{jsStr .Email}}', '{{jsStr .Status}}', '{{jsStr .RoomID}}', '{{.RentAmount}}', '{{jsStr .StartDate}}', '{{.SecurityDeposit}}', '{{.LockInPeriod}}', {{.HasMaintenance}}, '{{.MaintenanceAmount}}')"
               class="text-primary hover:bg-primary/10 rounded px-2 py-1 text-xs font-medium">Edit</button>
             <button onclick="confirmDelete('{{.ID}}', '{{.Name}}')"
               class="text-error hover:bg-error/10 rounded px-2 py-1 text-xs font-medium">Delete</button>
@@ -142,7 +142,7 @@
 
 <!-- Add Tenant Modal -->
 <div id="add-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-lg my-8">
+  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-4xl my-8">
     <h3 class="font-semibold text-lg mb-1">Add Tenant</h3>
     <p class="text-xs text-on-sf-variant mb-4">Fill in the details for the new tenant</p>
 
@@ -152,7 +152,7 @@
       <!-- Personal Info -->
       <div class="bg-sf-low rounded-lg p-4 space-y-3">
         <h4 class="text-xs font-semibold uppercase tracking-wider text-on-sf-variant">Personal Info</h4>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-3 gap-3">
           <div>
             <label class="block text-xs text-on-sf-variant mb-1">Name</label>
             <input name="name" id="add-name" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required>
@@ -161,13 +161,9 @@
             <label class="block text-xs text-on-sf-variant mb-1">Phone</label>
             <input name="phone" id="add-phone" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required>
           </div>
-          <div class="col-span-2">
+          <div class="col-span-3">
             <label class="block text-xs text-on-sf-variant mb-1">Email</label>
             <input name="email" id="add-email" type="email" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
-          </div>
-          <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Check-in Date</label>
-            <input name="check_in_date" id="add-check-in" type="date" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
           </div>
           <div>
             <label class="block text-xs text-on-sf-variant mb-1">Status</label>
@@ -194,7 +190,7 @@
       <!-- Room Assignment -->
       <div class="bg-sf-low rounded-lg p-4 space-y-3">
         <h4 class="text-xs font-semibold uppercase tracking-wider text-on-sf-variant">Room Assignment</h4>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-3 gap-3">
           <div>
             <label class="block text-xs text-on-sf-variant mb-1">Room</label>
             <select name="room_id" id="add-room" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
@@ -231,7 +227,7 @@
 
 <!-- Edit Tenant Modal -->
 <div id="edit-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-lg my-8">
+  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-4xl my-8">
     <h3 class="font-semibold text-lg mb-1">Edit Tenant</h3>
     <p class="text-xs text-on-sf-variant mb-4">Update tenant details</p>
 
@@ -242,7 +238,7 @@
       <!-- Personal Info -->
       <div class="bg-sf-low rounded-lg p-4 space-y-3">
         <h4 class="text-xs font-semibold uppercase tracking-wider text-on-sf-variant">Personal Info</h4>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-3 gap-3">
           <div>
             <label class="block text-xs text-on-sf-variant mb-1">Name</label>
             <input name="name" id="edit-name" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required>
@@ -251,13 +247,9 @@
             <label class="block text-xs text-on-sf-variant mb-1">Phone</label>
             <input name="phone" id="edit-phone" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required>
           </div>
-          <div class="col-span-2">
+          <div class="col-span-3">
             <label class="block text-xs text-on-sf-variant mb-1">Email</label>
             <input name="email" id="edit-email" type="email" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
-          </div>
-          <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Check-in Date</label>
-            <input name="check_in_date" id="edit-check-in" type="date" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
           </div>
           <div>
             <label class="block text-xs text-on-sf-variant mb-1">Status</label>
@@ -270,7 +262,6 @@
             <label class="block text-xs text-on-sf-variant mb-1">New Password</label>
             <input name="password" id="edit-password" type="text" placeholder="Leave blank to keep current"
               class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
-            <p id="password-status" class="text-xs mt-1"></p>
           </div>
           <div>
             <label class="block text-xs text-on-sf-variant mb-1">Maintenance</label>
@@ -285,7 +276,7 @@
       <!-- Room Assignment -->
       <div class="bg-sf-low rounded-lg p-4 space-y-3">
         <h4 class="text-xs font-semibold uppercase tracking-wider text-on-sf-variant">Room Assignment</h4>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-3 gap-3">
           <div>
             <label class="block text-xs text-on-sf-variant mb-1">Room</label>
             <select name="room_id" id="edit-room" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
@@ -309,14 +300,11 @@
             <label class="block text-xs text-on-sf-variant mb-1">Lock-in Period (months)</label>
             <input name="lock_in_period" id="edit-lock-in" type="number" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
           </div>
+          <div>
+            <label class="block text-xs text-on-sf-variant mb-1">Maint. Amt (₹)</label>
+            <input name="maintenance_amount" id="edit-maint-amt" type="number" value="500" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+          </div>
         </div>
-      </div>
-
-      <!-- Login Section -->
-      <div class="bg-sf-low rounded-lg p-4 space-y-3">
-        <h4 class="text-xs font-semibold uppercase tracking-wider text-on-sf-variant">Tenant Login</h4>
-        <p class="text-xs text-on-sf-variant">Reset password and generate new credentials</p>
-        <button type="button" onclick="resetPassword()" class="text-xs bg-secondary text-white px-4 py-2 rounded-lg font-semibold hover:bg-secondary/90">Reset Password</button>
       </div>
 
       <div class="flex gap-3 pt-2">
@@ -394,40 +382,34 @@ function openAdd() {
   document.getElementById('add-phone').value = '';
   document.getElementById('add-email').value = '';
   document.getElementById('add-status').value = 'active';
-  document.getElementById('add-check-in').value = '';
-  document.getElementById('add-room').value = '';
+    document.getElementById('add-room').value = '';
   document.getElementById('add-start-date').value = new Date().toISOString().split('T')[0];
   document.getElementById('add-rent').value = '9000';
   document.getElementById('add-sec-deposit').value = '';
   document.getElementById('add-lock-in').value = '';
   document.getElementById('add-password').value = '';
   document.getElementById('add-maintenance').value = '';
+  document.getElementById('add-maint-amt').value = '500';
   document.getElementById('add-modal').classList.remove('hidden');
 }
 function closeAdd() {
   document.getElementById('add-modal').classList.add('hidden');
 }
 
-function openEdit(id, name, phone, email, status, checkIn, roomId, rent, startDate, secDeposit, lockIn, hasPassword, hasMaint) {
+function openEdit(id, name, phone, email, status, roomId, rent, startDate, secDeposit, lockIn, hasMaint, maintAmt) {
   document.getElementById('edit-id').value = id;
   document.getElementById('edit-name').value = name;
   document.getElementById('edit-phone').value = phone;
   document.getElementById('edit-email').value = email;
   document.getElementById('edit-status').value = status;
-  document.getElementById('edit-check-in').value = checkIn || '';
-  document.getElementById('edit-room').value = roomId || '';
+    document.getElementById('edit-room').value = roomId || '';
   document.getElementById('edit-rent').value = (rent && rent !== '0') ? rent : '9000';
   document.getElementById('edit-start-date').value = startDate || '';
   document.getElementById('edit-sec-deposit').value = (secDeposit && secDeposit !== '0') ? secDeposit : '';
   document.getElementById('edit-lock-in').value = (lockIn && lockIn !== '0') ? lockIn : '';
   document.getElementById('edit-maintenance').value = hasMaint ? 'on' : '';
+  document.getElementById('edit-maint-amt').value = (maintAmt && maintAmt !== '0') ? maintAmt : '500';
   document.getElementById('edit-password').value = '';
-  // Show password status indicator
-  var pwStatus = document.getElementById('password-status');
-  if (pwStatus) {
-    pwStatus.textContent = hasPassword ? '✓ Password is set (leave blank to keep, enter new to change)' : '⚠ No password set — tenant cannot log in';
-    pwStatus.className = hasPassword ? 'text-xs text-success mt-1' : 'text-xs text-warning mt-1';
-  }
   document.getElementById('edit-modal').classList.remove('hidden');
 }
 function closeEdit() {
@@ -443,14 +425,5 @@ function closeDelete() {
   document.getElementById('delete-modal').classList.add('hidden');
 }
 
-function resetPassword() {
-  var form = document.createElement('form');
-  form.method = 'POST';
-  form.action = '/admin/tenants/save';
-  form.style.display = 'none';
-  form.innerHTML = '<input type="hidden" name="action" value="reset_pass"><input type="hidden" name="id" value="'+document.getElementById('edit-id').value+'">';
-  document.body.appendChild(form);
-  form.submit();
-}
 </script>
 {{template "admin_footer" .}}
