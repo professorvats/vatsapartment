@@ -58,15 +58,18 @@ func handleBookNow(w http.ResponseWriter, r *http.Request) {
 
 	var availableRooms []Room
 	for _, room := range rooms {
-		if room.Status != "active" {
+		if room.Status != "active" && room.Price > 0 {
 			availableRooms = append(availableRooms, room)
 		}
 	}
 
+	noRooms := len(availableRooms) == 0
+
 	render(w, "booknow.html", map[string]interface{}{
-		"Floors":         grouped,
-		"Rooms":          rooms,
-		"AvailableRooms": availableRooms,
+		"Floors":          grouped,
+		"Rooms":           rooms,
+		"AvailableRooms":  availableRooms,
+		"NoRoomsAvailable": noRooms,
 	})
 }
 
