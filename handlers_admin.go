@@ -711,8 +711,8 @@ func handleAdminPaymentsSave(w http.ResponseWriter, r *http.Request) {
 			method := r.FormValue("method")
 			monthCovered := r.FormValue("month_covered")
 			notes := r.FormValue("notes")
-			hasMaint := r.FormValue("has_maintenance") == "on"
 			maintAmt, _ := strconv.ParseFloat(r.FormValue("maintenance_amount"), 64)
+			hasMaint := maintAmt > 0
 			id := fmt.Sprintf("PAY%d", time.Now().UnixNano())
 			db.DB.Exec(`INSERT INTO payments (id, tenant_id, amount, payment_date, payment_method, status, month_covered, notes)
 				VALUES ($1, $2, $3, $4, $5, 'completed', $6, $7)`,

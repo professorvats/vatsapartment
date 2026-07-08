@@ -41,15 +41,13 @@
         <span class="font-semibold text-green-700">−₹{{printf "%.0f" .DiscountAmount}}</span>
       </div>
       {{end}}
+      <div class="flex justify-between text-sm font-medium pt-1 border-t border-ol-variant/50">
+        <span>Net Rent</span>
+        <span class="net-display">₹{{printf "%.0f" (add .RentAmount (mul .DiscountAmount -1))}}</span>
+      </div>
       <div class="flex justify-between text-sm items-center">
         <span class="text-on-sf-variant">Maintenance</span>
-        <div class="flex items-center gap-2">
-          <select name="has_maintenance" class="maint-toggle border border-ol-variant rounded px-1.5 py-0.5 text-xs" onchange="recalcCard(this)">
-            <option value="">Off</option>
-            <option value="on" {{if .HasMaintenance}}selected{{end}}>On</option>
-          </select>
-          <input name="maintenance_amount" type="number" value="{{printf "%.0f" .MaintenanceAmt}}" class="maint-amt w-20 border border-ol-variant rounded px-1.5 py-0.5 text-sm text-right" oninput="recalcCard(this)">
-        </div>
+        <input name="maintenance_amount" type="number" value="{{printf "%.0f" .MaintenanceAmt}}" class="maint-amt w-20 border border-ol-variant rounded px-1.5 py-0.5 text-sm text-right" oninput="recalcCard(this)">
       </div>
     </div>
 
@@ -90,11 +88,10 @@ function recalcCard(el) {
   var card = el.closest('.room-card');
   var rent = parseFloat(card.dataset.rent) || 0;
   var discount = parseFloat(card.dataset.discount) || 0;
-  var maintToggle = card.querySelector('.maint-toggle');
-  var maintAmt = card.querySelector('.maint-amt');
-  var hasMaint = maintToggle.value === 'on';
-  var maint = hasMaint ? (parseFloat(maintAmt.value) || 0) : 0;
-  var total = rent - discount + maint;
+  var maint = parseFloat(card.querySelector('.maint-amt').value) || 0;
+  var net = rent - discount;
+  var total = net + maint;
+  card.querySelector('.net-display').textContent = '₹' + Math.round(net);
   card.querySelector('.total-display').textContent = '₹' + Math.round(total);
   card.querySelector('.total-input').value = Math.round(total);
 }
