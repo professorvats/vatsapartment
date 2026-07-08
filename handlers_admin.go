@@ -588,6 +588,7 @@ type RoomPaymentCard struct {
 	RentAmount, RoomPrice, DiscountAmount                  float64
 	HasMaintenance                                         bool
 	MaintenanceAmt                                         float64
+	ElectricityAmt                                         float64
 	TotalDue                                               float64
 	HasPaid                                                bool
 	PaymentID, PaymentDate, PaymentMethod, PaymentNotes, PaidTo string
@@ -668,6 +669,49 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 	}
 	if cards == nil {
 		cards = []RoomPaymentCard{}
+	}
+
+	// Fetch electricity rate
+	var electricityRate float64 = 12
+	var rateStr string
+	db.DB.QueryRow("SELECT value FROM settings WHERE key = 'electricity_rate'").Scan(&rateStr)
+	if rateStr != "" {
+		if r, err := strconv.ParseFloat(rateStr, 64); err == nil {
+			electricityRate = r
+		}
+	}
+
+	// Fetch per-room electricity bill for this month from meter readings
+	electricityMap := map[string]float64{}
+	eRows, err := db.DB.Query(`
+		SELECT m.room_id, COALESCE(SUM(mr.current_reading - mr.initial_reading), 0) as units
+		FROM meters m
+		JOIN monthly_readings mr ON mr.meter_id = m.id AND mr.billing_month = $1
+		WHERE m.meter_type = 'Electricity' AND m.is_active = true AND m.room_id != 'BUILDING'
+		GROUP BY m.room_id`, month)
+	if err != nil {
+		log.Printf("ERROR loading electricity readings: %v", err)
+	} else {
+		defer eRows.Close()
+		for eRows.Next() {
+			var roomID string
+			var units float64
+			if err := eRows.Scan(&roomID, &units); err != nil {
+				log.Printf("ERROR scanning electricity row: %v", err)
+				continue
+			}
+			if units > 0 {
+				electricityMap[roomID] = units * electricityRate
+			}
+		}
+	}
+
+	// Apply electricity amounts to cards and update totals
+	for i := range cards {
+		if amt, ok := electricityMap[cards[i].RoomID]; ok {
+			cards[i].ElectricityAmt = amt
+			cards[i].TotalDue += amt
+		}
 	}
 
 	renderPrivate(w, "admin_payments.html", map[string]interface{}{

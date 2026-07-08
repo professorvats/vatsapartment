@@ -50,6 +50,12 @@
         <span class="font-semibold">₹{{printf "%.0f" .MaintenanceAmt}}</span>
         <input type="hidden" name="maintenance_amount" value="{{printf "%.0f" .MaintenanceAmt}}">
       </div>
+      {{if gt .ElectricityAmt 0.0}}
+      <div class="flex justify-between text-sm items-center">
+        <span class="text-on-sf-variant">Electricity Bill</span>
+        <span class="font-semibold">₹{{printf "%.0f" .ElectricityAmt}}</span>
+      </div>
+      {{end}}
     </div>
 
     <!-- Total -->
