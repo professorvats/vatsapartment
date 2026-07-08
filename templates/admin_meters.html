@@ -111,7 +111,7 @@
         </thead>
         <tbody>
           {{range .Meters}}
-          <tr class="meter-row border-b border-ol-variant last:border-0" data-meter-type="{{.MeterType}}">
+          <tr class="meter-row border-b border-ol-variant last:border-0">
             <td class="py-1.5 pr-2 max-w-[140px]">
               <div class="font-medium text-sm truncate">{{.MeterType}} <span class="text-on-sf-variant text-xs font-normal">{{.MeterNumber}}</span></div>
             </td>
@@ -125,6 +125,15 @@
             <td class="py-1.5 text-right"><span class="amount-display font-semibold text-sm">--</span></td>
           </tr>
           {{end}}
+          {{if and $.HasWaterMeter $.WaterPerRoom}}
+          <tr class="border-b border-ol-variant">
+            <td class="py-1.5 pr-2" colspan="3">
+              <div class="font-medium text-sm">💧 Water Share</div>
+            </td>
+            <td class="py-1.5 text-right"><span class="water-share-units font-semibold text-sm text-blue-700">--</span></td>
+            <td class="py-1.5 text-right"><span class="water-share-amount font-semibold text-sm text-blue-700">--</span></td>
+          </tr>
+          {{end}}
         </tbody>
       </table>
     </div>
@@ -132,7 +141,7 @@
     <!-- Mobile: stacked layout -->
     <div class="md:hidden space-y-3">
       {{range .Meters}}
-      <div class="meter-row bg-sf-low rounded-lg p-3 space-y-2" data-meter-type="{{.MeterType}}">
+      <div class="meter-row bg-sf-low rounded-lg p-3 space-y-2">
         <div class="font-medium text-sm">{{.MeterType}} <span class="text-on-sf-variant">{{.MeterNumber}}</span></div>
         <div class="grid grid-cols-2 gap-2">
           <div>
@@ -150,6 +159,15 @@
         </div>
       </div>
       {{end}}
+      {{if and $.HasWaterMeter $.WaterPerRoom}}
+      <div class="bg-blue-50 rounded-lg p-3 space-y-2 border border-blue-200">
+        <div class="font-medium text-sm">💧 Water Share</div>
+        <div class="flex justify-between text-sm">
+          <span class="text-blue-700">Units: <span class="water-share-units font-semibold">--</span></span>
+          <span class="text-blue-700">Amount: <span class="water-share-amount font-semibold">--</span></span>
+        </div>
+      </div>
+      {{end}}
     </div>
 
     <!-- Totals -->
@@ -158,15 +176,7 @@
         <span class="font-bold text-sm">Room Total</span>
         <span class="room-total font-bold text-base">--</span>
       </div>
-      <div class="flex justify-between items-center text-sm">
-        <span>⚡ Electricity Bill</span>
-        <span class="electric-total font-semibold">--</span>
-      </div>
       {{if and $.HasWaterMeter $.WaterPerRoom}}
-      <div class="flex justify-between items-center text-sm text-on-sf-variant">
-        <span>💧 Water Share</span>
-        <span><span class="water-share-units">--</span> u <span class="water-share-amount font-semibold text-blue-700">--</span></span>
-      </div>
       <div class="flex justify-between items-center pt-1 border-t border-ol-variant">
         <span class="font-bold text-sm">Grand Total</span>
         <span class="grand-total font-bold text-base text-primary">--</span>
@@ -191,7 +201,6 @@ function recalcAll() {
   // Recalculate each room card
   document.querySelectorAll('.room-card').forEach(function(card) {
     var roomTotal = 0;
-    card.dataset.electricTotal = 0;
 
     card.querySelectorAll('.meter-row').forEach(function(row) {
       if (row.offsetParent === null) return; // skip hidden duplicate
@@ -204,17 +213,10 @@ function recalcAll() {
       row.querySelector('.amount-display').textContent = '₹' + Math.round(amount);
 
       roomTotal += amount;
-      if (row.dataset.meterType === 'Electric') {
-        card.dataset.electricTotal = (parseFloat(card.dataset.electricTotal) || 0) + amount;
-      }
     });
 
     card.querySelector('.room-total').textContent = '₹' + Math.round(roomTotal);
     card.dataset.roomTotal = roomTotal;
-    var elecTotal = card.querySelector('.electric-total');
-    if (elecTotal) {
-      elecTotal.textContent = '₹' + Math.round(parseFloat(card.dataset.electricTotal) || 0);
-    }
   });
 
   // Water meter

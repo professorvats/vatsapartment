@@ -681,36 +681,66 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Fetch per-room electricity bill for this month from meter readings
-	electricityMap := map[string]float64{}
+	// Fetch per-room utility bill (all meters: Electricity + Inverter etc.) for this month
+	utilityMap := map[string]float64{}
 	eRows, err := db.DB.Query(`
 		SELECT m.room_id, COALESCE(SUM(mr.current_reading - mr.initial_reading), 0) as units
 		FROM meters m
 		JOIN monthly_readings mr ON mr.meter_id = m.id AND mr.billing_month = $1
-		WHERE m.meter_type = 'Electricity' AND m.is_active = true AND m.room_id != 'BUILDING'
+		WHERE m.is_active = true AND m.room_id != 'BUILDING'
 		GROUP BY m.room_id`, month)
 	if err != nil {
-		log.Printf("ERROR loading electricity readings: %v", err)
+		log.Printf("ERROR loading utility readings: %v", err)
 	} else {
 		defer eRows.Close()
 		for eRows.Next() {
 			var roomID string
 			var units float64
 			if err := eRows.Scan(&roomID, &units); err != nil {
-				log.Printf("ERROR scanning electricity row: %v", err)
+				log.Printf("ERROR scanning utility row: %v", err)
 				continue
 			}
 			if units > 0 {
-				electricityMap[roomID] = units * electricityRate
+				utilityMap[roomID] = units * electricityRate
 			}
 		}
 	}
 
-	// Apply electricity amounts to cards and update totals
+	// Compute water share per room (building water meter / occupied rooms)
+	var waterPerRoom float64
+	var occupiedCount int
+	db.DB.QueryRow("SELECT COUNT(*) FROM bookings WHERE status = 'active'").Scan(&occupiedCount)
+	if occupiedCount > 0 {
+		var waterUnits float64
+		db.DB.QueryRow(`
+			SELECT COALESCE(SUM(mr.current_reading - mr.initial_reading), 0)
+			FROM meters m
+			JOIN monthly_readings mr ON mr.meter_id = m.id AND mr.billing_month = $1
+			WHERE m.room_id = 'BUILDING' AND m.meter_type = 'Water' AND m.is_active = true`, month).Scan(&waterUnits)
+		// Check for manual overrides
+		var savedPerRoom string
+		db.DB.QueryRow("SELECT value FROM settings WHERE key = 'water_per_room_' || $1", month).Scan(&savedPerRoom)
+		if savedPerRoom != "" {
+			if v, err := strconv.ParseFloat(savedPerRoom, 64); err == nil {
+				waterPerRoom = v
+			}
+		} else if waterUnits > 0 {
+			waterPerRoom = (waterUnits / float64(occupiedCount)) * electricityRate
+		}
+	}
+
+	// Apply utility amounts (room meters + water share) to cards and update totals
 	for i := range cards {
-		if amt, ok := electricityMap[cards[i].RoomID]; ok {
-			cards[i].ElectricityAmt = amt
-			cards[i].TotalDue += amt
+		var utilityTotal float64
+		if amt, ok := utilityMap[cards[i].RoomID]; ok {
+			utilityTotal += amt
+		}
+		if waterPerRoom > 0 {
+			utilityTotal += waterPerRoom
+		}
+		if utilityTotal > 0 {
+			cards[i].ElectricityAmt = utilityTotal
+			cards[i].TotalDue += utilityTotal
 		}
 	}
 
