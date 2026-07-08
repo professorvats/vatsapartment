@@ -276,6 +276,7 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 
 		if action == "add" {
 			name := r.FormValue("name")
+		_ = id
 			phone := r.FormValue("phone")
 			email := r.FormValue("email")
 			status := r.FormValue("status")
@@ -331,10 +332,9 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 					log.Printf("ERROR assigning room in add: %v", err)
 				}
 				// Update room maintenance_amount
-				if maintAmt > 0 {
+				 
 					db.DB.Exec("UPDATE rooms SET maintenance_amount = $1, updated_at = NOW() WHERE id = $2", maintAmt, roomID)
-				}
-			}
+			 
 
 			http.Redirect(w, r, "/admin/tenants?msg=Tenant+added", http.StatusSeeOther)
 			return
@@ -482,9 +482,8 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					log.Printf("ERROR assigning room in edit: %v", err)
 				}
-				if maintAmt > 0 {
+				 
 					db.DB.Exec("UPDATE rooms SET maintenance_amount = $1, updated_at = NOW() WHERE id = $2", maintAmt, roomID)
-				}
 			}
 
 			http.Redirect(w, r, "/admin/tenants?msg=Tenant+updated", http.StatusSeeOther)
@@ -579,6 +578,7 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 		}
 		http.Redirect(w, r, "/admin/tenants", http.StatusSeeOther)
 	}
+		}
 
 
 // ─── Payments ──────────────────────────────────────────────────
@@ -705,7 +705,12 @@ func handleAdminPaymentsSave(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/admin/payments?month="+monthCovered, http.StatusSeeOther)
 			return
 		}
-	} else if action == "complete" {
+	} else if action == "undo" {
+			paymentID := r.FormValue("payment_id")
+			db.DB.Exec("DELETE FROM payments WHERE id = $1", paymentID)
+			http.Redirect(w, r, "/admin/payments?month="+month, http.StatusSeeOther)
+			return
+		} else if action == "complete" {
 			tenantID := r.FormValue("tenant_id")
 			amount, _ := strconv.ParseFloat(r.FormValue("amount"), 64)
 			date := r.FormValue("date")
@@ -721,10 +726,8 @@ func handleAdminPaymentsSave(w http.ResponseWriter, r *http.Request) {
 				id, tenantID, amount, date, method, monthCovered, notes, paidTo)
 			db.DB.Exec("UPDATE tenants SET has_maintenance = $1, updated_at = NOW() WHERE id = $2", hasMaint, tenantID)
 			// Update room maintenance_amount via room_assignments
-			if maintAmt > 0 {
-				db.DB.Exec(`UPDATE rooms SET maintenance_amount = $1, updated_at = NOW()
-					WHERE id = (SELECT room_id FROM room_assignments WHERE tenant_id = $2 AND is_active = true LIMIT 1)`, maintAmt, tenantID)
-			}
+			db.DB.Exec(`UPDATE rooms SET maintenance_amount = $1, updated_at = NOW()
+				WHERE id = (SELECT room_id FROM room_assignments WHERE tenant_id = $2 AND is_active = true LIMIT 1)`, maintAmt, tenantID)
 			http.Redirect(w, r, "/admin/payments?month="+monthCovered, http.StatusSeeOther)
 			return
 		} else if action == "toggle_maintenance" {
