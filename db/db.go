@@ -264,6 +264,7 @@ func runMigrations() error {
 		{"tenant_maintenance", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS has_maintenance BOOLEAN DEFAULT false`},
 		{"maintenance_amount_setting", `INSERT INTO settings (key, value) VALUES ('maintenance_amount', '500') ON CONFLICT (key) DO NOTHING`},
 		{"room_maintenance_amount", `ALTER TABLE rooms ADD COLUMN IF NOT EXISTS maintenance_amount DOUBLE PRECISION DEFAULT 500`},
+		{"payment_paid_to", `ALTER TABLE payments ADD COLUMN IF NOT EXISTS paid_to TEXT DEFAULT ''`},
 	}
 
 	for _, m := range migrations {

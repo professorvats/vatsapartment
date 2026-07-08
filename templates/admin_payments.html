@@ -62,7 +62,7 @@
     <div class="flex items-center gap-2">
       {{if .HasPaid}}
       <div class="flex-1 text-xs text-on-sf-variant space-y-0.5 bg-green-100 rounded p-2">
-        <p>Paid ₹{{printf "%.0f" .PaymentAmount}} on {{.PaymentDate}}{{if .PaymentMethod}} via {{.PaymentMethod}}{{end}}</p>
+        <p>Paid ₹{{printf "%.0f" .PaymentAmount}} on {{.PaymentDate}}{{if .PaymentMethod}} via {{.PaymentMethod}}{{if .PaidTo}} to {{.PaidTo}}{{end}}{{end}}</p>
         {{if .PaymentNotes}}<p class="italic">{{.PaymentNotes}}</p>{{end}}
       </div>
       {{else}}
@@ -71,6 +71,10 @@
       </select>
       <input name="date" type="date" value="{{$.Month}}-01" class="border border-ol-variant rounded px-2 py-1.5 text-xs flex-1">
       <input name="notes" type="text" placeholder="Note" class="border border-ol-variant rounded px-2 py-1.5 text-xs w-20">
+      <select name="paid_to" class="border border-ol-variant rounded px-2 py-1.5 text-xs">
+        <option value="">To</option>
+        <option>Shashi</option><option>Sarla</option><option>Hament</option><option>Bhoop Singh</option>
+      </select>
       <button type="submit" class="bg-primary text-on-primary px-4 py-1.5 rounded-lg text-xs font-semibold hover:bg-primary/90 whitespace-nowrap">✓ Complete</button>
       {{end}}
     </div>

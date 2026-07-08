@@ -590,7 +590,7 @@ type RoomPaymentCard struct {
 	MaintenanceAmt                                         float64
 	TotalDue                                               float64
 	HasPaid                                                bool
-	PaymentID, PaymentDate, PaymentMethod, PaymentNotes    string
+	PaymentID, PaymentDate, PaymentMethod, PaymentNotes, PaidTo string
 	PaymentAmount                                          float64
 }
 
@@ -625,7 +625,8 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 			COALESCE(p.amount, 0) as payment_amount,
 			COALESCE(p.payment_date::text, '') as payment_date,
 			COALESCE(p.payment_method, '') as payment_method,
-			COALESCE(p.notes, '') as payment_notes
+			COALESCE(p.notes, '') as payment_notes,
+			COALESCE(p.paid_to, '') as paid_to
 		FROM rooms r
 		JOIN room_assignments ra ON r.id = ra.room_id AND ra.is_active = true
 		JOIN tenants t ON ra.tenant_id = t.id AND t.status = 'active'
@@ -645,7 +646,7 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 		var c RoomPaymentCard
 		if err := rows.Scan(&c.RoomID, &c.RoomNumber, &c.TenantID, &c.TenantName,
 			&c.RentAmount, &c.RoomPrice, &c.HasMaintenance, &c.MaintenanceAmt,
-			&c.PaymentID, &c.PaymentAmount, &c.PaymentDate, &c.PaymentMethod, &c.PaymentNotes); err != nil {
+			&c.PaymentID, &c.PaymentAmount, &c.PaymentDate, &c.PaymentMethod, &c.PaymentNotes, &c.PaidTo); err != nil {
 			log.Printf("ERROR scanning payment card: %v", err)
 			continue
 		}
@@ -711,12 +712,13 @@ func handleAdminPaymentsSave(w http.ResponseWriter, r *http.Request) {
 			method := r.FormValue("method")
 			monthCovered := r.FormValue("month_covered")
 			notes := r.FormValue("notes")
+			paidTo := r.FormValue("paid_to")
 			maintAmt, _ := strconv.ParseFloat(r.FormValue("maintenance_amount"), 64)
 			hasMaint := maintAmt > 0
 			id := fmt.Sprintf("PAY%d", time.Now().UnixNano())
-			db.DB.Exec(`INSERT INTO payments (id, tenant_id, amount, payment_date, payment_method, status, month_covered, notes)
-				VALUES ($1, $2, $3, $4, $5, 'completed', $6, $7)`,
-				id, tenantID, amount, date, method, monthCovered, notes)
+			db.DB.Exec(`INSERT INTO payments (id, tenant_id, amount, payment_date, payment_method, status, month_covered, notes, paid_to)
+				VALUES ($1, $2, $3, $4, $5, 'completed', $6, $7, $8)`,
+				id, tenantID, amount, date, method, monthCovered, notes, paidTo)
 			db.DB.Exec("UPDATE tenants SET has_maintenance = $1, updated_at = NOW() WHERE id = $2", hasMaint, tenantID)
 			// Update room maintenance_amount via room_assignments
 			if maintAmt > 0 {
