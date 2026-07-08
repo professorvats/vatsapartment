@@ -70,13 +70,6 @@ window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
   </div>
 </nav>
 
-<!-- Urgency Banner -->
-<div class="bg-red-600 text-white text-xs md:text-sm font-semibold overflow-hidden">
-  <div class="py-2 whitespace-nowrap animate-marquee">
-    <span id="urgency-text">Loading...</span>
-  </div>
-</div>
-
 <!-- Mobile Bottom Tab Bar -->
 <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 md:hidden pb-4">
   <div class="flex items-center justify-around px-1 pt-2 pb-1 h-16">
@@ -580,17 +573,5 @@ window.addEventListener('load', function() {
 });
 </script>
 
-<script>
-(function(){
-  var d=new Date();d.setDate(d.getDate()+6);
-  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  var dateStr=d.getDate()+' '+months[d.getMonth()];
-  var el=document.getElementById('urgency-text');
-  if(el) {
-    var text = '⚡️ High Demand • Only 2 rooms left • Book before 11 Jul • All rooms are fully occupied please check after 1st August';
-    el.innerHTML = text.repeat(15);
-  }
-})();
-</script>
 </body>
 </html>
