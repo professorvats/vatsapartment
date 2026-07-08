@@ -261,6 +261,8 @@ func runMigrations() error {
 		ON CONFLICT (meter_id, billing_month) DO NOTHING`},
 	{"idx_mr_month", `CREATE INDEX IF NOT EXISTS idx_mr_month ON monthly_readings(billing_month)`},
 	{"idx_mr_meter", `CREATE INDEX IF NOT EXISTS idx_mr_meter ON monthly_readings(meter_id)`},
+		{"tenant_maintenance", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS has_maintenance BOOLEAN DEFAULT false`},
+		{"maintenance_amount_setting", `INSERT INTO settings (key, value) VALUES ('maintenance_amount', '500') ON CONFLICT (key) DO NOTHING`},
 	}
 
 	for _, m := range migrations {
@@ -439,5 +441,239 @@ func SeedMeters() error {
 		log.Println("  ✓ Building Water Meter created")
 	}
 
+	return nil
+}
+
+// SeedBlogPosts inserts initial blog posts (idempotent — skips if slugs already exist).
+func SeedBlogPosts() error {
+	type post struct {
+		id, title, slug, excerpt, content, imageURL, author, status string
+	}
+
+	posts := []post{
+		{
+			id:      "blog_seed_1",
+			title:   "Best Rooms Near LPU University (2026): Affordable PG & Hostel Alternative Guide",
+			slug:    "best-rooms-near-lpu-university-2026",
+			excerpt: "Looking for rooms near LPU University? Discover why Vats Apartment is the #1 PG choice for LPU students. Fully furnished rooms starting ₹9,000/mo with WiFi, AC, and 24/7 security — just 10 mins from campus.",
+			content: `<h2>Why Students Are Choosing Rooms Near LPU Over Hostels</h2>
+<p>If you're an LPU student searching for a <strong>room near LPU University</strong>, you've probably already heard the hostel horror stories — cramped rooms, strict curfews, shared bathrooms, and zero privacy. It's no surprise that more and more LPU students are making the switch to private PG accommodations near campus.</p>
+<p>But with so many options, how do you find the <strong>best room near LPU</strong> that's actually worth your money?</p>
+<p>We've put together this complete guide to help you make the right choice — and show you why <strong>Vats Apartment</strong> has become the top-rated PG accommodation for LPU students in 2026.</p>
+<h2>What to Look for in a Room Near LPU</h2>
+<p>Before you sign any rental agreement, here are the <strong>7 must-check factors</strong> when hunting for rooms near LPU University:</p>
+<h3>1. Distance from LPU Campus</h3>
+<p>This is non-negotiable. Anything more than 15 minutes from campus adds up fast — especially during exam season when every minute counts. <strong>Vats Apartment is located just 10 minutes from LPU</strong>, near Apna Chai Wala, making it one of the most convenient locations for daily commuters.</p>
+<h3>2. Fully Furnished or Empty Room?</h3>
+<p>Many "budget" rooms near LPU come completely empty — you'll need to buy a bed, table, chair, almirah, and sometimes even a fan. A <strong>fully furnished room</strong> saves you ₹15,000-25,000 in upfront setup costs. Vats Apartment provides everything: <strong>double bed, almirah, table & chair, smart TV, fridge, and AC</strong> — just bring your suitcase.</p>
+<h3>3. WiFi Quality</h3>
+<p>As an LPU student, fast internet isn't optional — it's essential for online classes, assignments, and late-night study sessions. Vats Apartment offers <strong>high-speed fiber WiFi included in the rent</strong>, with coverage throughout the building.</p>
+<h3>4. Security & CCTV</h3>
+<p>Safety should be your top priority, especially if you're living away from home for the first time. The building has <strong>24/7 CCTV surveillance</strong> and secure entry. Parents of our current tenants consistently rate safety as their #1 reason for choosing us over other PGs near LPU.</p>
+<h3>5. Monthly Rent & Hidden Costs</h3>
+<p>Transparent pricing matters. Our rooms start at <strong>₹9,000/month</strong> with no hidden charges. That's inclusive of WiFi, maintenance, and security. Plus, <strong>single tenants get ₹500 OFF every month</strong> after the first month!</p>
+<h3>6. Kitchen & Bathroom Quality</h3>
+<p>Shared bathrooms with 10 other people? No thanks. Every room at Vats Apartment comes with a <strong>private, modern kitchen</strong> (with fridge and built-in storage) and a <strong>full private bathroom</strong> with western toilet, shower, and hot water geyser.</p>
+<h3>7. Roommate Flexibility</h3>
+<p>The rooms are spacious enough to share with a roommate, <strong>splitting the ₹9,000 rent</strong> down to just ₹4,500 per person — cheaper than most LPU hostels!</p>
+<h2>Vats Apartment vs LPU Hostel: Honest Comparison</h2>
+<table style="width:100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem;">
+<thead><tr style="background: #f3f4f3;"><th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Feature</th><th style="padding: 12px; text-align: left; border: 1px solid #ddd;">LPU Hostel</th><th style="padding: 12px; text-align: left; border: 1px solid #ddd; background: #e8f5e9;">Vats Apartment</th></tr></thead>
+<tbody>
+<tr><td style="padding: 10px; border: 1px solid #ddd;"><strong>Monthly Cost</strong></td><td style="padding: 10px; border: 1px solid #ddd;">₹8,000 - ₹12,000</td><td style="padding: 10px; border: 1px solid #ddd; background: #e8f5e9;"><strong>₹9,000 (split = ₹4,500)</strong></td></tr>
+<tr><td style="padding: 10px; border: 1px solid #ddd;"><strong>Privacy</strong></td><td style="padding: 10px; border: 1px solid #ddd;">Shared room (2-4 people)</td><td style="padding: 10px; border: 1px solid #ddd; background: #e8f5e9;"><strong>Private room</strong></td></tr>
+<tr><td style="padding: 10px; border: 1px solid #ddd;"><strong>Bathroom</strong></td><td style="padding: 10px; border: 1px solid #ddd;">Shared (floor-wise)</td><td style="padding: 10px; border: 1px solid #ddd; background: #e8f5e9;"><strong>Private attached bathroom</strong></td></tr>
+<tr><td style="padding: 10px; border: 1px solid #ddd;"><strong>Kitchen</strong></td><td style="padding: 10px; border: 1px solid #ddd;">Mess food only</td><td style="padding: 10px; border: 1px solid #ddd; background: #e8f5e9;"><strong>Private kitchen with fridge</strong></td></tr>
+<tr><td style="padding: 10px; border: 1px solid #ddd;"><strong>Curfew</strong></td><td style="padding: 10px; border: 1px solid #ddd;">Yes (strict timings)</td><td style="padding: 10px; border: 1px solid #ddd; background: #e8f5e9;"><strong>No curfew</strong></td></tr>
+<tr><td style="padding: 10px; border: 1px solid #ddd;"><strong>WiFi</strong></td><td style="padding: 10px; border: 1px solid #ddd;">Campus WiFi (slow)</td><td style="padding: 10px; border: 1px solid #ddd; background: #e8f5e9;"><strong>High-speed fiber (included)</strong></td></tr>
+<tr><td style="padding: 10px; border: 1px solid #ddd;"><strong>Entertainment</strong></td><td style="padding: 10px; border: 1px solid #ddd;">None</td><td style="padding: 10px; border: 1px solid #ddd; background: #e8f5e9;"><strong>Smart TV included</strong></td></tr>
+<tr><td style="padding: 10px; border: 1px solid #ddd;"><strong>Security</strong></td><td style="padding: 10px; border: 1px solid #ddd;">Campus security</td><td style="padding: 10px; border: 1px solid #ddd; background: #e8f5e9;"><strong>24/7 CCTV + secure building</strong></td></tr>
+</tbody></table>
+<h2>What's Included in Your Room</h2>
+<p>When you book a room at Vats Apartment, here's exactly what you get:</p>
+<ul><li>✅ <strong>Double bed</strong> with premium mattress</li><li>✅ <strong>Spacious almirah</strong> for all your belongings</li><li>✅ <strong>Study table & chair</strong></li><li>✅ <strong>Smart TV</strong> with wall mount</li><li>✅ <strong>Refrigerator</strong> in the kitchen</li><li>✅ <strong>Air conditioner</strong> (select rooms)</li><li>✅ <strong>High-speed WiFi</strong> — unlimited</li><li>✅ <strong>Private bathroom</strong> with geyser</li><li>✅ <strong>Modern modular kitchen</strong></li><li>✅ <strong>24/7 security cameras</strong></li></ul>
+<h2>Location: Everything Within Walking Distance</h2>
+<ul><li>🏫 <strong>LPU Campus</strong> — 10 minutes walk</li><li>🚗 <strong>Auto Stand</strong> — 200 meters</li><li>🛒 <strong>Grocery stores</strong> — 200 meters</li><li>🏋️ <strong>Gym</strong> — 200 meters</li><li>☕ <strong>Apna Chai Wala</strong> — right next door!</li><li>🍽️ <strong>Restaurants & dhabas</strong> — within 5 minutes</li></ul>
+<h2>How to Book Your Room Near LPU</h2>
+<ol><li><strong>Check Availability</strong> — Visit our <a href="/book-now">booking page</a> to see available rooms.</li><li><strong>Schedule a Visit</strong> — Come see the room in person. Available Monday-Saturday.</li><li><strong>Complete Booking</strong> — Pay a small booking amount of just ₹2,000 to confirm.</li><li><strong>Move In</strong> — Bring your suitcase and move into your new home!</li></ol>
+<div style="background: #f3f4f3; border: 1px solid #ddd; border-radius: 12px; padding: 1.5rem; margin: 2rem 0; text-align: center;">
+<h3 style="margin-top: 0;">⚠️ Only 2 Rooms Left for This Semester!</h3>
+<p style="margin-bottom: 0.5rem;">Rooms are filling fast — don't wait until the last minute.</p>
+<a href="/book-now" style="display: inline-block; background: #111; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 1rem;">Check Availability Now →</a>
+</div>
+<h2>Frequently Asked Questions</h2>
+<h3>Q: How far is Vats Apartment from LPU campus?</h3>
+<p><strong>A:</strong> Just 10 minutes by walk. Located near Apna Chai Wala, it's one of the closest premium PG accommodations to LPU.</p>
+<h3>Q: What is the monthly rent?</h3>
+<p><strong>A:</strong> Fully furnished rooms start at <strong>₹9,000/month</strong>. Split with a roommate = ₹4,500/month each.</p>
+<h3>Q: Is it better than the LPU hostel?</h3>
+<p><strong>A:</strong> Most tenants are former LPU hostel students who switched for more privacy, better amenities, and no curfews.</p>
+<h3>Q: Can I share the room with a friend?</h3>
+<p><strong>A:</strong> Absolutely! Rooms are spacious and designed for single or double occupancy.</p>
+<h2>The Bottom Line</h2>
+<p>Finding the <strong>right room near LPU University</strong> doesn't have to be stressful. With Vats Apartment, you get a premium, fully furnished room with all modern amenities — at a price that's actually affordable for students.</p>
+<p><a href="/book-now" style="font-weight: 600; text-decoration: underline;">→ Check Available Rooms Now</a></p>
+<p style="margin-top: 2rem; font-size: 0.85rem; color: #666;">📍 Near Apna Chai Wala, LPU, Jalandhar, Punjab | 📞 <a href="tel:+919992937447">+91 99929 37447</a> | 💬 <a href="https://wa.me/919992937447">WhatsApp Us</a></p>`,
+			imageURL: "",
+			author:   "Vats Apartment",
+			status:   "published",
+		},
+		{
+			id:      "blog_seed_2",
+			title:   "PG Near LPU University: Complete Student Housing Guide 2026",
+			slug:    "pg-near-lpu-university-student-housing-guide-2026",
+			excerpt: "Searching for a PG near LPU University? Compare prices, amenities, and locations. Learn why fully furnished PGs with private rooms are the smartest choice for LPU students.",
+			content: `<h2>Why a Good PG Near LPU Matters</h2>
+<p>Choosing the right <strong>PG near LPU University</strong> can make or break your college experience. A bad PG means sleepless nights, terrible food, and constant stress. A good one gives you the peace of mind to focus on what really matters — your studies and your future.</p>
+<p>With hundreds of PGs and hostels around LPU, how do you pick the right one? This guide covers everything you need to know before making your decision.</p>
+<h2>Types of PG Accommodations Near LPU</h2>
+<h3>1. Shared Room PGs (₹4,000 - ₹6,000/month)</h3>
+<p>The cheapest option. You share a room with 2-4 other students. Expect shared bathrooms, basic furniture, and often unreliable WiFi. Good for students on a tight budget, but be prepared to compromise on privacy and comfort.</p>
+<h3>2. Single Room PGs (₹6,000 - ₹8,000/month)</h3>
+<p>Your own room, but shared common areas. Better privacy than shared rooms, but you'll still share bathrooms and kitchen space with other tenants. Quality varies widely — some are well-maintained, others are not.</p>
+<h3>3. Premium Fully Furnished PGs (₹9,000 - ₹12,000/month)</h3>
+<p>This is where <strong>Vats Apartment</strong> sits. You get a <strong>private room, private bathroom, and private kitchen</strong> — essentially a studio apartment. Fully furnished with modern furniture, high-speed WiFi, AC, Smart TV, fridge, and 24/7 security. The higher rent is offset by better amenities and zero compromise on quality of life.</p>
+<h2>What Makes Vats Apartment Different</h2>
+<p>Unlike traditional PGs that cut corners, Vats Apartment was built from the ground up as a <strong>premium student accommodation</strong>. Here's what sets it apart:</p>
+<ul>
+<li>🏠 <strong>Private everything</strong> — your own room, bathroom, and kitchen. No sharing with strangers.</li>
+<li>🛋️ <strong>Actually furnished</strong> — double bed, almirah, study table, Smart TV, fridge, AC. Just bring your clothes.</li>
+<li>🔒 <strong>Serious about security</strong> — 24/7 CCTV, secure entry, and a landlord who lives nearby.</li>
+<li>📍 <strong>Prime location</strong> — 10 minutes walk to LPU campus, 200m to auto stand and grocery stores.</li>
+<li>💸 <strong>No hidden costs</strong> — WiFi, maintenance, and security are all included. Single tenants get ₹500 OFF every month.</li>
+</ul>
+<h2>Cost Comparison: PG vs Hostel vs Apartment</h2>
+<table style="width:100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem;">
+<thead><tr style="background: #f3f4f3;"><th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Option</th><th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Monthly Cost</th><th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Privacy</th><th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Best For</th></tr></thead>
+<tbody>
+<tr><td style="padding: 10px; border: 1px solid #ddd;">LPU Hostel</td><td style="padding: 10px; border: 1px solid #ddd;">₹8,000-12,000</td><td style="padding: 10px; border: 1px solid #ddd;">Low (shared)</td><td style="padding: 10px; border: 1px solid #ddd;">Campus life enthusiasts</td></tr>
+<tr><td style="padding: 10px; border: 1px solid #ddd;">Budget PG</td><td style="padding: 10px; border: 1px solid #ddd;">₹4,000-6,000</td><td style="padding: 10px; border: 1px solid #ddd;">Low (shared)</td><td style="padding: 10px; border: 1px solid #ddd;">Tight budget</td></tr>
+<tr><td style="padding: 10px; border: 1px solid #ddd;">Standard PG</td><td style="padding: 10px; border: 1px solid #ddd;">₹6,000-8,000</td><td style="padding: 10px; border: 1px solid #ddd;">Medium</td><td style="padding: 10px; border: 1px solid #ddd;">Balance seekers</td></tr>
+<tr><td style="padding: 10px; border: 1px solid #ddd; background: #e8f5e9;"><strong>Vats Apartment</strong></td><td style="padding: 10px; border: 1px solid #ddd; background: #e8f5e9;"><strong>₹9,000</strong></td><td style="padding: 10px; border: 1px solid #ddd; background: #e8f5e9;"><strong>Full privacy</strong></td><td style="padding: 10px; border: 1px solid #ddd; background: #e8f5e9;"><strong>Quality-focused students</strong></td></tr>
+<tr><td style="padding: 10px; border: 1px solid #ddd;">Rental Apartment</td><td style="padding: 10px; border: 1px solid #ddd;">₹10,000-15,000+</td><td style="padding: 10px; border: 1px solid #ddd;">High</td><td style="padding: 10px; border: 1px solid #ddd;">Long-term residents</td></tr>
+</tbody></table>
+<h2>Red Flags to Watch Out For</h2>
+<p>When visiting PGs near LPU, keep an eye out for these warning signs:</p>
+<ul>
+<li>🚩 <strong>No proper rental agreement</strong> — always insist on written documentation.</li>
+<li>🚩 <strong>Dirty bathrooms</strong> — if they can't keep common areas clean during a visit, it won't get better.</li>
+<li>🚩 <strong>Hidden charges</strong> — some PGs advertise low rent then add "maintenance," "electricity," and "service" fees.</li>
+<li>🚩 <strong>Poor WiFi</strong> — test the internet speed during your visit. It's critical for online classes.</li>
+<li>🚩 <strong>No security</strong> — if there's no CCTV or secure entry, look elsewhere.</li>
+</ul>
+<h2>Why Location Matters More Than You Think</h2>
+<p>A PG that's 30 minutes from campus means 1 hour of daily commuting — that's 30 hours per month you could spend studying, sleeping, or socializing. <strong>Vats Apartment's 10-minute walk to LPU</strong> saves you precious time every single day.</p>
+<p>Plus, being near grocery stores, restaurants, and the auto stand means you're never stranded. Late-night study sessions? Group projects? Weekend outings? Everything is accessible.</p>
+<h2>Ready to Find Your PG Near LPU?</h2>
+<p>Stop scrolling through endless listings. <strong>Visit Vats Apartment today</strong> and see for yourself why LPU students consistently choose us over hostels and budget PGs.</p>
+<p><a href="/book-now" style="font-weight: 600; text-decoration: underline;">→ Check Available Rooms Now</a></p>
+<p style="margin-top: 2rem; font-size: 0.85rem; color: #666;">📍 Near Apna Chai Wala, LPU, Jalandhar, Punjab | 📞 <a href="tel:+919992937447">+91 99929 37447</a></p>`,
+			imageURL: "",
+			author:   "Vats Apartment",
+			status:   "published",
+		},
+		{
+			id:      "blog_seed_3",
+			title:   "Student Living Near LPU: Tips for First-Time Renters in Jalandhar",
+			slug:    "student-living-near-lpu-tips-first-time-renters-jalandhar",
+			excerpt: "Moving to Jalandhar for LPU? Learn essential tips for first-time renters — from budgeting and documentation to finding safe, comfortable accommodation near campus.",
+			content: `<h2>Moving to Jalandhar for LPU? Here's What You Need to Know</h2>
+<p>Congratulations on getting into LPU! Now comes the next big decision — <strong>where to live</strong>. If you're moving to Jalandhar for the first time, finding the right accommodation can feel overwhelming. This guide will walk you through everything you need to know as a first-time renter.</p>
+<h2>Step 1: Set Your Budget</h2>
+<p>Before you start looking at rooms, determine what you can realistically afford. Here's a practical breakdown of monthly expenses for an LPU student:</p>
+<ul>
+<li><strong>Rent:</strong> ₹4,500 - ₹9,000 (depending on sharing and amenities)</li>
+<li><strong>Food:</strong> ₹3,000 - ₹5,000 (self-cooking saves money)</li>
+<li><strong>Transport:</strong> ₹500 - ₹1,500 (minimal if you live close to campus)</li>
+<li><strong>Utilities & WiFi:</strong> ₹0 - ₹1,500 (often included in premium PGs)</li>
+<li><strong>Miscellaneous:</strong> ₹2,000 - ₹3,000 (laundry, toiletries, entertainment)</li>
+</ul>
+<p><strong>Total:</strong> Approximately ₹10,000 - ₹20,000 per month. At Vats Apartment, with rent starting at ₹9,000 (which includes WiFi, maintenance, and security), you can keep your total monthly costs under ₹15,000 — especially if you split the room with a roommate.</p>
+<h2>Step 2: Choose the Right Location</h2>
+<p>The area around LPU has several neighborhoods popular with students. Here's how they compare:</p>
+<ul>
+<li><strong>Near Apna Chai Wala (Vats Apartment area):</strong> Closest to LPU (10 min walk), grocery stores and auto stand within 200m. The most convenient location for daily commuters.</li>
+<li><strong>Lawgate:</strong> 15-20 minutes from LPU, slightly cheaper but farther. Good options if you don't mind the extra commute.</li>
+<li><strong>Phagwara Road:</strong> 20-25 minutes from LPU. More residential, fewer student-focused amenities.</li>
+</ul>
+<h2>Step 3: Know What Documents You'll Need</h2>
+<p>When renting a room or PG near LPU, keep these documents ready:</p>
+<ul>
+<li>✅ Government ID (Aadhaar card, driver's license, or passport)</li>
+<li>✅ College ID or admission letter from LPU</li>
+<li>✅ Passport-size photographs (2-3 copies)</li>
+<li>✅ Parent/guardian contact information</li>
+<li>✅ Security deposit amount (varies by property)</li>
+</ul>
+<h2>Step 4: Inspect Before You Pay</h2>
+<p>Never book a room based on photos alone. Always visit in person and check:</p>
+<ul>
+<li>🔍 <strong>Water pressure and hot water</strong> — turn on the shower and geyser.</li>
+<li>🔍 <strong>Electrical points</strong> — are there enough for your laptop, phone charger, and appliances?</li>
+<li>🔍 <strong>Phone signal and WiFi speed</strong> — run a quick speed test on your phone.</li>
+<li>🔍 <strong>Ventilation and natural light</strong> — rooms without windows get depressing fast.</li>
+<li>🔍 <strong>Lock quality</strong> — your room door should have a proper lock that you control.</li>
+<li>🔍 <strong>Cleanliness</strong> — check corners, bathroom tiles, and kitchen counters.</li>
+</ul>
+<h2>Step 5: Understand Your Rental Agreement</h2>
+<p>A proper rental agreement protects both you and the landlord. Make sure it includes:</p>
+<ul>
+<li>📝 Monthly rent amount and due date</li>
+<li>📝 Security deposit amount and refund conditions</li>
+<li>📝 Notice period (usually 1 month)</li>
+<li>📝 What's included (WiFi, maintenance, electricity, water)</li>
+<li>📝 Rules about guests, overnight visitors, and quiet hours</li>
+<li>📝 Inventory of provided furniture and appliances</li>
+</ul>
+<h2>Why Vats Apartment Is Ideal for First-Time Renters</h2>
+<p>If you're new to renting, a professionally managed PG like Vats Apartment takes the stress out of the process:</p>
+<ul>
+<li>🏠 <strong>Everything is set up</strong> — furniture, WiFi, kitchen, bathroom. You just bring your suitcase.</li>
+<li>📋 <strong>Clear, transparent agreement</strong> — no hidden fees, no surprise charges.</li>
+<li>🔒 <strong>Safe and secure</strong> — 24/7 CCTV gives both you and your parents peace of mind.</li>
+<li>👥 <strong>Community of students</strong> — your neighbors are LPU students too, so you'll fit right in.</li>
+<li>📍 <strong>Can't beat the location</strong> — 10 minutes to campus means more sleep and less stress.</li>
+</ul>
+<h2>Final Tips for LPU Freshers</h2>
+<ol>
+<li><strong>Don't wait until the last minute.</strong> The best rooms near LPU fill up weeks before the semester starts. Book early to secure your spot.</li>
+<li><strong>Talk to current tenants.</strong> When you visit, ask existing residents about their experience. Honest feedback is invaluable.</li>
+<li><strong>Consider a roommate.</strong> Sharing a room at Vats Apartment cuts your rent in half — from ₹9,000 to ₹4,500 per person.</li>
+<li><strong>Keep emergency contacts handy.</strong> Save the landlord's number, local police station, and nearest hospital in your phone.</li>
+<li><strong>Explore the neighborhood.</strong> Know where the nearest grocery store, pharmacy, and auto stand are before you need them.</li>
+</ol>
+<p>Moving to a new city is a big step — but with the right accommodation, it can also be the start of an incredible chapter in your life. <strong>Welcome to Jalandhar, and welcome to LPU!</strong></p>
+<p><a href="/book-now" style="font-weight: 600; text-decoration: underline;">→ Check Available Rooms at Vats Apartment</a></p>
+<p style="margin-top: 2rem; font-size: 0.85rem; color: #666;">📍 Near Apna Chai Wala, LPU, Jalandhar, Punjab | 📞 <a href="tel:+919992937447">+91 99929 37447</a> | 💬 <a href="https://wa.me/919992937447">WhatsApp Us</a></p>`,
+			imageURL: "",
+			author:   "Vats Apartment",
+			status:   "published",
+		},
+	}
+
+	inserted := 0
+	for _, p := range posts {
+		var count int
+		DB.QueryRow("SELECT COUNT(*) FROM blog_posts WHERE slug = $1", p.slug).Scan(&count)
+		if count > 0 {
+			log.Printf("Blog post already exists: %s", p.slug)
+			continue
+		}
+
+		_, err := DB.Exec(
+			`INSERT INTO blog_posts (id, title, slug, excerpt, content, image_url, author, status, created_at, updated_at)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
+			p.id, p.title, p.slug, p.excerpt, p.content, p.imageURL, p.author, p.status,
+		)
+		if err != nil {
+			return fmt.Errorf("seed blog post %q: %w", p.slug, err)
+		}
+		log.Printf("  ✓ Blog post seeded: %s", p.title)
+		inserted++
+	}
+
+	if inserted > 0 {
+		log.Printf("Blog seed complete: %d new posts inserted", inserted)
+	}
 	return nil
 }

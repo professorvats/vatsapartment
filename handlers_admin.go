@@ -587,80 +587,106 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 
 // ─── Payments ──────────────────────────────────────────────────
 
+type RoomPaymentCard struct {
+	RoomID, RoomNumber, TenantID, TenantName              string
+	RentAmount                                             float64
+	HasMaintenance                                         bool
+	MaintenanceAmt                                         float64
+	TotalDue                                               float64
+	HasPaid                                                bool
+	PaymentID, PaymentDate, PaymentMethod, PaymentNotes    string
+	PaymentAmount                                          float64
+}
+
 func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 	if !requireAdmin(w, r) {
 		return
 	}
-	rows, err := db.DB.Query(`SELECT p.id, p.tenant_id, COALESCE(t.name, 'N/A') as tenant_name,
-		p.amount, p.payment_date, p.payment_method, p.status, p.month_covered, p.late_fee, p.notes
-		FROM payments p
-		LEFT JOIN tenants t ON p.tenant_id = t.id
-		ORDER BY p.created_at DESC LIMIT 100`)
+
+	// Determine billing month (default: current month)
+	month := r.URL.Query().Get("month")
+	if month == "" {
+		month = time.Now().Format("2006-01")
+	}
+	prevMonth := monthOffset(month, -1)
+	nextMonth := monthOffset(month, 1)
+	currentMonth := time.Now().Format("2006-01")
+	if nextMonth > currentMonth {
+		nextMonth = ""
+	}
+
+	// Load maintenance amount from settings
+	var maintenanceAmt float64 = 500
+	var mVal string
+	db.DB.QueryRow("SELECT value FROM settings WHERE key = 'maintenance_amount'").Scan(&mVal)
+	if mVal != "" {
+		if v, err := strconv.ParseFloat(mVal, 64); err == nil {
+			maintenanceAmt = v
+		}
+	}
+
+	// Query: rooms with active tenants, left join payments for this month
+	rows, err := db.DB.Query(`
+		SELECT
+			r.id, r.room_number,
+			COALESCE(t.id, '') as tenant_id,
+			COALESCE(t.name, '') as tenant_name,
+			COALESCE(ra.rent_amount, 0) as rent_amount,
+			COALESCE(t.has_maintenance, false) as has_maintenance,
+			COALESCE(p.id, '') as payment_id,
+			COALESCE(p.amount, 0) as payment_amount,
+			COALESCE(p.payment_date, '') as payment_date,
+			COALESCE(p.payment_method, '') as payment_method,
+			COALESCE(p.notes, '') as payment_notes
+		FROM rooms r
+		JOIN room_assignments ra ON r.id = ra.room_id AND ra.is_active = true
+		JOIN tenants t ON ra.tenant_id = t.id AND t.status = 'active'
+		LEFT JOIN payments p ON p.tenant_id = t.id
+			AND p.month_covered = $1
+			AND p.status = 'completed'
+		ORDER BY r.room_number`, month)
 	if err != nil {
-		log.Printf("ERROR loading payments: %v", err)
+		log.Printf("ERROR loading payment cards: %v", err)
 		renderAdminError(w, "Failed to load payments")
 		return
 	}
 	defer rows.Close()
 
-	type PaymentAdmin struct {
-		ID, TenantID, TenantName, Date, Method, Status, MonthCovered, Notes string
-		Amount, LateFee                                                      float64
-	}
-	var payments []PaymentAdmin
+	var cards []RoomPaymentCard
 	for rows.Next() {
-		var p PaymentAdmin
-		if err := rows.Scan(&p.ID, &p.TenantID, &p.TenantName, &p.Amount, &p.Date, &p.Method, &p.Status, &p.MonthCovered, &p.LateFee, &p.Notes); err != nil {
-			log.Printf("ERROR scanning payment row: %v", err)
+		var c RoomPaymentCard
+		if err := rows.Scan(&c.RoomID, &c.RoomNumber, &c.TenantID, &c.TenantName,
+			&c.RentAmount, &c.HasMaintenance, &c.PaymentID, &c.PaymentAmount,
+			&c.PaymentDate, &c.PaymentMethod, &c.PaymentNotes); err != nil {
+			log.Printf("ERROR scanning payment card: %v", err)
 			continue
 		}
-		payments = append(payments, p)
+		c.MaintenanceAmt = maintenanceAmt
+		c.TotalDue = c.RentAmount
+		if c.HasMaintenance {
+			c.TotalDue += maintenanceAmt
+		}
+		c.HasPaid = c.PaymentID != ""
+		cards = append(cards, c)
 	}
 	if err := rows.Err(); err != nil {
-		log.Printf("ERROR iterating payment rows: %v", err)
+		log.Printf("ERROR iterating payment cards: %v", err)
 		renderAdminError(w, "Data error loading payments")
 		return
 	}
-	if payments == nil {
-		payments = []PaymentAdmin{}
-	}
-
-	// Tenant list for dropdown
-	type TenantOpt struct{ ID, Name string }
-	var tenantOpts []TenantOpt
-	tenantRows, err := db.DB.Query("SELECT id, name FROM tenants WHERE status = 'active' ORDER BY name")
-	if err != nil {
-		log.Printf("ERROR loading tenant options: %v", err)
-	} else {
-		defer tenantRows.Close()
-		for tenantRows.Next() {
-			var t TenantOpt
-			if err := tenantRows.Scan(&t.ID, &t.Name); err != nil {
-				log.Printf("ERROR scanning tenant option: %v", err)
-				continue
-			}
-			tenantOpts = append(tenantOpts, t)
-		}
-	}
-
-	// Month options for dropdown (12 months back, 6 months forward from current month)
-	type MonthOpt struct{ Value, Label string }
-	var monthOpts []MonthOpt
-	now := time.Now()
-	for i := -12; i <= 6; i++ {
-		t := now.AddDate(0, i, 0)
-		monthOpts = append(monthOpts, MonthOpt{
-			Value: t.Format("2006-01"),
-			Label: t.Format("January 2006"),
-		})
+	if cards == nil {
+		cards = []RoomPaymentCard{}
 	}
 
 	renderPrivate(w, "admin_payments.html", map[string]interface{}{
-		"Payments": payments,
-		"Tenants":  tenantOpts,
-		"Months":   monthOpts,
-		"Active":   "payments",
-		"Title":    "Payments",
+		"Cards":          cards,
+		"Month":          month,
+		"MonthLabel":     formatMonthLabel(month),
+		"PrevMonth":      prevMonth,
+		"NextMonth":      nextMonth,
+		"MaintenanceAmt": maintenanceAmt,
+		"Active":         "payments",
+		"Title":          "Payments",
 	})
 }
 
@@ -670,19 +696,32 @@ func handleAdminPaymentsSave(w http.ResponseWriter, r *http.Request) {
 	}
 	r.ParseForm()
 	action := r.FormValue("action")
+	month := r.FormValue("month")
 
 	if action == "add" {
 		tenantID := r.FormValue("tenant_id")
 		amount, _ := strconv.ParseFloat(r.FormValue("amount"), 64)
 		date := r.FormValue("date")
 		method := r.FormValue("method")
-		month := r.FormValue("month_covered")
+		monthCovered := r.FormValue("month_covered")
 		lateFee, _ := strconv.ParseFloat(r.FormValue("late_fee"), 64)
 		notes := r.FormValue("notes")
 		id := fmt.Sprintf("PAY%d", time.Now().UnixNano())
 		db.DB.Exec(`INSERT INTO payments (id, tenant_id, amount, payment_date, payment_method, status, month_covered, late_fee, notes)
 			VALUES ($1, $2, $3, $4, $5, 'completed', $6, $7, $8)`,
-			id, tenantID, amount, date, method, month, lateFee, notes)
+			id, tenantID, amount, date, method, monthCovered, lateFee, notes)
+		if monthCovered != "" {
+			http.Redirect(w, r, "/admin/payments?month="+monthCovered, http.StatusSeeOther)
+			return
+		}
+	} else if action == "toggle_maintenance" {
+		tenantID := r.FormValue("tenant_id")
+		currentVal := r.FormValue("has_maintenance") == "true"
+		db.DB.Exec("UPDATE tenants SET has_maintenance = $1, updated_at = NOW() WHERE id = $2", !currentVal, tenantID)
+		if month != "" {
+			http.Redirect(w, r, "/admin/payments?month="+month, http.StatusSeeOther)
+			return
+		}
 	} else if action == "update_status" {
 		id := r.FormValue("id")
 		status := r.FormValue("status")

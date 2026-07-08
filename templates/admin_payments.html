@@ -1,86 +1,157 @@
 {{template "admin_header" .}}
-<div class="flex items-center justify-between mb-6">
-  <h1 class="text-xl font-bold">Record Payments</h1>
-  <button onclick="document.getElementById('add-form').classList.toggle('hidden')" class="bg-primary text-on-primary px-4 py-2 rounded-lg text-sm font-semibold">+ Record Payment</button>
+
+<!-- Month Selector -->
+<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+  <div class="flex items-center gap-2">
+    {{if .PrevMonth}}<a href="?month={{.PrevMonth}}" class="text-on-sf-variant hover:text-primary p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></a>{{end}}
+    <h1 class="text-2xl font-bold min-w-[160px] text-center">{{.MonthLabel}}</h1>
+    {{if .NextMonth}}<a href="?month={{.NextMonth}}" class="text-on-sf-variant hover:text-primary p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>{{end}}
+  </div>
+  <div class="flex items-center gap-3">
+    <span class="text-sm text-on-sf-variant">Maintenance: ₹{{printf "%.0f" .MaintenanceAmt}}/tenant</span>
+  </div>
 </div>
 
-<div id="add-form" class="hidden bg-sf-lowest border border-ol-variant rounded-lg p-6 mb-6">
-  <h3 class="font-semibold mb-4">Record New Payment</h3>
-  <form method="POST" action="/admin/payments/save" class="space-y-4">
-    <input type="hidden" name="action" value="add">
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-      <div>
-        <label class="block text-xs text-on-sf-variant mb-1">Tenant</label>
-        <select name="tenant_id" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
-          <option value="">Select Tenant</option>
-          {{range .Tenants}}<option value="{{.ID}}">{{.Name}}</option>{{end}}
-        </select>
+<!-- Room Cards -->
+{{if .Cards}}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+  {{range .Cards}}
+  <div class="bg-sf-lowest border border-ol-variant rounded-lg p-4">
+    <!-- Card header: room number + paid/pending badge -->
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-lg font-bold">Room {{.RoomNumber}}</h3>
+      {{if .HasPaid}}
+      <span class="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-green-700 text-white">Paid</span>
+      {{else}}
+      <span class="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-yellow-600 text-white">Pending</span>
+      {{end}}
+    </div>
+
+    <!-- Tenant name -->
+    <p class="text-sm font-medium mb-2">{{.TenantName}}</p>
+
+    <!-- Rent + Maintenance rows -->
+    <div class="space-y-1 mb-2">
+      <div class="flex justify-between text-sm">
+        <span class="text-on-sf-variant">Rent</span>
+        <span class="font-semibold">₹{{printf "%.0f" .RentAmount}}</span>
       </div>
-      <div><label class="block text-xs text-on-sf-variant mb-1">Amount</label><input name="amount" type="number" placeholder="9000" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
-      <div><label class="block text-xs text-on-sf-variant mb-1">Date</label><input name="date" type="date" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
-      <div><label class="block text-xs text-on-sf-variant mb-1">Method</label>
+      <div class="flex justify-between text-sm items-center">
+        <span class="text-on-sf-variant">Maintenance</span>
+        <div class="flex items-center gap-2">
+          <span class="font-semibold">₹{{if .HasMaintenance}}{{printf "%.0f" .MaintenanceAmt}}{{else}}0{{end}}</span>
+          <form method="POST" action="/admin/payments/save" class="inline">
+            <input type="hidden" name="action" value="toggle_maintenance">
+            <input type="hidden" name="tenant_id" value="{{.TenantID}}">
+            <input type="hidden" name="has_maintenance" value="{{.HasMaintenance}}">
+            <input type="hidden" name="month" value="{{$.Month}}">
+            <button type="submit" class="text-xs px-2 py-0.5 rounded-full border font-medium {{if .HasMaintenance}}bg-primary text-on-primary border-primary{{else}}bg-transparent text-on-sf-variant border-ol-variant{{end}}">
+              {{if .HasMaintenance}}ON{{else}}OFF{{end}}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Due -->
+    <div class="flex justify-between text-sm pt-2 border-t border-ol-variant mb-2">
+      <span class="font-bold">Total Due</span>
+      <span class="font-bold text-base text-primary">₹{{printf "%.0f" .TotalDue}}</span>
+    </div>
+
+    <!-- Payment status or record button -->
+    {{if .HasPaid}}
+    <div class="text-xs text-on-sf-variant space-y-0.5 bg-sf-low rounded p-2">
+      <p>Paid ₹{{printf "%.0f" .PaymentAmount}} on {{.PaymentDate}}{{if .PaymentMethod}} via {{.PaymentMethod}}{{end}}</p>
+      {{if .PaymentNotes}}<p class="italic">{{.PaymentNotes}}</p>{{end}}
+    </div>
+    {{else}}
+    <button onclick="openPaymentModal('{{jsStr .TenantID}}', '{{jsStr .TenantName}}', {{printf "%.0f" .RentAmount}}, {{.HasMaintenance}}, {{printf "%.0f" .MaintenanceAmt}}, '{{$.Month}}')"
+            class="w-full bg-secondary text-white text-sm font-semibold py-2 rounded-lg hover:bg-secondary/90">
+      Record Payment
+    </button>
+    {{end}}
+  </div>
+  {{end}}
+</div>
+{{else}}
+<div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-lg">
+  <p class="text-on-sf-variant text-base">No occupied rooms for this month.</p>
+</div>
+{{end}}
+
+<!-- Payment Modal -->
+<div id="payment-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-md shadow-xl">
+    <h3 class="font-semibold text-lg mb-1">Record Payment</h3>
+    <p class="text-xs text-on-sf-variant mb-4" id="modal-tenant-name"></p>
+    <form method="POST" action="/admin/payments/save" class="space-y-4">
+      <input type="hidden" name="action" value="add">
+      <input type="hidden" name="tenant_id" id="modal-tenant-id">
+      <input type="hidden" name="month_covered" id="modal-month">
+      <input type="hidden" name="month" id="modal-month-redirect">
+
+      <div>
+        <label class="block text-xs text-on-sf-variant mb-1">Amount (₹)</label>
+        <input name="amount" id="modal-amount" type="number" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm font-semibold text-lg">
+        <p class="text-xs text-on-sf-variant mt-1" id="modal-breakdown"></p>
+      </div>
+      <div>
+        <label class="block text-xs text-on-sf-variant mb-1">Date</label>
+        <input name="date" id="modal-date" type="date" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs text-on-sf-variant mb-1">Method</label>
         <select name="method" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
           <option>Cash</option><option>UPI</option><option>Bank Transfer</option>
         </select>
       </div>
-      <div><label class="block text-xs text-on-sf-variant mb-1">Month</label><select name="month_covered" class="w-full border border-ol-variant rounded px-3 py-2 text-sm"><option value="">Select Month</option>{{range .Months}}<option value="{{.Value}}">{{.Label}}</option>{{end}}</select></div>
-      <div><label class="block text-xs text-on-sf-variant mb-1">Late Fee</label><input name="late_fee" type="number" value="0" class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
-    </div>
-    <div><label class="block text-xs text-on-sf-variant mb-1">Notes</label><input name="notes" class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
-    <button type="submit" class="bg-secondary text-white px-6 py-2 rounded-lg text-sm font-semibold">Save Payment</button>
-  </form>
+      <div>
+        <label class="block text-xs text-on-sf-variant mb-1">Late Fee (₹)</label>
+        <input name="late_fee" type="number" value="0" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs text-on-sf-variant mb-1">Notes</label>
+        <input name="notes" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="bg-primary text-on-primary px-6 py-2.5 rounded-lg text-sm font-semibold flex-1">Save Payment</button>
+        <button type="button" onclick="closePaymentModal()" class="border border-ol-variant px-6 py-2.5 rounded-lg text-sm">Cancel</button>
+      </div>
+    </form>
+  </div>
 </div>
 
-{{if .Payments}}
-<div class="bg-sf-lowest border border-ol-variant rounded-lg overflow-hidden">
-  <table class="w-full text-sm">
-    <thead>
-      <tr class="border-b border-ol-variant bg-sf-low">
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Tenant</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Amount</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Date</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Month</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Status</th>
-        <th class="text-right px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{range .Payments}}
-      <tr class="border-b border-ol-variant last:border-0 hover:bg-sf-low/50">
-        <td class="px-4 py-3 font-medium">{{.TenantName}}</td>
-        <td class="px-4 py-3">₹{{printf "%.0f" .Amount}}</td>
-        <td class="px-4 py-3 text-xs text-on-sf-variant">{{.Date}}</td>
-        <td class="px-4 py-3 text-xs text-on-sf-variant">{{.MonthCovered}}</td>
-        <td class="px-4 py-3">
-          {{if eq .Status "completed"}}
-          <span class="inline-flex items-center gap-1 text-xs text-secondary font-medium"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>Paid</span>
-          {{else}}
-          <span class="inline-flex items-center gap-1 text-xs text-on-sf-variant"><span class="w-1.5 h-1.5 rounded-full bg-on-sf-variant"></span>{{.Status}}</span>
-          {{end}}
-        </td>
-        <td class="px-4 py-3 text-right">
-          {{if eq .Status "pending"}}
-          <form method="POST" action="/admin/payments/save" class="inline">
-            <input type="hidden" name="action" value="update_status">
-            <input type="hidden" name="id" value="{{.ID}}">
-            <input type="hidden" name="status" value="completed">
-            <button class="text-xs text-secondary font-semibold hover:underline">Mark Paid</button>
-          </form>
-          {{end}}
-          <form method="POST" action="/admin/payments/save" class="inline ml-2" onsubmit="return confirm('Delete?')">
-            <input type="hidden" name="action" value="delete">
-            <input type="hidden" name="id" value="{{.ID}}">
-            <button class="text-xs text-error hover:underline">Delete</button>
-          </form>
-        </td>
-      </tr>
-      {{end}}
-    </tbody>
-  </table>
-</div>
-{{else}}
-<div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-lg">
-  <p class="text-on-sf-variant">No payments recorded yet.</p>
-</div>
-{{end}}
+<script>
+function openPaymentModal(tenantId, tenantName, rentAmount, hasMaintenance, maintAmt, month) {
+  document.getElementById('modal-tenant-id').value = tenantId;
+  document.getElementById('modal-tenant-name').textContent = tenantName;
+  document.getElementById('modal-month').value = month;
+  document.getElementById('modal-month-redirect').value = month;
+  document.getElementById('modal-date').value = month + '-01';
+
+  var rent = parseFloat(rentAmount) || 0;
+  var maint = parseFloat(maintAmt) || 0;
+  var total = rent;
+  var breakdown = 'Rent: ₹' + rentAmount;
+  if (hasMaintenance === true || hasMaintenance === 'true' || hasMaintenance === 1) {
+    total += maint;
+    breakdown += ' + Maintenance: ₹' + maintAmt;
+  }
+  document.getElementById('modal-amount').value = total;
+  document.getElementById('modal-breakdown').textContent = breakdown;
+
+  document.getElementById('payment-modal').classList.remove('hidden');
+}
+
+function closePaymentModal() {
+  document.getElementById('payment-modal').classList.add('hidden');
+}
+
+// Close modal on background click
+document.getElementById('payment-modal').addEventListener('click', function(e) {
+  if (e.target === this) closePaymentModal();
+});
+</script>
+
 {{template "admin_footer" .}}

@@ -1,7 +1,7 @@
 {{template "admin_header" .}}
 
 <!-- Month Selector + Rate + Save -->
-<div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
   <div class="flex items-center gap-2">
     {{if .PrevMonth}}<a href="?month={{.PrevMonth}}" class="text-on-sf-variant hover:text-primary p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></a>{{end}}
     <h1 class="text-2xl font-bold min-w-[160px] text-center">{{.MonthLabel}}</h1>
@@ -27,8 +27,8 @@
 
 <!-- Building Water Meter -->
 {{if .HasWaterMeter}}
-<div id="water-card" data-occupied-count="{{.OccupiedCount}}" class="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-5">
-  <div class="flex items-center justify-between mb-3">
+<div id="water-card" data-occupied-count="{{.OccupiedCount}}" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+  <div class="flex items-center justify-between mb-2">
     <h3 class="text-lg font-bold text-blue-900">💧 Building Water Meter</h3>
     <span class="text-sm text-blue-600">{{.WaterMeter.MeterNumber}}</span>
   </div>
@@ -37,30 +37,30 @@
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b border-blue-200">
-          <th class="text-left py-2 text-xs uppercase tracking-wider text-blue-600">Meter</th>
-          <th class="text-right py-2 text-xs uppercase tracking-wider text-blue-600">Initial</th>
-          <th class="text-right py-2 text-xs uppercase tracking-wider text-blue-600">Current</th>
-          <th class="text-right py-2 text-xs uppercase tracking-wider text-blue-600">Units</th>
-          <th class="text-right py-2 text-xs uppercase tracking-wider text-blue-600">Amount</th>
-          <th class="text-right py-2 text-xs uppercase tracking-wider text-blue-600">Per Room</th>
+          <th class="text-left py-1.5 text-xs uppercase tracking-wider text-blue-600">Meter</th>
+          <th class="text-right py-1.5 text-xs uppercase tracking-wider text-blue-600">Initial</th>
+          <th class="text-right py-1.5 text-xs uppercase tracking-wider text-blue-600">Current</th>
+          <th class="text-right py-1.5 text-xs uppercase tracking-wider text-blue-600">Units</th>
+          <th class="text-right py-1.5 text-xs uppercase tracking-wider text-blue-600">Amount</th>
+          <th class="text-right py-1.5 text-xs uppercase tracking-wider text-blue-600">Per Room</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td class="py-2 font-medium text-sm">Water <span class="text-blue-600 font-normal text-xs">{{.WaterMeter.MeterNumber}}</span></td>
-          <td class="py-2 text-right">
+          <td class="py-1.5 font-medium text-sm max-w-[140px] truncate">Water <span class="text-blue-600 font-normal text-xs">{{.WaterMeter.MeterNumber}}</span></td>
+          <td class="py-1.5 text-right">
             <input name="water_initial" form="save-form" type="number" class="water-initial w-20 border border-blue-300 rounded px-2 py-1 text-sm text-right" value="{{.WaterMeter.InitialReading}}" oninput="recalcAll()">
           </td>
-          <td class="py-2 text-right">
+          <td class="py-1.5 text-right">
             <input name="water_current" form="save-form" type="number" class="water-current w-20 border border-blue-300 rounded px-2 py-1 text-sm text-right" value="{{.WaterMeter.CurrentReading}}" oninput="recalcAll()">
           </td>
-          <td class="py-2 text-right">
+          <td class="py-1.5 text-right">
             <input name="water_units" form="save-form" type="number" class="water-units w-20 border border-blue-300 rounded px-2 py-1 text-sm text-right" value="{{.WaterUnits}}" oninput="onWaterManual()">
           </td>
-          <td class="py-2 text-right">
+          <td class="py-1.5 text-right">
             <input name="water_amount" form="save-form" type="number" class="water-bill w-20 border border-blue-300 rounded px-2 py-1 text-sm text-right" value="{{printf "%.0f" .WaterBill}}" oninput="onWaterManual()">
           </td>
-          <td class="py-2 text-right">
+          <td class="py-1.5 text-right">
             <input name="water_per_room" form="save-form" type="number" class="water-per-room w-20 border border-blue-300 rounded px-2 py-1 text-sm text-right" value="{{printf "%.0f" .WaterPerRoomOverride}}" oninput="onWaterManual()">
           </td>
         </tr>
@@ -90,10 +90,10 @@
 
 <!-- Room Cards -->
 {{if .RoomMeters}}
-<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
   {{range .RoomMeters}}
-  <div class="room-card bg-sf-lowest border border-ol-variant rounded-lg p-5">
-    <div class="flex items-center justify-between mb-3">
+  <div class="room-card bg-sf-lowest border border-ol-variant rounded-lg p-4">
+    <div class="flex items-center justify-between mb-2">
       <h3 class="text-lg font-bold">Room {{.RoomNumber}} {{if .Occupied}}<span class="inline-flex items-center gap-1 text-sm font-medium px-2.5 py-1 rounded-full bg-green-700 text-white ml-2">Occupied</span>{{else}}<span class="inline-flex items-center gap-1 text-sm font-medium px-2.5 py-1 rounded-full bg-on-sf-variant text-white ml-2">Vacant</span>{{end}}</h3>
     </div>
 
@@ -102,28 +102,27 @@
       <table class="w-full text-sm">
         <thead>
           <tr class="border-b border-ol-variant">
-            <th class="text-left py-2 text-xs uppercase tracking-wider text-on-sf-variant">Meter</th>
-            <th class="text-right py-2 text-xs uppercase tracking-wider text-on-sf-variant">Initial</th>
-            <th class="text-right py-2 text-xs uppercase tracking-wider text-on-sf-variant">Current</th>
-            <th class="text-right py-2 text-xs uppercase tracking-wider text-on-sf-variant">Units</th>
-            <th class="text-right py-2 text-xs uppercase tracking-wider text-on-sf-variant">Amount</th>
+            <th class="text-left py-1.5 text-xs uppercase tracking-wider text-on-sf-variant">Meter</th>
+            <th class="text-right py-1.5 text-xs uppercase tracking-wider text-on-sf-variant">Initial</th>
+            <th class="text-right py-1.5 text-xs uppercase tracking-wider text-on-sf-variant">Current</th>
+            <th class="text-right py-1.5 text-xs uppercase tracking-wider text-on-sf-variant">Units</th>
+            <th class="text-right py-1.5 text-xs uppercase tracking-wider text-on-sf-variant">Amount</th>
           </tr>
         </thead>
         <tbody>
           {{range .Meters}}
           <tr class="meter-row border-b border-ol-variant last:border-0">
-            <td class="py-2 pr-2">
-              <span class="font-medium text-sm">{{.MeterType}}</span>
-              <span class="text-on-sf-variant text-xs">{{.MeterNumber}}</span>
+            <td class="py-1.5 pr-2 max-w-[140px]">
+              <div class="font-medium text-sm truncate">{{.MeterType}} <span class="text-on-sf-variant text-xs font-normal">{{.MeterNumber}}</span></div>
             </td>
-            <td class="py-2 text-right">
+            <td class="py-1.5 text-right">
               <input name="initial_{{.ID}}" form="save-form" type="number" class="initial-input w-20 border border-ol-variant rounded px-2 py-1 text-sm text-right" value="{{.InitialReading}}" oninput="recalcAll()">
             </td>
-            <td class="py-2 text-right">
+            <td class="py-1.5 text-right">
               <input name="current_{{.ID}}" form="save-form" type="number" class="current-input w-20 border border-ol-variant rounded px-2 py-1 text-sm text-right" value="{{.CurrentReading}}" oninput="recalcAll()">
             </td>
-            <td class="py-2 text-right"><span class="units-display font-semibold text-sm">--</span></td>
-            <td class="py-2 text-right"><span class="amount-display font-semibold text-sm">--</span></td>
+            <td class="py-1.5 text-right"><span class="units-display font-semibold text-sm">--</span></td>
+            <td class="py-1.5 text-right"><span class="amount-display font-semibold text-sm">--</span></td>
           </tr>
           {{end}}
         </tbody>
@@ -154,7 +153,7 @@
     </div>
 
     <!-- Totals -->
-    <div class="mt-3 pt-3 border-t-2 border-ol-variant space-y-1">
+    <div class="mt-2 pt-2 border-t-2 border-ol-variant space-y-1">
       <div class="flex justify-between items-center">
         <span class="font-bold text-sm">Room Total</span>
         <span class="room-total font-bold text-base">--</span>

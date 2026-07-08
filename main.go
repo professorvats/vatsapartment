@@ -24,6 +24,7 @@ func main() {
 	db.SeedRooms()
 	db.SeedAdmin()
 	db.SeedMeters()
+	db.SeedBlogPosts()
 
 	// Parse templates
 	var err error
