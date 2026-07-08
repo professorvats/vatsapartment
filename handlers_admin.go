@@ -160,7 +160,8 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 	if !requireAdmin(w, r) {
 		return
 	}
-	rows, err := db.DB.Query(`SELECT t.id, t.name, t.email, t.phone, t.status, COALESCE(t.check_in_date::text, '') as check_in_date,
+	rows, err := db.DB.Query(`SELECT DISTINCT ON (t.id)
+			t.id, t.name, COALESCE(t.email, '') as email, t.phone, t.status, COALESCE(t.check_in_date::text, '') as check_in_date,
 		COALESCE(t.security_deposit, 0) as security_deposit, COALESCE(t.security_lock_in_period, 0) as security_lock_in_period,
 		COALESCE(ra.room_id, '') as room_id, COALESCE(r.room_number, '') as room_number,
 		COALESCE(ra.rent_amount, 0) as rent_amount, COALESCE(ra.start_date::text, '') as start_date,
@@ -184,7 +185,7 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 			SELECT id, status, lpu_id_photo, aadhar_photo, submitted_at, notes FROM tenant_verifications
 			WHERE tenant_id = t.id ORDER BY created_at DESC LIMIT 1
 		) tv ON true
-		ORDER BY t.name`)
+		ORDER BY t.id, t.name`)
 	if err != nil {
 		log.Printf("ERROR loading tenants: %v", err); renderAdminError(w, "Failed to load tenants")
 		return
