@@ -313,8 +313,8 @@ func runMigrations() error {
 		// ─── Drop dead/merged tables ──────────────────────
 		{"drop_tp", `DROP TABLE IF EXISTS tenant_passes`},
 		{"drop_tv", `DROP TABLE IF EXISTS tenant_verifications`},
-		{"drop_bk", `DROP TABLE IF EXISTS bookings`},
 		{"drop_pp", `DROP TABLE IF EXISTS people`},
+		{"drop_bk", `DROP TABLE IF EXISTS bookings`},
 		{"drop_ra", `DROP TABLE IF EXISTS room_assignments`},
 
 		{"payment_paid_to", `ALTER TABLE payments ADD COLUMN IF NOT EXISTS paid_to TEXT DEFAULT ''`},
