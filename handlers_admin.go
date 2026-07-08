@@ -163,6 +163,7 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.DB.Query(`SELECT DISTINCT ON (t.id)
 			t.id, t.name, COALESCE(t.email, '') as email, t.phone, t.status, COALESCE(t.check_in_date::text, '') as check_in_date,
 		COALESCE(t.security_deposit, 0) as security_deposit, COALESCE(t.security_lock_in_period, 0) as security_lock_in_period,
+			COALESCE(t.has_maintenance, false) as has_maintenance,
 		COALESCE(ra.room_id, '') as room_id, COALESCE(r.room_number, '') as room_number,
 		COALESCE(ra.rent_amount, 0) as rent_amount, COALESCE(ra.start_date::text, '') as start_date,
 		COALESCE(t.password_hash, '') as password_hash,
@@ -199,6 +200,7 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 		RentAmount                                                                 float64
 		StartDate                                                                  string
 		HasPassword                                                                bool
+			HasMaintenance                                                             bool
 		VerificationStatus                                                          string
 		PassID, PassNumber                                                         string
 		PassActive                                                                 bool
@@ -210,7 +212,7 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 		var pwHash, passID, passNum, verID, lpuPhoto, aadharPhoto, verSubmittedAt, verNotes, verStatus string
 		var passActive int
 		if err := rows.Scan(&t.ID, &t.Name, &t.Email, &t.Phone, &t.Status, &t.CheckInDate,
-			&t.SecurityDeposit, &t.LockInPeriod, &t.RoomID, &t.RoomNumber, &t.RentAmount, &t.StartDate,
+			&t.SecurityDeposit, &t.LockInPeriod, &t.HasMaintenance, &t.RoomID, &t.RoomNumber, &t.RentAmount, &t.StartDate,
 			&pwHash, &passID, &passNum, &passActive,
 			&verID, &verStatus, &lpuPhoto, &aadharPhoto, &verSubmittedAt, &verNotes); err != nil {
 			log.Printf("ERROR scanning tenant row: %v", err)
@@ -281,6 +283,7 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			checkInDate := r.FormValue("check_in_date")
 			secDeposit, _ := strconv.ParseFloat(r.FormValue("security_deposit"), 64)
 			lockIn, _ := strconv.Atoi(r.FormValue("lock_in_period"))
+				hasMaint := r.FormValue("has_maintenance") == "on"
 			newPass := r.FormValue("password")
 
 			// Handle empty email as NULL to avoid unique constraint violation
@@ -294,18 +297,18 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			id := fmt.Sprintf("T%03d", time.Now().UnixNano()%100000)
 
 			if checkInDate != "" {
-				_, err := db.DB.Exec(`INSERT INTO tenants (id, name, phone, email, status, check_in_date, security_deposit, security_lock_in_period)
-					VALUES ($1, $2, $3, $4, $5, $6::timestamp, $7, $8)`,
-					id, name, phone, emailPtr, status, checkInDate, secDeposit, lockIn)
+				_, err := db.DB.Exec(`INSERT INTO tenants (id, name, phone, email, status, check_in_date, security_deposit, security_lock_in_period, has_maintenance)
+					VALUES ($1, $2, $3, $4, $5, $6::timestamp, $7, $8, $9)`,
+					id, name, phone, emailPtr, status, checkInDate, secDeposit, lockIn, hasMaint)
 				if err != nil {
 					log.Printf("ERROR adding tenant: %v", err)
 					renderAdminError(w, "Failed to add tenant: "+friendlyDBError(err))
 					return
 				}
 			} else {
-				_, err := db.DB.Exec(`INSERT INTO tenants (id, name, phone, email, status, security_deposit, security_lock_in_period)
-					VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-					id, name, phone, emailPtr, status, secDeposit, lockIn)
+				_, err := db.DB.Exec(`INSERT INTO tenants (id, name, phone, email, status, security_deposit, security_lock_in_period, has_maintenance)
+					VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+					id, name, phone, emailPtr, status, secDeposit, lockIn, hasMaint)
 				if err != nil {
 					log.Printf("ERROR adding tenant: %v", err)
 					renderAdminError(w, "Failed to add tenant: "+friendlyDBError(err))
@@ -390,6 +393,7 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 		status := r.FormValue("status")
 		secDeposit, _ := strconv.ParseFloat(r.FormValue("security_deposit"), 64)
 		lockIn, _ := strconv.Atoi(r.FormValue("lock_in_period"))
+			hasMaint := r.FormValue("has_maintenance") == "on"
 		newPass := r.FormValue("password")
 		// Handle empty email as NULL to avoid unique constraint violations
 		var emailPtr interface{}
@@ -399,8 +403,9 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			emailPtr = email
 		}
 		db.DB.Exec(`UPDATE tenants SET name=$1, phone=$2, email=$3, status=$4,
-			security_deposit=$5, security_lock_in_period=$6, updated_at=NOW() WHERE id=$7`,
-			name, phone, emailPtr, status, secDeposit, lockIn, id)
+			security_deposit=$5, security_lock_in_period=$6, has_maintenance=$7,
+			updated_at=NOW() WHERE id=$8`,
+			name, phone, emailPtr, status, secDeposit, lockIn, hasMaint, id)
 		if newPass != "" {
 			hash, err := bcrypt.GenerateFromPassword([]byte(newPass), bcrypt.DefaultCost)
 			if err == nil {
@@ -437,6 +442,7 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			checkInDate := r.FormValue("check_in_date")
 			secDeposit, _ := strconv.ParseFloat(r.FormValue("security_deposit"), 64)
 			lockIn, _ := strconv.Atoi(r.FormValue("lock_in_period"))
+			hasMaint := r.FormValue("has_maintenance") == "on"
 			newPass := r.FormValue("password")
 
 			// Handle empty email as NULL to avoid unique constraint violations
@@ -451,12 +457,13 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 			if checkInDate != "" {
 				_, updateErr = db.DB.Exec(`UPDATE tenants SET name=$1, phone=$2, email=$3, status=$4,
 					check_in_date=$5::timestamp, security_deposit=$6, security_lock_in_period=$7,
-					updated_at=NOW() WHERE id=$8`,
-					name, phone, emailPtr, status, checkInDate, secDeposit, lockIn, id)
+					has_maintenance=$8, updated_at=NOW() WHERE id=$9`,
+					name, phone, emailPtr, status, checkInDate, secDeposit, lockIn, hasMaint, id)
 			} else {
 				_, updateErr = db.DB.Exec(`UPDATE tenants SET name=$1, phone=$2, email=$3, status=$4,
-					security_deposit=$5, security_lock_in_period=$6, updated_at=NOW() WHERE id=$7`,
-					name, phone, emailPtr, status, secDeposit, lockIn, id)
+					security_deposit=$5, security_lock_in_period=$6, has_maintenance=$7,
+					updated_at=NOW() WHERE id=$8`,
+					name, phone, emailPtr, status, secDeposit, lockIn, hasMaint, id)
 			}
 
 			if updateErr != nil {

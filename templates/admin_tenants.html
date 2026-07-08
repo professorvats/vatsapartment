@@ -123,7 +123,7 @@
         </td>
         <td class="px-3 py-3">
           <div class="flex items-center gap-1">
-            <button onclick="openEdit('{{jsStr .ID}}', '{{jsStr .Name}}', '{{jsStr .Phone}}', '{{jsStr .Email}}', '{{jsStr .Status}}', '{{jsStr .CheckInDate}}', '{{jsStr .RoomID}}', '{{.RentAmount}}', '{{jsStr .StartDate}}', '{{.SecurityDeposit}}', '{{.LockInPeriod}}', {{.HasPassword}})"
+            <button onclick="openEdit('{{jsStr .ID}}', '{{jsStr .Name}}', '{{jsStr .Phone}}', '{{jsStr .Email}}', '{{jsStr .Status}}', '{{jsStr .CheckInDate}}', '{{jsStr .RoomID}}', '{{.RentAmount}}', '{{jsStr .StartDate}}', '{{.SecurityDeposit}}', '{{.LockInPeriod}}', {{.HasPassword}}, {{.HasMaintenance}})"
               class="text-primary hover:bg-primary/10 rounded px-2 py-1 text-xs font-medium">Edit</button>
             <button onclick="confirmDelete('{{.ID}}', '{{.Name}}')"
               class="text-error hover:bg-error/10 rounded px-2 py-1 text-xs font-medium">Delete</button>
@@ -180,6 +180,13 @@
             <label class="block text-xs text-on-sf-variant mb-1">Password</label>
             <input name="password" id="add-password" type="text" placeholder="Set password for login"
               class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs text-on-sf-variant mb-1">Maintenance</label>
+            <select name="has_maintenance" id="add-maintenance" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+              <option value="">Off</option>
+              <option value="on">On</option>
+            </select>
           </div>
         </div>
       </div>
@@ -264,6 +271,13 @@
             <input name="password" id="edit-password" type="text" placeholder="Leave blank to keep current"
               class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
             <p id="password-status" class="text-xs mt-1"></p>
+          </div>
+          <div>
+            <label class="block text-xs text-on-sf-variant mb-1">Maintenance</label>
+            <select name="has_maintenance" id="edit-maintenance" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+              <option value="">Off</option>
+              <option value="on">On</option>
+            </select>
           </div>
         </div>
       </div>
@@ -387,13 +401,14 @@ function openAdd() {
   document.getElementById('add-sec-deposit').value = '';
   document.getElementById('add-lock-in').value = '';
   document.getElementById('add-password').value = '';
+  document.getElementById('add-maintenance').value = '';
   document.getElementById('add-modal').classList.remove('hidden');
 }
 function closeAdd() {
   document.getElementById('add-modal').classList.add('hidden');
 }
 
-function openEdit(id, name, phone, email, status, checkIn, roomId, rent, startDate, secDeposit, lockIn, hasPassword) {
+function openEdit(id, name, phone, email, status, checkIn, roomId, rent, startDate, secDeposit, lockIn, hasPassword, hasMaint) {
   document.getElementById('edit-id').value = id;
   document.getElementById('edit-name').value = name;
   document.getElementById('edit-phone').value = phone;
@@ -405,6 +420,7 @@ function openEdit(id, name, phone, email, status, checkIn, roomId, rent, startDa
   document.getElementById('edit-start-date').value = startDate || '';
   document.getElementById('edit-sec-deposit').value = (secDeposit && secDeposit !== '0') ? secDeposit : '';
   document.getElementById('edit-lock-in').value = (lockIn && lockIn !== '0') ? lockIn : '';
+  document.getElementById('edit-maintenance').value = hasMaint ? 'on' : '';
   document.getElementById('edit-password').value = '';
   // Show password status indicator
   var pwStatus = document.getElementById('password-status');
