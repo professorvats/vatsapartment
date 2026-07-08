@@ -504,7 +504,6 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 		nextMonth = ""
 	}
 
-	/// Query: rooms with active tenants + room price/maintenance + payments
 	rows, err := db.DB.Query(`
 		SELECT
 			r.id, r.room_number,
@@ -514,6 +513,11 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 			COALESCE(r.price, 0) as room_price,
 			COALESCE(t.has_maintenance, false) as has_maintenance,
 			COALESCE(r.maintenance_amount, 500) as maintenance_amount,
+			COALESCE(b.id, '') as bill_id,
+			COALESCE(b.electricity_amount, 0) as bill_elec,
+			COALESCE(b.water_amount, 0) as bill_water,
+			COALESCE(b.total_amount, 0) as bill_total,
+			COALESCE(b.status, '') as bill_status,
 			COALESCE(p.id, '') as payment_id,
 			COALESCE(p.amount, 0) as payment_amount,
 			COALESCE(p.payment_date::text, '') as payment_date,
@@ -521,8 +525,9 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 			COALESCE(p.notes, '') as payment_notes,
 			COALESCE(p.paid_to, '') as paid_to
 		FROM rooms r
-JOIN tenants t ON t.room_id = r.id AND t.status = 'active' AND (t.end_date IS NULL OR t.end_date = '')
-LEFT JOIN bills b ON b.tenant_id = t.id AND b.billing_month = $1
+		JOIN tenants t ON t.room_id = r.id AND t.status = 'active' AND (t.end_date IS NULL OR t.end_date = '')
+		LEFT JOIN bills b ON b.tenant_id = t.id AND b.billing_month = $1
+		LEFT JOIN payments p ON p.bill_id = b.id AND p.status = 'completed'
 		ORDER BY r.room_number`, month)
 	if err != nil {
 		log.Printf("ERROR loading payment cards: %v", err)
@@ -534,21 +539,33 @@ LEFT JOIN bills b ON b.tenant_id = t.id AND b.billing_month = $1
 	var cards []RoomPaymentCard
 	for rows.Next() {
 		var c RoomPaymentCard
+		var billID, billStatus string
+		var billElec, billWater, billTotal float64
 		if err := rows.Scan(&c.RoomID, &c.RoomNumber, &c.TenantID, &c.TenantName,
 			&c.RentAmount, &c.RoomPrice, &c.HasMaintenance, &c.MaintenanceAmt,
+			&billID, &billElec, &billWater, &billTotal, &billStatus,
 			&c.PaymentID, &c.PaymentAmount, &c.PaymentDate, &c.PaymentMethod, &c.PaymentNotes, &c.PaidTo); err != nil {
 			log.Printf("ERROR scanning payment card: %v", err)
 			continue
 		}
+		c.BillID = billID
+		c.BillStatus = billStatus
 		c.DiscountAmount = c.RoomPrice - c.RentAmount
 		if c.DiscountAmount < 0 {
 			c.DiscountAmount = 0
 		}
-		c.TotalDue = c.RentAmount
-		if c.HasMaintenance {
-			c.TotalDue += c.MaintenanceAmt
-		}
 		c.HasPaid = c.PaymentID != ""
+
+		if billID != "" {
+			c.ElectricityAmt = billElec
+			c.WaterAmt = billWater
+			c.TotalDue = billTotal
+		} else {
+			c.TotalDue = c.RentAmount
+			if c.HasMaintenance {
+				c.TotalDue += c.MaintenanceAmt
+			}
+		}
 		cards = append(cards, c)
 	}
 	if err := rows.Err(); err != nil {
@@ -560,87 +577,23 @@ LEFT JOIN bills b ON b.tenant_id = t.id AND b.billing_month = $1
 		cards = []RoomPaymentCard{}
 	}
 
-	// Fetch electricity rate
-	var electricityRate float64 = 12
-	var rateStr string
-	db.DB.QueryRow("SELECT value FROM settings WHERE key = 'electricity_rate'").Scan(&rateStr)
-	if rateStr != "" {
-		if r, err := strconv.ParseFloat(rateStr, 64); err == nil {
-			electricityRate = r
-		}
-	}
-
-	// Fetch per-room utility bill (all meters: Electricity + Inverter etc.) for this month
-	utilityMap := map[string]float64{}
-	eRows, err := db.DB.Query(`
-		SELECT m.room_id, COALESCE(SUM(mr.current_reading - mr.initial_reading), 0) as units
-		FROM meters m
-		JOIN monthly_readings mr ON mr.meter_id = m.id AND mr.billing_month = $1
-		WHERE m.is_active = true AND m.room_id != 'BUILDING'
-		GROUP BY m.room_id`, month)
-	if err != nil {
-		log.Printf("ERROR loading utility readings: %v", err)
-	} else {
-		defer eRows.Close()
-		for eRows.Next() {
-			var roomID string
-			var units float64
-			if err := eRows.Scan(&roomID, &units); err != nil {
-				log.Printf("ERROR scanning utility row: %v", err)
-				continue
-			}
-			if units > 0 {
-				utilityMap[roomID] = units * electricityRate
-			}
-		}
-	}
-
-	// Compute water share per room (building water meter / occupied rooms)
-	var waterPerRoom float64
-	var occupiedCount int
-	db.DB.QueryRow("SELECT COUNT(DISTINCT room_id) FROM tenants WHERE room_id IS NOT NULL AND (end_date IS NULL OR end_date = '')").Scan(&occupiedCount)
-	if occupiedCount > 0 {
-		var waterUnits float64
-		db.DB.QueryRow(`
-			SELECT COALESCE(SUM(mr.current_reading - mr.initial_reading), 0)
-			FROM meters m
-			JOIN monthly_readings mr ON mr.meter_id = m.id AND mr.billing_month = $1
-			WHERE m.room_id = 'BUILDING' AND m.meter_type = 'Water' AND m.is_active = true`, month).Scan(&waterUnits)
-		// Check for manual overrides
-		var savedPerRoom string
-		db.DB.QueryRow("SELECT value FROM settings WHERE key = 'water_per_room_' || $1", month).Scan(&savedPerRoom)
-		if savedPerRoom != "" {
-			if v, err := strconv.ParseFloat(savedPerRoom, 64); err == nil {
-				waterPerRoom = v
-			}
-		} else if waterUnits > 0 {
-			waterPerRoom = (waterUnits / float64(occupiedCount)) * electricityRate
-		}
-	}
-
-	// Apply utility amounts (room meters + water share) to cards and update totals
-	for i := range cards {
-		var utilityTotal float64
-		if amt, ok := utilityMap[cards[i].RoomID]; ok {
-			utilityTotal += amt
-		}
-		if waterPerRoom > 0 {
-			utilityTotal += waterPerRoom
-		}
-		if utilityTotal > 0 {
-			cards[i].ElectricityAmt = utilityTotal
-			cards[i].TotalDue += utilityTotal
+	billsGenerated := false
+	for _, c := range cards {
+		if c.BillID != "" {
+			billsGenerated = true
+			break
 		}
 	}
 
 	renderPrivate(w, "admin_payments.html", map[string]interface{}{
-		"Cards":          cards,
-		"Month":          month,
-		"MonthLabel":     formatMonthLabel(month),
-		"PrevMonth":      prevMonth,
-		"NextMonth":      nextMonth,
-		"Active":         "payments",
-		"Title":          "Payments",
+		"Cards":           cards,
+		"Month":           month,
+		"MonthLabel":      formatMonthLabel(month),
+		"PrevMonth":       prevMonth,
+		"NextMonth":       nextMonth,
+		"BillsGenerated":  billsGenerated,
+		"Active":          "payments",
+		"Title":           "Payments",
 	})
 }
 
@@ -669,50 +622,50 @@ func handleAdminPaymentsSave(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else if action == "undo" {
-			paymentID := r.FormValue("payment_id")
-			var billID string
-			db.DB.QueryRow("SELECT bill_id FROM payments WHERE id = $1", paymentID).Scan(&billID)
-			db.DB.Exec("DELETE FROM payments WHERE id = $1", paymentID)
-			if billID != "" {
-				db.DB.Exec("UPDATE bills SET status = 'pending' WHERE id = $1", billID)
-			}
-			http.Redirect(w, r, "/admin/payments?month="+month, http.StatusSeeOther)
-			return
-		} else if action == "complete" {
-			tenantID := r.FormValue("tenant_id")
-			amount, _ := strconv.ParseFloat(r.FormValue("amount"), 64)
-			date := r.FormValue("date")
-			method := r.FormValue("method")
-			monthCovered := r.FormValue("month_covered")
-			notes := r.FormValue("notes")
-			paidTo := r.FormValue("paid_to")
-			maintAmt, _ := strconv.ParseFloat(r.FormValue("maintenance_amount"), 64)
-			hasMaint := maintAmt > 0
-			id := fmt.Sprintf("PAY%d", time.Now().UnixNano())
+		paymentID := r.FormValue("payment_id")
+		var billID string
+		db.DB.QueryRow("SELECT bill_id FROM payments WHERE id = $1", paymentID).Scan(&billID)
+		db.DB.Exec("DELETE FROM payments WHERE id = $1", paymentID)
+		if billID != "" {
+			db.DB.Exec("UPDATE bills SET status = 'pending' WHERE id = $1", billID)
+		}
+		http.Redirect(w, r, "/admin/payments?month="+month, http.StatusSeeOther)
+		return
+	} else if action == "complete" {
+		tenantID := r.FormValue("tenant_id")
+		amount, _ := strconv.ParseFloat(r.FormValue("amount"), 64)
+		date := r.FormValue("date")
+		method := r.FormValue("method")
+		monthCovered := r.FormValue("month_covered")
+		notes := r.FormValue("notes")
+		paidTo := r.FormValue("paid_to")
+		maintAmt, _ := strconv.ParseFloat(r.FormValue("maintenance_amount"), 64)
+		hasMaint := maintAmt > 0
+		id := fmt.Sprintf("PAY%d", time.Now().UnixNano())
 
-			var billID string
-			db.DB.QueryRow(`SELECT id FROM bills WHERE tenant_id = $1 AND billing_month = $2`,
-				tenantID, monthCovered).Scan(&billID)
-			if billID == "" {
-				billID = fmt.Sprintf("BILL%d", time.Now().UnixNano())
-				var roomID string
-				db.DB.QueryRow(`SELECT COALESCE(room_id,'') FROM tenants WHERE id = $1`, tenantID).Scan(&roomID)
-				db.DB.Exec(`INSERT INTO bills (id, tenant_id, room_id, billing_month, rent_amount, total_amount, status)
-					VALUES ($1, $2, $3, $4, $5, $5, 'paid')`,
-					billID, tenantID, roomID, monthCovered, amount)
-			} else {
-				db.DB.Exec("UPDATE bills SET status = 'paid' WHERE id = $1", billID)
-			}
+		var billID string
+		db.DB.QueryRow(`SELECT id FROM bills WHERE tenant_id = $1 AND billing_month = $2`,
+			tenantID, monthCovered).Scan(&billID)
+		if billID == "" {
+			billID = fmt.Sprintf("BILL%d", time.Now().UnixNano())
+			var roomID string
+			db.DB.QueryRow(`SELECT COALESCE(room_id,'') FROM tenants WHERE id = $1`, tenantID).Scan(&roomID)
+			db.DB.Exec(`INSERT INTO bills (id, tenant_id, room_id, billing_month, rent_amount, total_amount, status)
+				VALUES ($1, $2, $3, $4, $5, $5, 'paid')`,
+				billID, tenantID, roomID, monthCovered, amount)
+		} else {
+			db.DB.Exec("UPDATE bills SET status = 'paid' WHERE id = $1", billID)
+		}
 
-			db.DB.Exec(`INSERT INTO payments (id, tenant_id, bill_id, amount, payment_date, payment_method, status, month_covered, notes, paid_to)
-				VALUES ($1, $2, $3, $4, $5, $6, 'completed', $7, $8, $9)`,
-				id, tenantID, billID, amount, date, method, monthCovered, notes, paidTo)
-			db.DB.Exec("UPDATE tenants SET has_maintenance = $1, updated_at = NOW() WHERE id = $2", hasMaint, tenantID)
-			db.DB.Exec(`UPDATE rooms SET maintenance_amount = $1, updated_at = NOW()
-				WHERE id = (SELECT COALESCE(room_id,'') FROM tenants WHERE id = $2)`, maintAmt, tenantID)
-			http.Redirect(w, r, "/admin/payments?month="+monthCovered, http.StatusSeeOther)
-			return
-		} else if action == "toggle_maintenance" {
+		db.DB.Exec(`INSERT INTO payments (id, tenant_id, bill_id, amount, payment_date, payment_method, status, month_covered, notes, paid_to)
+			VALUES ($1, $2, $3, $4, $5, $6, 'completed', $7, $8, $9)`,
+			id, tenantID, billID, amount, date, method, monthCovered, notes, paidTo)
+		db.DB.Exec("UPDATE tenants SET has_maintenance = $1, updated_at = NOW() WHERE id = $2", hasMaint, tenantID)
+		db.DB.Exec(`UPDATE rooms SET maintenance_amount = $1, updated_at = NOW()
+			WHERE id = (SELECT COALESCE(room_id,'') FROM tenants WHERE id = $2)`, maintAmt, tenantID)
+		http.Redirect(w, r, "/admin/payments?month="+monthCovered, http.StatusSeeOther)
+		return
+	} else if action == "toggle_maintenance" {
 		tenantID := r.FormValue("tenant_id")
 		currentVal := r.FormValue("has_maintenance") == "true"
 		db.DB.Exec("UPDATE tenants SET has_maintenance = $1, updated_at = NOW() WHERE id = $2", !currentVal, tenantID)
@@ -730,8 +683,6 @@ func handleAdminPaymentsSave(w http.ResponseWriter, r *http.Request) {
 	}
 	http.Redirect(w, r, "/admin/payments", http.StatusSeeOther)
 }
-
-// ─── Meters & Utilities (Monthly Billing) ──────────────────────
 
 func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 	if !requireAdmin(w, r) {
