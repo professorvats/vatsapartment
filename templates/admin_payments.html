@@ -47,7 +47,8 @@
       </div>
       <div class="flex justify-between text-sm items-center">
         <span class="text-on-sf-variant">Maintenance</span>
-        <input name="maintenance_amount" type="number" value="{{printf "%.0f" .MaintenanceAmt}}" class="maint-amt w-20 border border-ol-variant rounded px-1.5 py-0.5 text-sm text-right" oninput="recalcCard(this)">
+        <span class="font-semibold">₹{{printf "%.0f" .MaintenanceAmt}}</span>
+        <input type="hidden" name="maintenance_amount" value="{{printf "%.0f" .MaintenanceAmt}}">
       </div>
     </div>
 
@@ -69,7 +70,7 @@
         <input type="hidden" name="action" value="undo">
         <input type="hidden" name="payment_id" value="{{.PaymentID}}">
         <input type="hidden" name="month" value="{{$.Month}}">
-        <button type="submit" class="text-xs text-error font-semibold hover:underline whitespace-nowrap">↩ Undo</button>
+        <button type="submit" class="text-xs bg-red-50 text-error border border-red-200 px-3 py-1.5 rounded-lg font-semibold hover:bg-red-100 whitespace-nowrap">↩ Undo</button>
       </form>
       {{else}}
       <select name="method" class="border border-ol-variant rounded px-2 py-1.5 text-xs">
@@ -93,15 +94,5 @@
 </div>
 {{end}}
 
-<script>
-function recalcCard(el) {
-  var card = el.closest('.room-card');
-  var rent = parseFloat(card.dataset.rent) || 0;
-  var maint = parseFloat(card.querySelector('.maint-amt').value) || 0;
-  var total = rent + maint;
-  card.querySelector('.total-display').textContent = '₹' + Math.round(total);
-  card.querySelector('.total-input').value = Math.round(total);
-}
-</script>
 
 {{template "admin_footer" .}}
