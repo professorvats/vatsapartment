@@ -324,6 +324,7 @@ func runMigrations() error {
 		{"drop_ra", `DROP TABLE IF EXISTS room_assignments`},
 
 		{"payment_paid_to", `ALTER TABLE payments ADD COLUMN IF NOT EXISTS paid_to TEXT DEFAULT ''`},
+		{"payment_screenshot", `ALTER TABLE payments ADD COLUMN IF NOT EXISTS screenshot TEXT`},
 	}
 
 	for _, m := range migrations {

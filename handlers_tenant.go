@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -318,8 +319,38 @@ func handleTenantPayments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	msg := r.URL.Query().Get("msg")
+	errMsg := r.URL.Query().Get("error")
+
+	// Current pending bills
+	currentMonth := time.Now().Format("2006-01")
+	type PendingBill struct {
+		Month       string
+		TotalAmount float64
+		Status      string
+	}
+	var pendingBills []PendingBill
+	billRows, billErr := db.DB.Query(`
+		SELECT billing_month, total_amount, COALESCE(status,'pending')
+		FROM bills WHERE tenant_id = $1 AND status != 'paid'
+		ORDER BY billing_month DESC LIMIT 3`, tenantID)
+	if billErr == nil {
+		defer billRows.Close()
+		for billRows.Next() {
+			var pb PendingBill
+			billRows.Scan(&pb.Month, &pb.TotalAmount, &pb.Status)
+			pendingBills = append(pendingBills, pb)
+		}
+	}
+	if pendingBills == nil {
+		pendingBills = []PendingBill{}
+	}
+
+	// Payment history
 	rows, err := db.DB.Query(`
-		SELECT id, amount, payment_date, payment_method, status, month_covered, late_fee, notes
+		SELECT id, amount, COALESCE(payment_date::text,''), COALESCE(payment_method,''),
+			COALESCE(status,'pending'), COALESCE(month_covered,''), COALESCE(late_fee,0), COALESCE(notes,''),
+			COALESCE(screenshot,'')
 		FROM payments WHERE tenant_id = $1 ORDER BY payment_date DESC LIMIT 50`, tenantID)
 	if err != nil {
 		http.Error(w, "Failed to load payments", 500)
@@ -330,23 +361,106 @@ func handleTenantPayments(w http.ResponseWriter, r *http.Request) {
 	type TenantPayment struct {
 		ID, Date, Method, Status, MonthCovered, Notes string
 		Amount, LateFee                                float64
+		Screenshot                                     string
 	}
 	var payments []TenantPayment
 	for rows.Next() {
 		var p TenantPayment
-		rows.Scan(&p.ID, &p.Amount, &p.Date, &p.Method, &p.Status, &p.MonthCovered, &p.LateFee, &p.Notes)
+		rows.Scan(&p.ID, &p.Amount, &p.Date, &p.Method, &p.Status, &p.MonthCovered, &p.LateFee, &p.Notes, &p.Screenshot)
 		payments = append(payments, p)
 	}
 	if payments == nil {
 		payments = []TenantPayment{}
 	}
 
+	// Check if any payment is currently verifying
+	hasVerifying := false
+	for _, p := range payments {
+		if p.Status == "paid_by_user" {
+			hasVerifying = true
+			break
+		}
+	}
+
 	renderPrivate(w, "tenant_payments.html", map[string]interface{}{
-		"Payments": payments,
-		"Active":   "payments",
+		"Payments":      payments,
+		"PendingBills":  pendingBills,
+		"CurrentMonth":  currentMonth,
+		"HasVerifying":  hasVerifying,
+		"Msg":           msg,
+		"Error":         errMsg,
+		"Active":        "payments",
 	})
 }
 
+
+
+func handleTenantMarkPaid(w http.ResponseWriter, r *http.Request) {
+	tenantID, ok := requireTenant(w, r)
+	if !ok {
+		return
+	}
+
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Redirect(w, r, "/tenant/payments?error=File+too+large+(max+10MB)", http.StatusSeeOther)
+		return
+	}
+
+	monthCovered := r.FormValue("month_covered")
+	amountStr := r.FormValue("amount")
+
+	// Parse amount
+	amount := 0.0
+	if amountStr != "" {
+		if a, err := strconv.ParseFloat(amountStr, 64); err == nil {
+			amount = a
+		}
+	}
+
+	// Handle screenshot upload
+	screenshotFile, screenshotHeader, scrErr := r.FormFile("screenshot")
+	var screenshotPath string
+	if screenshotFile != nil && scrErr == nil {
+		defer screenshotFile.Close()
+		ext := ".jpg"
+		if screenshotHeader != nil {
+			ct := screenshotHeader.Header.Get("Content-Type")
+			if strings.Contains(ct, "png") {
+				ext = ".png"
+			} else if strings.Contains(ct, "webp") {
+				ext = ".webp"
+			}
+		}
+		filename := fmt.Sprintf("pay_%s_%d%s", tenantID, time.Now().UnixNano(), ext)
+		dst, err := os.Create(filepath.Join("uploads", filename))
+		if err == nil {
+			defer dst.Close()
+			io.Copy(dst, screenshotFile)
+			screenshotPath = "/uploads/" + filename
+		}
+	}
+
+	// Create payment record
+	paymentID := fmt.Sprintf("PAY%d", time.Now().UnixNano())
+	if monthCovered == "" {
+		monthCovered = time.Now().Format("2006-01")
+	}
+
+	_, err := db.DB.Exec(`
+		INSERT INTO payments (id, tenant_id, amount, payment_date, payment_method, status, month_covered, screenshot)
+		VALUES ($1, $2, $3, $4, 'UPI', 'paid_by_user', $5, $6)`,
+		paymentID, tenantID, amount, time.Now().Format("2006-01-02"), monthCovered, screenshotPath)
+	if err != nil {
+		log.Printf("ERROR creating payment: %v", err)
+		http.Redirect(w, r, "/tenant/payments?error=Failed+to+submit+payment", http.StatusSeeOther)
+		return
+	}
+
+	// Update bill status if this payment covers a bill
+	db.DB.Exec("UPDATE bills SET status = 'paid_by_user' WHERE tenant_id = $1 AND billing_month = $2 AND status = 'pending'", tenantID, monthCovered)
+
+	http.Redirect(w, r, "/tenant/payments?msg=Payment+submitted!+Admin+will+verify+shortly", http.StatusSeeOther)
+}
 
 func handleTenantMeterDetails(w http.ResponseWriter, r *http.Request) {
 	tenantID, ok := requireTenant(w, r)

@@ -454,6 +454,7 @@ type RoomPaymentCard struct {
 	HasPaid                                                bool
 	BillID, BillStatus                                     string
 	PaymentID, PaymentDate, PaymentMethod, PaymentNotes, PaidTo string
+	PaymentStatus, Screenshot                              string
 	PaymentAmount                                          float64
 }
 
@@ -495,11 +496,13 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 			COALESCE(p.payment_date::text, '') as payment_date,
 			COALESCE(p.payment_method, '') as payment_method,
 			COALESCE(p.notes, '') as payment_notes,
-			COALESCE(p.paid_to, '') as paid_to
+			COALESCE(p.paid_to, '') as paid_to,
+		COALESCE(p.status, '') as payment_status,
+		COALESCE(p.screenshot, '') as screenshot
 		FROM rooms r
 		JOIN tenants t ON t.room_id = r.id AND t.status = 'active' AND (t.end_date IS NULL OR t.end_date = '')
 		LEFT JOIN bills b ON b.tenant_id = t.id AND b.billing_month = $1
-		LEFT JOIN payments p ON p.bill_id = b.id AND p.status = 'completed'
+		LEFT JOIN payments p ON p.bill_id = b.id AND (p.status = 'completed' OR p.status = 'paid_by_user')
 		WHERE r.id != 'BUILDING' ORDER BY r.room_number`, month)
 	if err != nil {
 		log.Printf("ERROR loading payment cards: %v", err)
@@ -516,7 +519,8 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 		if err := rows.Scan(&c.RoomID, &c.RoomNumber, &c.TenantID, &c.TenantName,
 			&c.RentAmount, &c.RoomPrice, &c.HasMaintenance, &c.MaintenanceAmt,
 			&billID, &billElec, &billWater, &billDiscount, &billDiscountNote, &billTotal, &billStatus,
-			&c.PaymentID, &c.PaymentAmount, &c.PaymentDate, &c.PaymentMethod, &c.PaymentNotes, &c.PaidTo); err != nil {
+			&c.PaymentID, &c.PaymentAmount, &c.PaymentDate, &c.PaymentMethod, &c.PaymentNotes, &c.PaidTo,
+			&c.PaymentStatus, &c.Screenshot); err != nil {
 			log.Printf("ERROR scanning payment card: %v", err)
 			continue
 		}
@@ -528,7 +532,7 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 		}
 		c.MonthlyDiscount = billDiscount
 		c.MonthlyDiscountNote = billDiscountNote
-		c.HasPaid = c.PaymentID != ""
+		c.HasPaid = c.PaymentID != "" && c.PaymentStatus != "paid_by_user"
 
 		if billID != "" {
 			c.ElectricityAmt = billElec + billWater
@@ -712,6 +716,20 @@ func handleAdminPaymentsSave(w http.ResponseWriter, r *http.Request) {
 		db.DB.Exec(`UPDATE rooms SET maintenance_amount = $1, updated_at = NOW()
 			WHERE id = (SELECT COALESCE(room_id,'') FROM tenants WHERE id = $2)`, maintAmt, tenantID)
 		http.Redirect(w, r, "/admin/payments?month="+monthCovered, http.StatusSeeOther)
+		return
+	} else if action == "verify_payment" {
+		pid := r.FormValue("payment_id")
+		billID := r.FormValue("bill_id")
+		db.DB.Exec("UPDATE payments SET status = 'completed', updated_at = NOW() WHERE id = $1", pid)
+		if billID != "" {
+			db.DB.Exec("UPDATE bills SET status = 'paid' WHERE id = $1", billID)
+		}
+		http.Redirect(w, r, "/admin/payments?month="+r.FormValue("month"), http.StatusSeeOther)
+		return
+	} else if action == "reject_payment" {
+		pid := r.FormValue("payment_id")
+		db.DB.Exec("DELETE FROM payments WHERE id = $1", pid)
+		http.Redirect(w, r, "/admin/payments?month="+r.FormValue("month"), http.StatusSeeOther)
 		return
 	} else if action == "toggle_maintenance" {
 		tenantID := r.FormValue("tenant_id")

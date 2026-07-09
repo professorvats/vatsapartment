@@ -1,4 +1,23 @@
 {{template "admin_header" .}}
+<!-- Screenshot Modal -->
+<div id="screenshot-modal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onclick="closeScreenshotModal()">
+  <div class="relative max-w-lg w-full" onclick="event.stopPropagation()">
+    <button onclick="closeScreenshotModal()" class="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-100 z-10">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+    <img id="screenshot-img" src="" class="w-full rounded-xl shadow-2xl" alt="Payment Screenshot">
+  </div>
+</div>
+<script>
+function openScreenshot(url) {
+  document.getElementById('screenshot-img').src = url;
+  document.getElementById('screenshot-modal').classList.remove('hidden');
+}
+function closeScreenshotModal() {
+  document.getElementById('screenshot-modal').classList.add('hidden');
+}
+</script>
+
 
 <!-- Month Selector -->
 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -66,11 +85,11 @@
     <div class="flex items-center gap-2 mb-2 p-2 rounded-lg">
       <div class="flex-1">
         <label class="block text-sm text-on-sf-variant mb-1">Note</label>
-        <input name="discount_note" type="text" placeholder="Reason" value="{{.MonthlyDiscountNote}}" class="w-full border border-ol-variant rounded-lg px-2 py-1.5 text-sm" {{if .HasPaid}}disabled{{end}}>
+        <input name="discount_note" type="text" placeholder="Reason" value="{{.MonthlyDiscountNote}}" class="w-full border border-ol-variant rounded-lg px-2 py-1.5 text-sm" {{if or .HasPaid (eq .PaymentStatus "paid_by_user")}}disabled{{end}}>
       </div>
       <div class="w-24">
         <label class="block text-sm text-on-sf-variant mb-1">Discount</label>
-        <input name="discount_amount" type="number" value="{{if gt .MonthlyDiscount 0.0}}{{printf "%.0f" .MonthlyDiscount}}{{end}}" class="w-full border border-ol-variant rounded-lg px-2 py-1.5 text-sm" {{if .HasPaid}}disabled{{end}}>
+        <input name="discount_amount" type="number" value="{{if gt .MonthlyDiscount 0.0}}{{printf "%.0f" .MonthlyDiscount}}{{end}}" class="w-full border border-ol-variant rounded-lg px-2 py-1.5 text-sm" {{if or .HasPaid (eq .PaymentStatus "paid_by_user")}}disabled{{end}}>
       </div>
     </div>
 
@@ -78,11 +97,11 @@
     <div class="mt-auto pt-2 space-y-2">
       <!-- Method / Date / Paid To -->
       <div class="flex items-center gap-1.5">
-        <select name="method" class="flex-1 border border-ol-variant rounded-lg px-2 py-1.5 text-sm" {{if .HasPaid}}disabled{{end}}>
+        <select name="method" class="flex-1 border border-ol-variant rounded-lg px-2 py-1.5 text-sm" {{if or .HasPaid (eq .PaymentStatus "paid_by_user")}}disabled{{end}}>
           <option>{{if .HasPaid}}{{.PaymentMethod}}{{else}}Cash{{end}}</option>
         </select>
-        <input name="date" type="date" value="{{if .HasPaid}}{{.PaymentDate}}{{else}}{{$.Month}}-01{{end}}" class="flex-1 border border-ol-variant rounded-lg px-2 py-1.5 text-sm" {{if .HasPaid}}disabled{{end}}>
-        <select name="paid_to" class="flex-1 border border-ol-variant rounded-lg px-2 py-1.5 text-sm" {{if .HasPaid}}disabled{{end}}>
+        <input name="date" type="date" value="{{if .HasPaid}}{{.PaymentDate}}{{else}}{{$.Month}}-01{{end}}" class="flex-1 border border-ol-variant rounded-lg px-2 py-1.5 text-sm" {{if or .HasPaid (eq .PaymentStatus "paid_by_user")}}disabled{{end}}>
+        <select name="paid_to" class="flex-1 border border-ol-variant rounded-lg px-2 py-1.5 text-sm" {{if or .HasPaid (eq .PaymentStatus "paid_by_user")}}disabled{{end}}>
           <option value="">{{if .HasPaid}}{{.PaidTo}}{{else}}Paid to{{end}}</option>
         </select>
       </div>
@@ -98,6 +117,22 @@
       <!-- Action Button -->
       {{if .HasPaid}}
       <button type="button" onclick="undoPayment('{{.PaymentID}}', '{{$.Month}}')" class="w-full bg-red-50 text-error border border-red-200 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-100">↩ Undo Payment</button>
+      {{else if eq .PaymentStatus "paid_by_user"}}
+      <div class="flex gap-2">
+        <form method="POST" action="/admin/payments/save" class="flex-1">
+          <input type="hidden" name="action" value="verify_payment">
+          <input type="hidden" name="payment_id" value="{{.PaymentID}}">
+          <input type="hidden" name="bill_id" value="{{.BillID}}">
+          <input type="hidden" name="month" value="{{$.Month}}">
+          <button type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700">✓ Verify & Complete</button>
+        </form>
+        <form method="POST" action="/admin/payments/save" class="flex-1">
+          <input type="hidden" name="action" value="reject_payment">
+          <input type="hidden" name="payment_id" value="{{.PaymentID}}">
+          <input type="hidden" name="month" value="{{$.Month}}">
+          <button type="submit" class="w-full bg-red-50 text-error border border-red-200 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-100">✕ Reject</button>
+        </form>
+      </div>
       {{else}}
       <button type="submit" class="w-full bg-primary text-on-primary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90">✓ Mark Paid</button>
       {{end}}
