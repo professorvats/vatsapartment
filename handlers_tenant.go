@@ -63,7 +63,7 @@ func handleTenantDashboard(w http.ResponseWriter, r *http.Request) {
 		FROM tenants t
 		LEFT JOIN rooms r ON t.room_id = r.id
 		WHERE t.id = $1`, tenantID,
-	).Scan(&ti.ID, &ti.Name, &ti.Phone, &ti.Email, &ti.RoomID, &ti.RoomNumber, &ti.CheckInDate, &ti.RentAmount,
+	).Scan(&ti.ID, &ti.Name, &ti.Phone, &ti.Email, &ti.RoomID, &ti.RoomNumber, &ti.CheckInDate, &ti.RentAmount, &ti.RoomPrice,
 		&ti.PassNumber, &ti.VerificationStatus, &ti.LpuPhoto, &ti.AadharPhoto)
 	if err != nil {
 		http.Error(w, "Tenant not found", 404)
