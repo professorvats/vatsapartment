@@ -585,6 +585,76 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// If no bills yet, compute utility amounts from meters for display
+	if !billsGenerated {
+		var ratePerUnit float64 = 12
+		var rateStr string
+		db.DB.QueryRow("SELECT value FROM settings WHERE key = 'electricity_rate'").Scan(&rateStr)
+		if rateStr != "" {
+			if r, err := strconv.ParseFloat(rateStr, 64); err == nil {
+				ratePerUnit = r
+			}
+		}
+
+		// Per-room electricity from meters
+		utilityMap := map[string]float64{}
+		eRows, err := db.DB.Query(`
+			SELECT m.room_id, COALESCE(SUM(mr.current_reading - mr.initial_reading), 0) as units
+			FROM meters m
+			JOIN monthly_readings mr ON mr.meter_id = m.id AND mr.billing_month = $1
+			WHERE m.is_active = true AND m.room_id != 'BUILDING'
+			GROUP BY m.room_id`, month)
+		if err == nil {
+			defer eRows.Close()
+			for eRows.Next() {
+				var roomID string
+				var units float64
+				eRows.Scan(&roomID, &units)
+				if units > 0 {
+					utilityMap[roomID] = units * ratePerUnit
+				}
+			}
+		}
+
+		// Water share
+		var waterPerRoom float64
+		var occCount int
+		db.DB.QueryRow("SELECT COUNT(DISTINCT room_id) FROM tenants WHERE room_id IS NOT NULL AND (end_date IS NULL OR end_date = '')").Scan(&occCount)
+		if occCount > 0 {
+			var waterUnits float64
+			db.DB.QueryRow(`
+				SELECT COALESCE(SUM(mr.current_reading - mr.initial_reading), 0)
+				FROM meters m
+				JOIN monthly_readings mr ON mr.meter_id = m.id AND mr.billing_month = $1
+				WHERE m.room_id = 'BUILDING' AND m.meter_type = 'Water' AND m.is_active = true`, month).Scan(&waterUnits)
+			var savedPerRoom string
+			db.DB.QueryRow("SELECT value FROM settings WHERE key = 'water_per_room_' || $1", month).Scan(&savedPerRoom)
+			if savedPerRoom != "" {
+				if v, _ := strconv.ParseFloat(savedPerRoom, 64); v > 0 {
+					waterPerRoom = v
+				}
+			} else if waterUnits > 0 {
+				waterPerRoom = (waterUnits / float64(occCount)) * ratePerUnit
+			}
+		}
+
+		// Apply to cards
+		for i := range cards {
+			var utilityTotal float64
+			if amt, ok := utilityMap[cards[i].RoomID]; ok {
+				cards[i].ElectricityAmt = amt
+				utilityTotal += amt
+			}
+			if waterPerRoom > 0 {
+				cards[i].WaterAmt = waterPerRoom
+				utilityTotal += waterPerRoom
+			}
+			if utilityTotal > 0 {
+				cards[i].TotalDue += utilityTotal
+			}
+		}
+	}
+
 	renderPrivate(w, "admin_payments.html", map[string]interface{}{
 		"Cards":           cards,
 		"Month":           month,
