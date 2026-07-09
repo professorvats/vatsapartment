@@ -322,29 +322,52 @@ func handleTenantPayments(w http.ResponseWriter, r *http.Request) {
 	msg := r.URL.Query().Get("msg")
 	errMsg := r.URL.Query().Get("error")
 
-	// Current pending bills
+	// Current pending bills with full breakdown
 	currentMonth := time.Now().Format("2006-01")
 	type PendingBill struct {
-		Month       string
-		TotalAmount float64
-		Status      string
+		Month            string
+		TotalAmount      float64
+		Status           string
+		RentAmount       float64
+		MaintenanceAmt   float64
+		ElectricityAmt   float64
+		WaterAmt         float64
+		DiscountAmount   float64
+		DiscountNote     string
 	}
 	var pendingBills []PendingBill
 	billRows, billErr := db.DB.Query(`
-		SELECT billing_month, total_amount, COALESCE(status,'pending')
+		SELECT billing_month, total_amount, COALESCE(status,'pending'),
+			COALESCE(rent_amount,0), COALESCE(maintenance_amount,0),
+			COALESCE(electricity_amount,0), COALESCE(water_amount,0),
+			COALESCE(discount_amount,0), COALESCE(discount_note,'')
 		FROM bills WHERE tenant_id = $1 AND status != 'paid'
 		ORDER BY billing_month DESC LIMIT 3`, tenantID)
 	if billErr == nil {
 		defer billRows.Close()
 		for billRows.Next() {
 			var pb PendingBill
-			billRows.Scan(&pb.Month, &pb.TotalAmount, &pb.Status)
+			billRows.Scan(&pb.Month, &pb.TotalAmount, &pb.Status,
+				&pb.RentAmount, &pb.MaintenanceAmt, &pb.ElectricityAmt,
+				&pb.WaterAmt, &pb.DiscountAmount, &pb.DiscountNote)
 			pendingBills = append(pendingBills, pb)
 		}
 	}
 	if pendingBills == nil {
 		pendingBills = []PendingBill{}
 	}
+
+	// Get tenant's room info for UPI / payment instructions
+	type TenantPaymentInfo struct {
+		Name       string
+		RoomNumber string
+		Phone      string
+	}
+	var tpi TenantPaymentInfo
+	db.DB.QueryRow(`
+		SELECT t.name, COALESCE(r.room_number,''), COALESCE(t.phone,'')
+		FROM tenants t LEFT JOIN rooms r ON t.room_id = r.id
+		WHERE t.id = $1`, tenantID).Scan(&tpi.Name, &tpi.RoomNumber, &tpi.Phone)
 
 	// Payment history
 	rows, err := db.DB.Query(`
@@ -387,6 +410,7 @@ func handleTenantPayments(w http.ResponseWriter, r *http.Request) {
 		"PendingBills":  pendingBills,
 		"CurrentMonth":  currentMonth,
 		"HasVerifying":  hasVerifying,
+		"TenantInfo":    tpi,
 		"Msg":           msg,
 		"Error":         errMsg,
 		"Active":        "payments",
