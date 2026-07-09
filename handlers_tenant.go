@@ -46,7 +46,7 @@ func handleTenantDashboard(w http.ResponseWriter, r *http.Request) {
 
 	type TenantInfo struct {
 		ID, Name, Phone, Email, RoomID, RoomNumber, CheckInDate string
-		RentAmount                                               float64
+		RentAmount, RoomPrice                                    float64
 		PassNumber                                               string
 		VerificationStatus                                       string
 		LpuPhoto, AadharPhoto                                   string
@@ -56,7 +56,7 @@ func handleTenantDashboard(w http.ResponseWriter, r *http.Request) {
 		SELECT t.id, t.name, t.phone, COALESCE(t.email,''),
 			COALESCE(t.room_id,''), COALESCE(r.room_number,''),
 			COALESCE(t.check_in_date::text,''),
-			COALESCE(t.rent_amount,0),
+			COALESCE(t.rent_amount,0), COALESCE(r.price,0),
 			COALESCE(t.pass_number,''),
 			COALESCE(t.verification_status,'not_submitted'),
 			COALESCE(t.lpu_id_photo,''), COALESCE(t.aadhar_photo,'')
@@ -365,6 +365,7 @@ func handleTenantPayments(w http.ResponseWriter, r *http.Request) {
 		TotalAmount      float64
 		Status           string
 		RentAmount       float64
+		RoomPrice        float64
 		MaintenanceAmt   float64
 		ElectricityAmt   float64
 		WaterAmt         float64
@@ -373,11 +374,13 @@ func handleTenantPayments(w http.ResponseWriter, r *http.Request) {
 	}
 	var pendingBills []PendingBill
 	billRows, billErr := db.DB.Query(`
-		SELECT billing_month, total_amount, COALESCE(status,'pending'),
-			COALESCE(rent_amount,0), COALESCE(maintenance_amount,0),
-			COALESCE(electricity_amount,0), COALESCE(water_amount,0),
-			COALESCE(discount_amount,0), COALESCE(discount_note,'')
-		FROM bills WHERE tenant_id = $1 AND status != 'paid'
+		SELECT b.billing_month, b.total_amount, COALESCE(b.status,'pending'),
+			COALESCE(b.rent_amount,0), COALESCE(r.price,0),
+			COALESCE(b.maintenance_amount,0),
+			COALESCE(b.electricity_amount,0), COALESCE(b.water_amount,0),
+			COALESCE(b.discount_amount,0), COALESCE(b.discount_note,'')
+		FROM bills b JOIN tenants t ON t.id = b.tenant_id JOIN rooms r ON r.id = t.room_id
+		WHERE b.tenant_id = $1 AND b.status != 'paid'
 		ORDER BY billing_month DESC LIMIT 3`, tenantID)
 	if billErr == nil {
 		defer billRows.Close()

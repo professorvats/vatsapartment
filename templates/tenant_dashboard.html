@@ -64,17 +64,17 @@
   <div class="space-y-1.5 text-sm">
     <div class="flex justify-between">
       <span class="text-on-sf-variant">Room Rent</span>
-      <span class="font-medium">₹{{printf "%.0f" .CurrentBill.RentAmount}}</span>
+      <span class="font-medium">₹{{printf "%.0f" .Tenant.RoomPrice}}</span>
     </div>
 
-    {{if gt .CurrentBill.DiscountAmount 0.0}}
+    {{if lt .Tenant.RentAmount .Tenant.RoomPrice}}
     <div class="flex justify-between">
       <span class="text-on-sf-variant">Discount{{if .CurrentBill.DiscountNote}} <span class="text-xs">({{.CurrentBill.DiscountNote}})</span>{{end}}</span>
-      <span class="text-success font-medium">−₹{{printf "%.0f" .CurrentBill.DiscountAmount}}</span>
+      <span class="text-success font-medium">−₹{{printf "%.0f" (sub .Tenant.RoomPrice .Tenant.RentAmount)}}</span>
     </div>
     <div class="flex justify-between">
       <span class="text-on-surface font-medium">Rent After Discount</span>
-      <span class="font-semibold text-on-surface">₹{{printf "%.0f" (sub .CurrentBill.RentAmount .CurrentBill.DiscountAmount)}}</span>
+      <span class="font-semibold text-on-surface">₹{{printf "%.0f" .Tenant.RentAmount}}</span>
     </div>
     {{end}}
 

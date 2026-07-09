@@ -39,17 +39,17 @@
 
     <div class="flex justify-between text-sm">
       <span class="text-on-surface">Room Rent</span>
-      <span class="font-semibold text-on-surface">₹{{printf "%.0f" .RentAmount}}</span>
+      <span class="font-semibold text-on-surface">₹{{printf "%.0f" .RoomPrice}}</span>
     </div>
 
-    {{if gt .DiscountAmount 0.0}}
+    {{if lt .RentAmount .RoomPrice}}
     <div class="flex justify-between text-sm">
       <span class="text-success font-medium">Discount{{if .DiscountNote}} ({{.DiscountNote}}){{end}}</span>
-      <span class="text-success font-bold">−₹{{printf "%.0f" .DiscountAmount}}</span>
+      <span class="text-success font-bold">−₹{{printf "%.0f" (sub .RoomPrice .RentAmount)}}</span>
     </div>
     <div class="flex justify-between text-sm">
       <span class="text-on-surface font-medium">Rent After Discount</span>
-      <span class="font-semibold text-on-surface">₹{{printf "%.0f" (sub .RentAmount .DiscountAmount)}}</span>
+      <span class="font-semibold text-on-surface">₹{{printf "%.0f" .RentAmount}}</span>
     </div>
     {{end}}
 
