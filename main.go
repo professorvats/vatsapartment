@@ -31,7 +31,18 @@ func main() {
 	tmpl = template.New("").Funcs(template.FuncMap{
 		"icon":     icon,
 		"safeHTML": func(s string) template.HTML { return template.HTML(s) },
-		"sub":      func(a, b int) int { return a - b },
+		"sub": func(a, b interface{}) float64 {
+			toF := func(v interface{}) float64 {
+				switch x := v.(type) {
+				case int:
+					return float64(x)
+				case float64:
+					return x
+				}
+				return 0
+			}
+			return toF(a) - toF(b)
+		},
 		"urlquery": url.QueryEscape,
 		"jsStr": func(s string) string {
 			s = strings.ReplaceAll(s, `\`, `\\`)
