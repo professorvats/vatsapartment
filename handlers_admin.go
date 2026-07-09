@@ -500,7 +500,7 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 		JOIN tenants t ON t.room_id = r.id AND t.status = 'active' AND (t.end_date IS NULL OR t.end_date = '')
 		LEFT JOIN bills b ON b.tenant_id = t.id AND b.billing_month = $1
 		LEFT JOIN payments p ON p.bill_id = b.id AND p.status = 'completed'
-		WHERE r.id != \'BUILDING' ORDER BY r.room_number`, month)
+		WHERE r.id != 'BUILDING' ORDER BY r.room_number`, month)
 	if err != nil {
 		log.Printf("ERROR loading payment cards: %v", err)
 		renderAdminError(w, "Failed to load payments")
