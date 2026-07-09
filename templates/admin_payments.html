@@ -39,12 +39,12 @@
     <!-- Amounts -->
     <div class="space-y-1.5 mb-3 text-base">
       <div class="flex justify-between">
-        <span class="text-on-sf-variant">Rent</span>
-        <span class="font-semibold">₹{{printf "%.0f" .RentAmount}}</span>
+        <span class="text-on-sf-variant">Room Rent</span>
+        <span class="font-semibold">₹{{printf "%.0f" .RoomPrice}}</span>
       </div>
       {{if gt .DiscountAmount 0.0}}
       <div class="flex justify-between">
-        <span class="text-on-sf-variant">Rent Discount</span>
+        <span class="text-on-sf-variant">Discount</span>
         <span class="text-green-600 font-medium">−₹{{printf "%.0f" .DiscountAmount}}</span>
       </div>
       {{end}}
