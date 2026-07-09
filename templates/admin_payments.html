@@ -93,16 +93,16 @@
       <button type="button" onclick="undoPayment('{{.PaymentID}}', '{{$.Month}}')" class="text-base bg-red-50 text-error border border-red-200 px-3 py-2 rounded-lg font-semibold hover:bg-red-100 whitespace-nowrap">↩ Undo</button>
     </div>
     {{else}}
-    <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-ol-variant/30">
-      <select name="method" class="border border-ol-variant rounded-lg px-3 py-2 text-base">
+    <div class="flex items-center gap-2 pt-2 border-t border-ol-variant/30">
+      <select name="method" class="flex-1 border border-ol-variant rounded-lg px-3 py-2 text-base">
         <option>Cash</option><option>UPI</option><option>Bank Transfer</option>
       </select>
-      <input name="date" type="date" value="{{$.Month}}-01" class="border border-ol-variant rounded-lg px-3 py-2 text-base">
-      <select name="paid_to" class="border border-ol-variant rounded-lg px-3 py-2 text-base">
+      <input name="date" type="date" value="{{$.Month}}-01" class="flex-1 border border-ol-variant rounded-lg px-3 py-2 text-base">
+      <select name="paid_to" class="flex-1 border border-ol-variant rounded-lg px-3 py-2 text-base">
         <option value="">Paid to</option>
         <option>Shashi</option><option>Sarla</option><option>Hament</option><option>Bhoop Singh</option>
       </select>
-      <button type="submit" class="bg-primary text-on-primary px-5 py-2 rounded-lg text-base font-semibold hover:bg-primary/90 whitespace-nowrap flex-1">✓ Mark Paid</button>
+      <button type="submit" class="bg-primary text-on-primary px-5 py-2 rounded-lg text-base font-semibold hover:bg-primary/90 whitespace-nowrap">✓ Mark Paid</button>
     </div>
     {{end}}
   </form>
