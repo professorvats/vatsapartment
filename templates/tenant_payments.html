@@ -34,32 +34,32 @@
   </div>
 
   <!-- Bill Breakdown -->
-  <div class="px-5 py-4 space-y-2">
-    <h3 class="text-xs font-semibold text-on-sf-variant uppercase tracking-wide mb-2">Bill Breakdown</h3>
+  <div class="px-4 py-3 space-y-1.5">
+    <h3 class="text-xs font-semibold text-on-surface uppercase tracking-wide mb-1.5">Bill Breakdown</h3>
 
     <div class="flex justify-between text-sm">
-      <span class="text-on-sf-variant">Room Rent</span>
-      <span class="font-medium">₹{{printf "%.0f" .RentAmount}}</span>
+      <span class="text-on-surface">Room Rent</span>
+      <span class="font-semibold text-on-surface">₹{{printf "%.0f" .RentAmount}}</span>
     </div>
 
     {{if gt .MaintenanceAmt 0.0}}
     <div class="flex justify-between text-sm">
-      <span class="text-on-sf-variant">Maintenance</span>
-      <span class="font-medium">₹{{printf "%.0f" .MaintenanceAmt}}</span>
+      <span class="text-on-surface">Maintenance</span>
+      <span class="font-semibold text-on-surface">₹{{printf "%.0f" .MaintenanceAmt}}</span>
     </div>
     {{end}}
 
     {{if gt .ElectricityAmt 0.0}}
     <div class="flex justify-between text-sm">
-      <span class="text-on-sf-variant">Electricity</span>
-      <span class="font-medium">₹{{printf "%.0f" .ElectricityAmt}}</span>
+      <span class="text-on-surface">Electricity</span>
+      <span class="font-semibold text-on-surface">₹{{printf "%.0f" .ElectricityAmt}}</span>
     </div>
     {{end}}
 
     {{if gt .WaterAmt 0.0}}
     <div class="flex justify-between text-sm">
-      <span class="text-on-sf-variant">Water</span>
-      <span class="font-medium">₹{{printf "%.0f" .WaterAmt}}</span>
+      <span class="text-on-surface">Water</span>
+      <span class="font-semibold text-on-surface">₹{{printf "%.0f" .WaterAmt}}</span>
     </div>
     {{end}}
 
@@ -72,8 +72,8 @@
 
     <hr class="border-ol-variant">
 
-    <div class="flex justify-between font-bold text-base">
-      <span>Total</span>
+    <div class="flex justify-between font-bold text-lg">
+      <span class="text-on-surface">Total Due</span>
       <span class="text-primary">₹{{printf "%.0f" .TotalAmount}}</span>
     </div>
   </div>
@@ -84,7 +84,8 @@
     <h3 class="text-xs font-semibold text-on-sf-variant uppercase tracking-wide mb-4">How to Pay</h3>
 
     <!-- Step 1: Scan QR -->
-    <div class="flex gap-4 mb-5">
+	    <div class="flex gap-3 mb-3">
+    <div class="flex gap-3 mb-3">
       <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold">1</div>
       <div class="flex-1">
         <p class="text-sm font-semibold">Scan the QR Code</p>
@@ -95,7 +96,7 @@
                onclick="openQRModal()" id="qr-thumb">
           <div class="flex-1 text-xs text-on-sf-variant space-y-1.5">
             <p class="font-medium text-on-surface">Or pay to UPI ID:</p>
-            <code class="inline-block bg-sf-low border border-ol-variant rounded-lg px-3 py-2 text-sm font-mono font-bold text-primary select-all">vatsapartment@upi</code>
+            <code class="inline-block bg-white border-2 border-primary/30 rounded-lg px-4 py-2.5 text-base font-mono font-bold text-primary select-all tracking-wider">vatsapartment@upi</code>
             <p class="text-[11px]">Tap the UPI ID above to copy it</p>
           </div>
         </div>
@@ -103,7 +104,7 @@
     </div>
 
     <!-- Step 2: Pay -->
-    <div class="flex gap-4 mb-5">
+    <div class="flex gap-3 mb-3">
       <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold">2</div>
       <div>
         <p class="text-sm font-semibold">Complete the Payment</p>
@@ -112,7 +113,7 @@
     </div>
 
     <!-- Step 3: Upload Screenshot -->
-    <div class="flex gap-4">
+    <div class="flex gap-3">
       <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold">3</div>
       <div class="flex-1">
         <p class="text-sm font-semibold">Confirm Your Payment</p>
