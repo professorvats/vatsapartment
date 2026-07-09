@@ -27,41 +27,41 @@
 
 <!-- Building Water Meter -->
 {{if .HasWaterMeter}}
-<div id="water-card" data-occupied-count="{{.OccupiedCount}}" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+<div id="water-card" data-occupied-count="{{.OccupiedCount}}" class="bg-white border border-ol-variant rounded-xl p-4 mb-4">
   <div class="flex items-center justify-between mb-2">
-    <h3 class="text-lg font-bold text-blue-900">Building Water Meter</h3>
-    <span class="text-sm text-blue-600">{{.WaterMeter.MeterNumber}}</span>
+    <h3 class="text-lg font-bold">Building Water Meter</h3>
+    <span class="text-sm text-on-sf-variant">{{.WaterMeter.MeterNumber}}</span>
   </div>
   <!-- Desktop: single-row table -->
   <div class="hidden md:block">
     <table class="w-full text-sm">
       <thead>
-        <tr class="border-b border-blue-200">
-          <th class="text-left py-1.5 text-xs uppercase tracking-wider text-blue-600">Meter</th>
-          <th class="text-right py-1.5 text-xs uppercase tracking-wider text-blue-600">Initial</th>
-          <th class="text-right py-1.5 text-xs uppercase tracking-wider text-blue-600">Current</th>
-          <th class="text-right py-1.5 text-xs uppercase tracking-wider text-blue-600">Units</th>
-          <th class="text-right py-1.5 text-xs uppercase tracking-wider text-blue-600">Amount</th>
-          <th class="text-right py-1.5 text-xs uppercase tracking-wider text-blue-600">Per Room</th>
+        <tr class="border-b border-ol-variant">
+          <th class="text-left py-1.5 text-xs uppercase tracking-wider text-on-sf-variant">Meter</th>
+          <th class="text-right py-1.5 text-xs uppercase tracking-wider text-on-sf-variant">Initial</th>
+          <th class="text-right py-1.5 text-xs uppercase tracking-wider text-on-sf-variant">Current</th>
+          <th class="text-right py-1.5 text-xs uppercase tracking-wider text-on-sf-variant">Units</th>
+          <th class="text-right py-1.5 text-xs uppercase tracking-wider text-on-sf-variant">Amount</th>
+          <th class="text-right py-1.5 text-xs uppercase tracking-wider text-on-sf-variant">Per Room</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td class="py-1.5 font-medium text-sm max-w-[140px] truncate">Water <span class="text-blue-600 font-normal text-xs">{{.WaterMeter.MeterNumber}}</span></td>
+          <td class="py-1.5 font-medium text-sm max-w-[140px] truncate">Water <span class="text-on-sf-variant font-normal text-xs">{{.WaterMeter.MeterNumber}}</span></td>
           <td class="py-1.5 text-right">
-            <input name="water_initial" form="save-form" type="number" class="water-initial w-20 border border-blue-300 rounded px-2 py-1 text-sm text-right" value="{{.WaterMeter.InitialReading}}" oninput="recalcAll()">
+            <input name="water_initial" form="save-form" type="number" class="water-initial w-20 border border-ol-variant rounded px-2 py-1 text-sm text-right" value="{{.WaterMeter.InitialReading}}" oninput="recalcAll()">
           </td>
           <td class="py-1.5 text-right">
-            <input name="water_current" form="save-form" type="number" class="water-current w-20 border border-blue-300 rounded px-2 py-1 text-sm text-right" value="{{.WaterMeter.CurrentReading}}" oninput="recalcAll()">
+            <input name="water_current" form="save-form" type="number" class="water-current w-20 border border-ol-variant rounded px-2 py-1 text-sm text-right" value="{{.WaterMeter.CurrentReading}}" oninput="recalcAll()">
           </td>
           <td class="py-1.5 text-right">
-            <input name="water_units" form="save-form" type="number" class="water-units w-20 border border-blue-300 rounded px-2 py-1 text-sm text-right" value="{{.WaterUnits}}" oninput="onWaterManual()">
+            <input name="water_units" form="save-form" type="number" class="water-units w-20 border border-ol-variant rounded px-2 py-1 text-sm text-right" value="{{.WaterUnits}}" oninput="onWaterManual()">
           </td>
           <td class="py-1.5 text-right">
-            <input name="water_amount" form="save-form" type="number" class="water-bill w-20 border border-blue-300 rounded px-2 py-1 text-sm text-right" value="{{printf "%.0f" .WaterBill}}" oninput="onWaterManual()">
+            <input name="water_amount" form="save-form" type="number" class="water-bill w-20 border border-ol-variant rounded px-2 py-1 text-sm text-right" value="{{printf "%.0f" .WaterBill}}" oninput="onWaterManual()">
           </td>
           <td class="py-1.5 text-right">
-            <input name="water_per_room" form="save-form" type="number" class="water-per-room w-20 border border-blue-300 rounded px-2 py-1 text-sm text-right" value="{{printf "%.0f" .WaterPerRoomOverride}}" oninput="onWaterManual()">
+            <input name="water_per_room" form="save-form" type="number" class="water-per-room w-20 border border-ol-variant rounded px-2 py-1 text-sm text-right" value="{{printf "%.0f" .WaterPerRoomOverride}}" oninput="onWaterManual()">
           </td>
         </tr>
       </tbody>
@@ -71,18 +71,18 @@
   <div class="md:hidden space-y-2">
     <div class="grid grid-cols-2 gap-2">
       <div>
-        <label class="text-xs text-blue-600 block mb-0.5">Initial</label>
-        <input name="water_initial" form="save-form" type="number" class="water-initial w-full border border-blue-300 rounded px-2 py-1 text-sm" value="{{.WaterMeter.InitialReading}}" oninput="recalcAll()">
+        <label class="text-xs text-on-sf-variant block mb-0.5">Initial</label>
+        <input name="water_initial" form="save-form" type="number" class="water-initial w-full border border-ol-variant rounded px-2 py-1 text-sm" value="{{.WaterMeter.InitialReading}}" oninput="recalcAll()">
       </div>
       <div>
-        <label class="text-xs text-blue-600 block mb-0.5">Current</label>
-        <input name="water_current" form="save-form" type="number" class="water-current w-full border border-blue-300 rounded px-2 py-1 text-sm" value="{{.WaterMeter.CurrentReading}}" oninput="recalcAll()">
+        <label class="text-xs text-on-sf-variant block mb-0.5">Current</label>
+        <input name="water_current" form="save-form" type="number" class="water-current w-full border border-ol-variant rounded px-2 py-1 text-sm" value="{{.WaterMeter.CurrentReading}}" oninput="recalcAll()">
       </div>
     </div>
     <div class="flex justify-between text-sm">
-      <span class="text-blue-600">Units: <input name="water_units" form="save-form" type="number" class="water-units w-16 border border-blue-300 rounded px-1 py-0.5 text-sm" value="{{.WaterUnits}}" oninput="onWaterManual()"></span>
-      <span class="text-blue-600">Bill: <input name="water_amount" form="save-form" type="number" class="water-bill w-16 border border-blue-300 rounded px-1 py-0.5 text-sm" value="{{printf "%.0f" .WaterBill}}" oninput="onWaterManual()"></span>
-      <span class="text-blue-600">Per Room: <input name="water_per_room" form="save-form" type="number" class="water-per-room w-16 border border-blue-300 rounded px-1 py-0.5 text-sm" value="{{printf "%.0f" .WaterPerRoomOverride}}" oninput="onWaterManual()"></span>
+      <span class="text-on-sf-variant">Units: <input name="water_units" form="save-form" type="number" class="water-units w-16 border border-ol-variant rounded px-1 py-0.5 text-sm" value="{{.WaterUnits}}" oninput="onWaterManual()"></span>
+      <span class="text-on-sf-variant">Bill: <input name="water_amount" form="save-form" type="number" class="water-bill w-16 border border-ol-variant rounded px-1 py-0.5 text-sm" value="{{printf "%.0f" .WaterBill}}" oninput="onWaterManual()"></span>
+      <span class="text-on-sf-variant">Per Room: <input name="water_per_room" form="save-form" type="number" class="water-per-room w-16 border border-ol-variant rounded px-1 py-0.5 text-sm" value="{{printf "%.0f" .WaterPerRoomOverride}}" oninput="onWaterManual()"></span>
     </div>
   </div>
 </div>
@@ -130,8 +130,8 @@
             <td class="py-1.5 pr-2" colspan="3">
               <div class="font-medium text-sm">Water Share</div>
             </td>
-            <td class="py-1.5 text-right"><span class="water-share-units font-semibold text-sm text-blue-700">--</span></td>
-            <td class="py-1.5 text-right"><span class="water-share-amount font-semibold text-sm text-blue-700">--</span></td>
+            <td class="py-1.5 text-right"><span class="water-share-units font-semibold text-sm text-on-sf-variant">--</span></td>
+            <td class="py-1.5 text-right"><span class="water-share-amount font-semibold text-sm text-on-sf-variant">--</span></td>
           </tr>
           {{end}}
         </tbody>
@@ -160,11 +160,11 @@
       </div>
       {{end}}
       {{if and $.HasWaterMeter $.WaterPerRoom}}
-      <div class="bg-blue-50 rounded-lg p-3 space-y-2 border border-blue-200">
+      <div class="bg-sf-lowest rounded-lg p-3 space-y-2 border border-ol-variant">
         <div class="font-medium text-sm">Water Share</div>
         <div class="flex justify-between text-sm">
-          <span class="text-blue-700">Units: <span class="water-share-units font-semibold">--</span></span>
-          <span class="text-blue-700">Amount: <span class="water-share-amount font-semibold">--</span></span>
+          <span class="text-on-sf-variant">Units: <span class="water-share-units font-semibold">--</span></span>
+          <span class="text-on-sf-variant">Amount: <span class="water-share-amount font-semibold">--</span></span>
         </div>
       </div>
       {{end}}
