@@ -44,8 +44,14 @@
       </div>
       {{if gt .DiscountAmount 0.0}}
       <div class="flex justify-between">
-        <span class="text-on-sf-variant">Discount</span>
-        <span class="font-semibold text-green-700">−₹{{printf "%.0f" .DiscountAmount}}</span>
+        <span class="text-on-sf-variant">Rent Discount</span>
+        <span class="text-green-700">−₹{{printf "%.0f" .DiscountAmount}}</span>
+      </div>
+      {{end}}
+      {{if gt .MonthlyDiscount 0.0}}
+      <div class="flex justify-between">
+        <span class="text-on-sf-variant">Monthly Discount{{if .MonthlyDiscountNote}} <span class="text-[10px] italic">({{.MonthlyDiscountNote}})</span>{{end}}</span>
+        <span class="text-green-700">−₹{{printf "%.0f" .MonthlyDiscount}}</span>
       </div>
       {{end}}
       {{if .HasMaintenance}}

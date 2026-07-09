@@ -480,6 +480,8 @@ type RoomPaymentCard struct {
 	MaintenanceAmt                                         float64
 	ElectricityAmt                                         float64
 	WaterAmt                                               float64
+	MonthlyDiscount                                        float64
+	MonthlyDiscountNote                                    string
 	TotalDue                                               float64
 	HasPaid                                                bool
 	BillID, BillStatus                                     string
@@ -556,13 +558,13 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 		if c.DiscountAmount < 0 {
 			c.DiscountAmount = 0
 		}
+		c.MonthlyDiscount = billDiscount
+		c.MonthlyDiscountNote = billDiscountNote
 		c.HasPaid = c.PaymentID != ""
 
 		if billID != "" {
-			c.ElectricityAmt = billElec
 			c.ElectricityAmt = billElec + billWater
 			c.WaterAmt = 0
-			c.DiscountAmount = billDiscount
 			c.TotalDue = billTotal - billDiscount
 		} else {
 			c.TotalDue = c.RentAmount
