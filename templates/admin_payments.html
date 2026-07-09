@@ -20,7 +20,7 @@
 {{if .Cards}}
 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
   {{range .Cards}}
-  <form method="POST" action="/admin/payments/save" class="rounded-xl p-4 {{if .HasPaid}}bg-green-50 border border-green-300{{else}}bg-sf-lowest border border-ol-variant{{end}}">
+  <form method="POST" action="/admin/payments/save" class="rounded-xl p-4 flex flex-col {{if .HasPaid}}bg-green-50 border border-green-300{{else}}bg-sf-lowest border border-ol-variant{{end}}">
     <input type="hidden" name="action" value="complete">
     <input type="hidden" name="tenant_id" value="{{.TenantID}}">
     <input type="hidden" name="month" value="{{$.Month}}">
@@ -63,7 +63,7 @@
     </div>
 
     <!-- Discount Row -->
-    <div class="flex items-center gap-2 mb-2 p-2 bg-sf-low rounded-lg">
+    <div class="flex items-center gap-2 mb-2 p-2 rounded-lg">
       <div class="flex-1">
         <label class="block text-sm text-on-sf-variant mb-1">Note</label>
         <input name="discount_note" type="text" placeholder="Reason" value="{{.MonthlyDiscountNote}}" class="w-full border border-ol-variant rounded-lg px-2 py-1.5 text-sm" {{if .HasPaid}}disabled{{end}}>
@@ -74,16 +74,9 @@
       </div>
     </div>
 
-    <!-- Total -->
-    <div class="flex justify-between items-center mb-2 px-3 py-1.5 bg-primary/5 rounded-lg">
-      <span class="text-lg font-bold">Total Due</span>
-      <span class="total-due-display text-xl font-bold text-primary">₹{{printf "%.0f" .TotalDue}}</span>
-      <input type="hidden" name="amount" value="{{printf "%.0f" .TotalDue}}">
-      <input type="hidden" name="maintenance_amount" value="{{printf "%.0f" .MaintenanceAmt}}">
-    </div>
-
-    <!-- Action Row -->
-    <div class="space-y-1.5 pt-1.5 border-t border-ol-variant/30">
+    <!-- Bottom Section -->
+    <div class="mt-auto pt-2 space-y-2">
+      <!-- Method / Date / Paid To -->
       <div class="flex items-center gap-1.5">
         <select name="method" class="flex-1 border border-ol-variant rounded-lg px-2 py-1.5 text-sm" {{if .HasPaid}}disabled{{end}}>
           <option>{{if .HasPaid}}{{.PaymentMethod}}{{else}}Cash{{end}}</option>
@@ -93,6 +86,16 @@
           <option value="">{{if .HasPaid}}{{.PaidTo}}{{else}}Paid to{{end}}</option>
         </select>
       </div>
+
+      <!-- Total Due -->
+      <div class="flex justify-between items-center px-3 py-1.5 bg-primary/5 rounded-lg">
+        <span class="text-lg font-bold">Total Due</span>
+        <span class="total-due-display text-xl font-bold text-primary">₹{{printf "%.0f" .TotalDue}}</span>
+        <input type="hidden" name="amount" value="{{printf "%.0f" .TotalDue}}">
+        <input type="hidden" name="maintenance_amount" value="{{printf "%.0f" .MaintenanceAmt}}">
+      </div>
+
+      <!-- Action Button -->
       {{if .HasPaid}}
       <button type="button" onclick="undoPayment('{{.PaymentID}}', '{{$.Month}}')" class="w-full bg-red-50 text-error border border-red-200 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-100">↩ Undo Payment</button>
       {{else}}
