@@ -280,7 +280,7 @@
 <div class="bg-sf-lowest rounded-xl p-5 border border-ol-variant mb-4">
   <h3 class="font-semibold text-sm mb-3">Change Password</h3>
   <form method="POST" action="/tenant/change-password" class="space-y-3">
-    <input type="password" name="new_password" required minlength="4" placeholder="New password (min 4 characters)"
+    <input type="password" name="new_password" autocomplete="new-password" required minlength="4" placeholder="New password (min 4 characters)"
       class="w-full px-4 py-2.5 bg-sf-low border border-ol-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
     <button type="submit" class="w-full bg-primary text-on-primary py-2.5 rounded-lg text-sm font-semibold">Update Password</button>
   </form>

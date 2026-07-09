@@ -78,10 +78,10 @@
 </div>
 
 {{if .Error}}
-<div class="mx-4 mt-4 lg:ml-64 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{{.Error}}</div>
+<div class="flash-msg mx-4 mt-4 lg:ml-64 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{{.Error}}</div>
 {{end}}
 {{if .Msg}}
-<div class="mx-4 mt-4 lg:ml-64 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">{{.Msg}}</div>
+<div class="flash-msg mx-4 mt-4 lg:ml-64 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">{{.Msg}}</div>
 {{end}}
 
 <main class="lg:ml-64 min-h-[calc(100vh-12rem)]">
@@ -122,7 +122,7 @@ document.querySelectorAll('#tenant-sidebar a').forEach(function(a) {
   a.addEventListener('click', function() { closeSidebar(); });
 });
 document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.bg-red-50, .bg-green-50').forEach(function(el) {
+  document.querySelectorAll('.flash-msg').forEach(function(el) {
     setTimeout(function() { el.style.display = 'none'; }, 5000);
   });
 });
