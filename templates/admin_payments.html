@@ -63,7 +63,6 @@
     </div>
 
     <!-- Discount Row -->
-    {{if not .HasPaid}}
     <div class="flex items-center gap-3 mb-3 p-3 bg-sf-low rounded-lg">
       <div class="flex-1">
         <label class="block text-sm text-on-sf-variant mb-1">Note</label>
@@ -74,7 +73,6 @@
         <input name="discount_amount" type="number" value="0" class="w-full border border-ol-variant rounded-lg px-3 py-2 text-base">
       </div>
     </div>
-    {{end}}
 
     <!-- Total -->
     <div class="flex justify-between items-center mb-3 px-3 py-2 bg-primary/5 rounded-lg">
@@ -85,28 +83,22 @@
     </div>
 
     <!-- Action Row -->
-    {{if .HasPaid}}
-    <div class="flex items-center gap-2 pt-2 border-t border-green-200">
-      <div class="flex-1 text-base text-green-800 font-medium">
-        Paid ₹{{printf "%.0f" .PaymentAmount}} via {{.PaymentMethod}}{{if .PaidTo}} to {{.PaidTo}}{{end}} on {{.PaymentDate}}
-      </div>
-      <button type="button" onclick="undoPayment('{{.PaymentID}}', '{{$.Month}}')" class="text-base bg-red-50 text-error border border-red-200 px-3 py-2 rounded-lg font-semibold hover:bg-red-100 whitespace-nowrap">↩ Undo</button>
-    </div>
-    {{else}}
     <div class="space-y-2 pt-2 border-t border-ol-variant/30">
       <div class="flex items-center gap-2">
-        <select name="method" class="flex-1 border border-ol-variant rounded-lg px-3 py-2 text-base">
-          <option>Cash</option><option>UPI</option><option>Bank Transfer</option>
+        <select name="method" class="flex-1 border border-ol-variant rounded-lg px-3 py-2 text-base" {{if .HasPaid}}disabled{{end}}>
+          <option>{{if .HasPaid}}{{.PaymentMethod}}{{else}}Cash{{end}}</option>
         </select>
-        <input name="date" type="date" value="{{$.Month}}-01" class="flex-1 border border-ol-variant rounded-lg px-3 py-2 text-base">
-        <select name="paid_to" class="flex-1 border border-ol-variant rounded-lg px-3 py-2 text-base">
-          <option value="">Paid to</option>
-          <option>Shashi</option><option>Sarla</option><option>Hament</option><option>Bhoop Singh</option>
+        <input name="date" type="date" value="{{if .HasPaid}}{{.PaymentDate}}{{else}}{{$.Month}}-01{{end}}" class="flex-1 border border-ol-variant rounded-lg px-3 py-2 text-base" {{if .HasPaid}}disabled{{end}}>
+        <select name="paid_to" class="flex-1 border border-ol-variant rounded-lg px-3 py-2 text-base" {{if .HasPaid}}disabled{{end}}>
+          <option value="">{{if .HasPaid}}{{.PaidTo}}{{else}}Paid to{{end}}</option>
         </select>
       </div>
+      {{if .HasPaid}}
+      <button type="button" onclick="undoPayment('{{.PaymentID}}', '{{$.Month}}')" class="w-full bg-red-50 text-error border border-red-200 px-5 py-2.5 rounded-lg text-base font-semibold hover:bg-red-100">↩ Undo Payment</button>
+      {{else}}
       <button type="submit" class="w-full bg-primary text-on-primary px-5 py-2.5 rounded-lg text-base font-semibold hover:bg-primary/90">✓ Mark Paid</button>
+      {{end}}
     </div>
-    {{end}}
   </form>
   {{end}}
 </div>
