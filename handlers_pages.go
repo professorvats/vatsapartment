@@ -192,7 +192,7 @@ func getRooms() ([]Room, error) {
 		CASE WHEN EXISTS (
 			SELECT 1 FROM tenants t2 WHERE t2.room_id = r.id AND (t2.end_date IS NULL OR t2.end_date = '')
 		) THEN 'occupied' ELSE 'vacant' END as status
-		FROM rooms r
+		FROM rooms r WHERE r.id != 'BUILDING'
 		ORDER BY r.floor, r.id`)
 	if err != nil {
 		return nil, err

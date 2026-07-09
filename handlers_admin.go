@@ -73,7 +73,7 @@ func handleAdminRooms(w http.ResponseWriter, r *http.Request) {
 		CASE WHEN EXISTS (
 			SELECT 1 FROM tenants t2 WHERE t2.room_id = r.id AND (t2.end_date IS NULL OR t2.end_date = '')
 		) THEN 'occupied' ELSE 'vacant' END as status
-		FROM rooms r
+		FROM rooms r WHERE r.id != 'BUILDING'
 		ORDER BY r.floor, r.id`)
 	if err != nil {
 		log.Printf("ERROR loading rooms: %v", err)
@@ -402,31 +402,14 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/admin/tenants?msg=Tenant+updated", http.StatusSeeOther)
 		return
 	} else if action == "generate_pass" || action == "reset_pass" {
-		var tenantPhone, tenantHash string
-		db.DB.QueryRow(`SELECT t.phone, COALESCE(t.password_hash, '') FROM tenants t WHERE t.id = $1`, id).Scan(&tenantPhone, &tenantHash)
-
-		autoPass := ""
-		if tenantHash == "" {
-			phone := strings.ReplaceAll(tenantPhone, " ", "")
-			if len(phone) >= 4 {
-				autoPass = "vats" + phone[len(phone)-4:]
-			} else {
-				autoPass = "vats" + phone
-			}
-		} else {
-			phone := strings.ReplaceAll(tenantPhone, " ", "")
-			if len(phone) >= 4 {
-				autoPass = "vats" + phone[len(phone)-4:]
-			} else {
-				autoPass = "vats" + phone
-			}
-		}
-		hash, err := bcrypt.GenerateFromPassword([]byte(autoPass), bcrypt.DefaultCost)
-		if err == nil {
-			db.DB.Exec("UPDATE tenants SET password_hash = $1, updated_at = NOW() WHERE id = $2", string(hash), id)
-		}
-
-		http.Redirect(w, r, "/admin/tenants?msg="+url.QueryEscape("Login+created+|+Password:+ "+autoPass), http.StatusSeeOther)
+		var roomNum string
+		db.DB.QueryRow(`SELECT COALESCE(r.room_number,'')
+			FROM tenants t LEFT JOIN rooms r ON t.room_id = r.id
+			WHERE t.id = $1`, id).Scan(&roomNum)
+		passNum := fmt.Sprintf("VATS%s%s", roomNum, time.Now().Format("20060102"))
+		passHash, _ := bcrypt.GenerateFromPassword([]byte(passNum), bcrypt.DefaultCost)
+		db.DB.Exec("UPDATE tenants SET pass_number=$1, pass_issued_at=NOW(), password_hash=$2, updated_at=NOW() WHERE id=$3", passNum, string(passHash), id)
+		http.Redirect(w, r, "/admin/tenants?msg="+url.QueryEscape("Pass+generated:+ "+passNum+"+(also+login+password)"), http.StatusSeeOther)
 		return
 	} else if action == "delete" {
 		db.DB.Exec("DELETE FROM payments WHERE tenant_id = $1", id)
@@ -438,24 +421,9 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 		}
 		http.Redirect(w, r, "/admin/tenants?msg=Tenant+deleted", http.StatusSeeOther)
 		return
-	} else if action == "issue_pass" {
-		var existingPass string
-		db.DB.QueryRow("SELECT COALESCE(pass_number,'') FROM tenants WHERE id = $1", id).Scan(&existingPass)
-		if existingPass != "" {
-			http.Redirect(w, r, "/admin/tenants?msg=Pass+already+exists:+ "+existingPass, http.StatusSeeOther)
-			return
-		}
-		var roomNum, tenantName string
-		db.DB.QueryRow(`SELECT t.name, COALESCE(r.room_number,'')
-			FROM tenants t LEFT JOIN rooms r ON t.room_id = r.id
-			WHERE t.id = $1`, id).Scan(&tenantName, &roomNum)
-		passNum := fmt.Sprintf("VATS%s%s", roomNum, time.Now().Format("20060102"))
-		db.DB.Exec("UPDATE tenants SET pass_number=$1, pass_issued_at=NOW() WHERE id=$2", passNum, id)
-		http.Redirect(w, r, "/admin/tenants?msg=Pass+"+passNum+"+issued+for+"+tenantName, http.StatusSeeOther)
-		return
 	} else if action == "revoke_pass" {
-		db.DB.Exec("UPDATE tenants SET pass_number=NULL, pass_issued_at=NULL WHERE id=$1", id)
-		http.Redirect(w, r, "/admin/tenants?msg=Pass+revoked", http.StatusSeeOther)
+		db.DB.Exec("UPDATE tenants SET pass_number=NULL, pass_issued_at=NULL, password_hash=NULL WHERE id=$1", id)
+		http.Redirect(w, r, "/admin/tenants?msg=Pass+revoked+(login+disabled)", http.StatusSeeOther)
 		return
 	} else if action == "verify_tenant" {
 		notes := r.FormValue("notes")
@@ -532,7 +500,7 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 		JOIN tenants t ON t.room_id = r.id AND t.status = 'active' AND (t.end_date IS NULL OR t.end_date = '')
 		LEFT JOIN bills b ON b.tenant_id = t.id AND b.billing_month = $1
 		LEFT JOIN payments p ON p.bill_id = b.id AND p.status = 'completed'
-		ORDER BY r.room_number`, month)
+		WHERE r.id != \'BUILDING' ORDER BY r.room_number`, month)
 	if err != nil {
 		log.Printf("ERROR loading payment cards: %v", err)
 		renderAdminError(w, "Failed to load payments")

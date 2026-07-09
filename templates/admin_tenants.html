@@ -12,9 +12,8 @@
         <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Name</th>
         <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Contact</th>
         <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Room</th>
-        <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Pass</th>
+        <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Pass / Login</th>
         <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Verification</th>
-        <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Login</th>
         <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Status</th>
         <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Actions</th>
       </tr>
@@ -34,8 +33,7 @@
               {{.PassNumber}}
             </span>
             <div class="flex items-center gap-1.5">
-              <a href="https://wa.me/91{{.Phone}}?text={{urlquery (printf "🏠 *Welcome to Vats Apartment!*\n\nHi %s, your room is ready! 🎉\n\n*Room:* %s\n\n🔑 *Login:* https://vatsapartment.com/login?mode=tenant&phone=%s\n*Username:* %s\n\nAccess your dashboard & payments anytime.\n\nEnjoy your stay! 📍 Near LPU, Jalandhar" .Name .RoomNumber .Phone .Phone)}}"
-                 target="_blank" class="text-[10px] text-green-600 font-semibold hover:underline">Share</a>
+              <a href="https://wa.me/91{{.Phone}}?text={{urlquery (printf "\U0001f3e0 *Welcome to Vats Apartment!*\n\nHi %s, your room is ready! \U0001f389\n\n*Room:* %s\n\n\U0001f511 *Login Details:*\nhttps://vatsapartment.com/login\n*Phone:* %s\n*Password:* %s\n\nAccess your dashboard & payments anytime.\n\nEnjoy your stay! \U0001f4cd Near LPU, Jalandhar" .Name .RoomNumber .Phone .PassNumber)}}" target="_blank" class="text-[10px] text-green-600 font-semibold hover:underline">Share</a>
               <button onclick="customMsg('{{jsStr .Name}}','{{.Phone}}','{{jsStr .PassNumber}}','{{jsStr .RoomNumber}}')"
                       class="text-[10px] text-secondary font-semibold hover:underline">Custom</button>
               <form method="POST" action="/admin/tenants/save" class="inline">
@@ -47,7 +45,7 @@
           </div>
           {{else}}
           <form method="POST" action="/admin/tenants/save" class="inline">
-            <input type="hidden" name="action" value="issue_pass">
+            <input type="hidden" name="action" value="generate_pass">
             <input type="hidden" name="id" value="{{.ID}}">
             <button type="submit" class="text-xs text-primary font-medium hover:underline">Generate</button>
           </form>
@@ -90,22 +88,6 @@
           </div>
           {{else}}
           <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-gray-50 text-on-sf-variant border border-ol-variant">Not Submitted</span>
-          {{end}}
-        </td>
-        <td class="px-3 py-3">
-          {{if .HasPassword}}
-          <form method="POST" action="/admin/tenants/save" class="inline-flex items-center gap-1">
-            <input type="hidden" name="action" value="reset_pass">
-            <input type="hidden" name="id" value="{{.ID}}">
-            <span class="text-xs text-success">✓ Active</span>
-            <button type="submit" class="text-[10px] text-primary hover:underline ml-1">Reset</button>
-          </form>
-          {{else}}
-          <form method="POST" action="/admin/tenants/save" class="inline">
-            <input type="hidden" name="action" value="generate_pass">
-            <input type="hidden" name="id" value="{{.ID}}">
-            <button type="submit" class="text-xs text-primary hover:underline font-medium">Create Login</button>
-          </form>
           {{end}}
         </td>
         <td class="px-3 py-3">
