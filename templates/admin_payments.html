@@ -1,7 +1,7 @@
 {{template "admin_header" .}}
 
 <!-- Month Selector -->
-<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
   <div class="flex items-center gap-2">
     {{if .PrevMonth}}<a href="?month={{.PrevMonth}}" class="text-on-sf-variant hover:text-primary p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></a>{{end}}
     <h1 class="text-2xl font-bold min-w-[160px] text-center">{{.MonthLabel}}</h1>
@@ -11,23 +11,23 @@
   <form method="POST" action="/admin/bills/generate" class="inline">
     <input type="hidden" name="action" value="generate">
     <input type="hidden" name="month" value="{{.Month}}">
-    <button type="submit" class="bg-secondary text-on-secondary px-5 py-2.5 rounded-lg text-base font-semibold hover:bg-secondary/90">⚡ Generate Bills</button>
+    <button type="submit" class="bg-secondary text-on-secondary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-secondary/90">⚡ Generate Bills</button>
   </form>
   {{end}}
 </div>
 
 <!-- Room Cards -->
 {{if .Cards}}
-<div class="grid grid-cols-2 gap-4">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
   {{range .Cards}}
-  <form method="POST" action="/admin/payments/save" class="rounded-xl p-6 {{if .HasPaid}}bg-green-50 border border-green-300{{else}}bg-sf-lowest border border-ol-variant{{end}}">
+  <form method="POST" action="/admin/payments/save" class="rounded-xl p-4 {{if .HasPaid}}bg-green-50 border border-green-300{{else}}bg-sf-lowest border border-ol-variant{{end}}">
     <input type="hidden" name="action" value="complete">
     <input type="hidden" name="tenant_id" value="{{.TenantID}}">
     <input type="hidden" name="month" value="{{$.Month}}">
     <input type="hidden" name="month_covered" value="{{$.Month}}">
 
     <!-- Header -->
-    <div class="flex items-center justify-between mb-3">
+    <div class="flex items-center justify-between mb-2">
       <h3 class="text-lg font-bold">Room {{.RoomNumber}} <span class="text-on-sf-variant font-normal">— {{.TenantName}}</span></h3>
       {{if .HasPaid}}
       <span class="text-sm font-semibold px-3 py-1 rounded-full bg-green-600 text-white">Paid</span>
@@ -37,7 +37,7 @@
     </div>
 
     <!-- Amounts -->
-    <div class="space-y-1.5 mb-3 text-base">
+    <div class="space-y-1 mb-2 text-base">
       <div class="flex justify-between">
         <span class="text-on-sf-variant">Room Rent</span>
         <span class="font-semibold">₹{{printf "%.0f" .RoomPrice}}</span>
@@ -63,19 +63,19 @@
     </div>
 
     <!-- Discount Row -->
-    <div class="flex items-center gap-3 mb-3 p-3 bg-sf-low rounded-lg">
+    <div class="flex items-center gap-2 mb-2 p-2 bg-sf-low rounded-lg">
       <div class="flex-1">
         <label class="block text-sm text-on-sf-variant mb-1">Note</label>
-        <input name="discount_note" type="text" placeholder="Reason" value="{{.MonthlyDiscountNote}}" class="w-full border border-ol-variant rounded-lg px-3 py-2 text-base" {{if .HasPaid}}disabled{{end}}>
+        <input name="discount_note" type="text" placeholder="Reason" value="{{.MonthlyDiscountNote}}" class="w-full border border-ol-variant rounded-lg px-2 py-1.5 text-sm" {{if .HasPaid}}disabled{{end}}>
       </div>
       <div class="w-24">
         <label class="block text-sm text-on-sf-variant mb-1">Discount</label>
-        <input name="discount_amount" type="number" value="{{if gt .MonthlyDiscount 0.0}}{{printf "%.0f" .MonthlyDiscount}}{{end}}" class="w-full border border-ol-variant rounded-lg px-3 py-2 text-base" {{if .HasPaid}}disabled{{end}}>
+        <input name="discount_amount" type="number" value="{{if gt .MonthlyDiscount 0.0}}{{printf "%.0f" .MonthlyDiscount}}{{end}}" class="w-full border border-ol-variant rounded-lg px-2 py-1.5 text-sm" {{if .HasPaid}}disabled{{end}}>
       </div>
     </div>
 
     <!-- Total -->
-    <div class="flex justify-between items-center mb-3 px-3 py-2 bg-primary/5 rounded-lg">
+    <div class="flex justify-between items-center mb-2 px-3 py-1.5 bg-primary/5 rounded-lg">
       <span class="text-lg font-bold">Total Due</span>
       <span class="total-due-display text-xl font-bold text-primary">₹{{printf "%.0f" .TotalDue}}</span>
       <input type="hidden" name="amount" value="{{printf "%.0f" .TotalDue}}">
@@ -83,20 +83,20 @@
     </div>
 
     <!-- Action Row -->
-    <div class="space-y-2 pt-2 border-t border-ol-variant/30">
-      <div class="flex items-center gap-2">
-        <select name="method" class="flex-1 border border-ol-variant rounded-lg px-3 py-2 text-base" {{if .HasPaid}}disabled{{end}}>
+    <div class="space-y-1.5 pt-1.5 border-t border-ol-variant/30">
+      <div class="flex items-center gap-1.5">
+        <select name="method" class="flex-1 border border-ol-variant rounded-lg px-2 py-1.5 text-sm" {{if .HasPaid}}disabled{{end}}>
           <option>{{if .HasPaid}}{{.PaymentMethod}}{{else}}Cash{{end}}</option>
         </select>
-        <input name="date" type="date" value="{{if .HasPaid}}{{.PaymentDate}}{{else}}{{$.Month}}-01{{end}}" class="flex-1 border border-ol-variant rounded-lg px-3 py-2 text-base" {{if .HasPaid}}disabled{{end}}>
-        <select name="paid_to" class="flex-1 border border-ol-variant rounded-lg px-3 py-2 text-base" {{if .HasPaid}}disabled{{end}}>
+        <input name="date" type="date" value="{{if .HasPaid}}{{.PaymentDate}}{{else}}{{$.Month}}-01{{end}}" class="flex-1 border border-ol-variant rounded-lg px-2 py-1.5 text-sm" {{if .HasPaid}}disabled{{end}}>
+        <select name="paid_to" class="flex-1 border border-ol-variant rounded-lg px-2 py-1.5 text-sm" {{if .HasPaid}}disabled{{end}}>
           <option value="">{{if .HasPaid}}{{.PaidTo}}{{else}}Paid to{{end}}</option>
         </select>
       </div>
       {{if .HasPaid}}
-      <button type="button" onclick="undoPayment('{{.PaymentID}}', '{{$.Month}}')" class="w-full bg-red-50 text-error border border-red-200 px-5 py-2.5 rounded-lg text-base font-semibold hover:bg-red-100">↩ Undo Payment</button>
+      <button type="button" onclick="undoPayment('{{.PaymentID}}', '{{$.Month}}')" class="w-full bg-red-50 text-error border border-red-200 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-100">↩ Undo Payment</button>
       {{else}}
-      <button type="submit" class="w-full bg-primary text-on-primary px-5 py-2.5 rounded-lg text-base font-semibold hover:bg-primary/90">✓ Mark Paid</button>
+      <button type="submit" class="w-full bg-primary text-on-primary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90">✓ Mark Paid</button>
       {{end}}
     </div>
   </form>
