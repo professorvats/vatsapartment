@@ -62,8 +62,8 @@
       {{end}}
     </div>
 
-    {{if not .HasPaid}}
     <!-- Discount Row -->
+    {{if not .HasPaid}}
     <div class="flex items-center gap-3 mb-3 p-3 bg-sf-low rounded-lg">
       <div class="flex-1">
         <label class="block text-sm text-on-sf-variant mb-1">Note</label>
@@ -87,8 +87,8 @@
     <!-- Action Row -->
     {{if .HasPaid}}
     <div class="flex items-center gap-2 pt-2 border-t border-green-200">
-      <div class="flex-1 text-base bg-green-100 rounded-lg p-2.5">
-        Paid <strong>₹{{printf "%.0f" .PaymentAmount}}</strong> on {{.PaymentDate}}{{if .PaymentMethod}} via {{.PaymentMethod}}{{if .PaidTo}} to {{.PaidTo}}{{end}}{{end}}{{if .PaymentNotes}} — {{.PaymentNotes}}{{end}}
+      <div class="flex-1 text-base text-green-800 font-medium">
+        Paid ₹{{printf "%.0f" .PaymentAmount}} via {{.PaymentMethod}}{{if .PaidTo}} to {{.PaidTo}}{{end}} on {{.PaymentDate}}
       </div>
       <button type="button" onclick="undoPayment('{{.PaymentID}}', '{{$.Month}}')" class="text-base bg-red-50 text-error border border-red-200 px-3 py-2 rounded-lg font-semibold hover:bg-red-100 whitespace-nowrap">↩ Undo</button>
     </div>
