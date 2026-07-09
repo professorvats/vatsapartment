@@ -1,7 +1,7 @@
 {{template "admin_header" .}}
 
 <!-- Month Selector -->
-<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
   <div class="flex items-center gap-2">
     {{if .PrevMonth}}<a href="?month={{.PrevMonth}}" class="text-on-sf-variant hover:text-primary p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></a>{{end}}
     <h1 class="text-2xl font-bold min-w-[160px] text-center">{{.MonthLabel}}</h1>
@@ -11,33 +11,33 @@
   <form method="POST" action="/admin/bills/generate" class="inline">
     <input type="hidden" name="action" value="generate">
     <input type="hidden" name="month" value="{{.Month}}">
-    <button type="submit" class="bg-secondary text-on-secondary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-secondary/90">â¡ Generate Bills</button>
+    <button type="submit" class="bg-secondary text-on-secondary px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-secondary/90">⚡ Generate Bills</button>
   </form>
   {{end}}
 </div>
 
 <!-- Room Cards -->
 {{if .Cards}}
-<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
   {{range .Cards}}
-  <form method="POST" action="/admin/payments/save" class="room-card rounded-lg p-3 {{if .HasPaid}}bg-green-50 border border-green-300{{else}}bg-sf-lowest border border-ol-variant{{end}}">
+  <form method="POST" action="/admin/payments/save" class="rounded-xl p-5 {{if .HasPaid}}bg-green-50 border border-green-300{{else}}bg-sf-lowest border border-ol-variant{{end}}">
     <input type="hidden" name="action" value="complete">
     <input type="hidden" name="tenant_id" value="{{.TenantID}}">
     <input type="hidden" name="month" value="{{$.Month}}">
     <input type="hidden" name="month_covered" value="{{$.Month}}">
 
-    <!-- Card header -->
-    <div class="flex items-center justify-between mb-1.5">
-      <h3 class="text-base font-bold">Room {{.RoomNumber}} <span class="text-on-sf-variant font-normal text-sm">— {{.TenantName}}</span></h3>
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-lg font-bold">Room {{.RoomNumber}} <span class="text-on-sf-variant font-normal">— {{.TenantName}}</span></h3>
       {{if .HasPaid}}
-      <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-green-700 text-white">Paid</span>
+      <span class="text-xs font-semibold px-3 py-1 rounded-full bg-green-600 text-white">Paid</span>
       {{else}}
-      <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-yellow-600 text-white">Pending</span>
+      <span class="text-xs font-semibold px-3 py-1 rounded-full bg-yellow-600 text-white">Pending</span>
       {{end}}
     </div>
 
-    <!-- Amount rows -->
-    <div class="space-y-1 mb-1.5 text-sm">
+    <!-- Amounts -->
+    <div class="space-y-1.5 mb-3 text-sm">
       <div class="flex justify-between">
         <span class="text-on-sf-variant">Rent</span>
         <span class="font-semibold">₹{{printf "%.0f" .RentAmount}}</span>
@@ -45,13 +45,7 @@
       {{if gt .DiscountAmount 0.0}}
       <div class="flex justify-between">
         <span class="text-on-sf-variant">Rent Discount</span>
-        <span class="text-green-700">−₹{{printf "%.0f" .DiscountAmount}}</span>
-      </div>
-      {{end}}
-      {{if gt .MonthlyDiscount 0.0}}
-      <div class="flex justify-between">
-        <span class="text-on-sf-variant">Monthly Discount{{if .MonthlyDiscountNote}} <span class="text-[10px] italic">({{.MonthlyDiscountNote}})</span>{{end}}</span>
-        <span class="text-green-700">−₹{{printf "%.0f" .MonthlyDiscount}}</span>
+        <span class="text-green-600 font-medium">−₹{{printf "%.0f" .DiscountAmount}}</span>
       </div>
       {{end}}
       {{if .HasMaintenance}}
@@ -66,35 +60,49 @@
         <span class="font-semibold">₹{{printf "%.0f" (add .ElectricityAmt .WaterAmt)}}</span>
       </div>
       {{end}}
-      <div class="flex justify-between pt-1 border-t border-ol-variant/50">
-        <span class="font-bold">Total Due</span>
-        <span class="font-bold text-primary">₹{{printf "%.0f" .TotalDue}}</span>
-        <input type="hidden" name="amount" value="{{printf "%.0f" .TotalDue}}">
-        <input type="hidden" name="maintenance_amount" value="{{printf "%.0f" .MaintenanceAmt}}">
+    </div>
+
+    {{if not .HasPaid}}
+    <!-- Discount Row -->
+    <div class="flex items-center gap-3 mb-3 p-3 bg-sf-low rounded-lg">
+      <div class="flex-1">
+        <label class="block text-xs text-on-sf-variant mb-1">Discount</label>
+        <input name="discount_amount" type="number" value="0" class="w-full border border-ol-variant rounded-lg px-3 py-2 text-sm">
       </div>
+      <div class="flex-[2]">
+        <label class="block text-xs text-on-sf-variant mb-1">Note</label>
+        <input name="notes" type="text" placeholder="Reason for discount" class="w-full border border-ol-variant rounded-lg px-3 py-2 text-sm">
+      </div>
+    </div>
+    {{end}}
+
+    <!-- Total -->
+    <div class="flex justify-between items-center mb-3 px-3 py-2 bg-primary/5 rounded-lg">
+      <span class="text-base font-bold">Total Due</span>
+      <span class="text-lg font-bold text-primary">₹{{printf "%.0f" .TotalDue}}</span>
+      <input type="hidden" name="amount" value="{{printf "%.0f" .TotalDue}}">
+      <input type="hidden" name="maintenance_amount" value="{{printf "%.0f" .MaintenanceAmt}}">
     </div>
 
     <!-- Action Row -->
     {{if .HasPaid}}
-    <div class="flex items-center gap-2 mt-1 pt-2 border-t border-ol-variant/30">
-      <div class="flex-1 text-xs text-on-sf-variant bg-green-100 rounded p-1.5">
-        Paid ₹{{printf "%.0f" .PaymentAmount}} on {{.PaymentDate}}{{if .PaymentMethod}} via {{.PaymentMethod}}{{if .PaidTo}} to {{.PaidTo}}{{end}}{{end}}{{if .PaymentNotes}} — {{.PaymentNotes}}{{end}}
+    <div class="flex items-center gap-2 pt-2 border-t border-green-200">
+      <div class="flex-1 text-sm bg-green-100 rounded-lg p-2.5">
+        Paid <strong>₹{{printf "%.0f" .PaymentAmount}}</strong> on {{.PaymentDate}}{{if .PaymentMethod}} via {{.PaymentMethod}}{{if .PaidTo}} to {{.PaidTo}}{{end}}{{end}}{{if .PaymentNotes}} — {{.PaymentNotes}}{{end}}
       </div>
-      <button type="button" onclick="undoPayment('{{.PaymentID}}', '{{$.Month}}')" class="text-xs bg-red-50 text-error border border-red-200 px-2.5 py-1 rounded-lg font-semibold hover:bg-red-100 whitespace-nowrap">↩</button>
+      <button type="button" onclick="undoPayment('{{.PaymentID}}', '{{$.Month}}')" class="text-sm bg-red-50 text-error border border-red-200 px-3 py-2 rounded-lg font-semibold hover:bg-red-100 whitespace-nowrap">↩ Undo</button>
     </div>
     {{else}}
-    <div class="flex items-center gap-1.5 mt-1 pt-2 border-t border-ol-variant/30">
-      <select name="method" class="border border-ol-variant rounded px-1.5 py-1 text-[11px]">
+    <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-ol-variant/30">
+      <select name="method" class="border border-ol-variant rounded-lg px-3 py-2 text-sm">
         <option>Cash</option><option>UPI</option><option>Bank Transfer</option>
       </select>
-      <input name="date" type="date" value="{{$.Month}}-01" class="border border-ol-variant rounded px-1.5 py-1 text-[11px] w-28">
-      <select name="paid_to" class="border border-ol-variant rounded px-1.5 py-1 text-[11px]">
-        <option value="">To</option>
+      <input name="date" type="date" value="{{$.Month}}-01" class="border border-ol-variant rounded-lg px-3 py-2 text-sm">
+      <select name="paid_to" class="border border-ol-variant rounded-lg px-3 py-2 text-sm">
+        <option value="">Paid to</option>
         <option>Shashi</option><option>Sarla</option><option>Hament</option><option>Bhoop Singh</option>
       </select>
-      <input name="discount_amount" type="number" placeholder="Disc" value="0" class="w-12 border border-ol-variant rounded px-1 py-1 text-[11px]">
-      <input name="notes" type="text" placeholder="Note" class="border border-ol-variant rounded px-1.5 py-1 text-[11px] w-16">
-      <button type="submit" class="bg-primary text-on-primary px-3 py-1 rounded text-[11px] font-semibold hover:bg-primary/90 whitespace-nowrap">✓ Complete</button>
+      <button type="submit" class="bg-primary text-on-primary px-5 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 whitespace-nowrap flex-1">✓ Mark Paid</button>
     </div>
     {{end}}
   </form>
