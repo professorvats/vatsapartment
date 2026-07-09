@@ -56,14 +56,8 @@
       {{end}}
       {{if gt .ElectricityAmt 0.0}}
       <div class="flex justify-between text-sm">
-        <span class="text-on-sf-variant">Electricity</span>
-        <span class="font-semibold">₹{{printf "%.0f" .ElectricityAmt}}</span>
-      </div>
-      {{end}}
-      {{if gt .WaterAmt 0.0}}
-      <div class="flex justify-between text-sm">
-        <span class="text-on-sf-variant">Water</span>
-        <span class="font-semibold">₹{{printf "%.0f" .WaterAmt}}</span>
+        <span class="text-on-sf-variant">Electricity Bill</span>
+        <span class="font-semibold">₹{{printf "%.0f" (add .ElectricityAmt .WaterAmt)}}</span>
       </div>
       {{end}}
       <div class="flex justify-between text-sm pt-1 border-t border-ol-variant/50">
