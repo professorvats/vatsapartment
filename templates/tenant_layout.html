@@ -8,37 +8,92 @@
 <style>
   .bottom-nav a.active { color: #111111; font-weight: 600; }
   .bottom-nav a.active svg { stroke: #111111; }
+  .sidebar { transition: transform 0.25s ease; }
+  .sidebar-overlay { transition: opacity 0.25s ease; }
+  @media (max-width: 1023px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay { opacity: 0; pointer-events: none; }
+    .sidebar-overlay.show { opacity: 1; pointer-events: auto; }
+  }
 </style>
 </head>
-<body class="bg-background text-on-surface min-h-screen pb-20">
+<body class="bg-background text-on-surface min-h-screen pb-20 lg:pb-0">
 
-<!-- Top Bar -->
-<div class="sticky top-0 z-20 bg-primary text-white px-4 py-3 flex items-center justify-between">
-  <div class="flex items-center gap-2">
+<!-- Sidebar Overlay (mobile only) -->
+<div id="sidebar-overlay" class="sidebar-overlay fixed inset-0 bg-black/50 z-30 lg:hidden" onclick="closeSidebar()"></div>
+
+<!-- Sidebar (visible on lg+, slide-in on mobile) -->
+<aside id="tenant-sidebar" class="sidebar fixed top-0 left-0 h-full w-64 bg-primary z-40 flex flex-col overflow-y-auto">
+  <div class="px-5 py-4 border-b border-white/10 flex items-center gap-3">
     <img src="/static/white-logo.webp" alt="Vats Apartment" class="h-8 w-auto">
-    <span class="text-white/50 text-xs">| Tenant</span>
+    <span class="text-white/40 text-xs">Tenant Portal</span>
   </div>
-  <a href="/tenant/logout" class="text-white/60 hover:text-white text-sm flex items-center gap-1">
+
+  <nav class="flex-1 px-3 py-4 space-y-1">
+    {{$active := .Active}}
+    <a href="/tenant/dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{if eq $active "dashboard"}}bg-white/15 text-white font-semibold{{else}}text-white/65 hover:bg-white/8 hover:text-white{{end}}">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Dashboard
+    </a>
+    <a href="/tenant/payments" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{if eq $active "payments"}}bg-white/15 text-white font-semibold{{else}}text-white/65 hover:bg-white/8 hover:text-white{{end}}">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Payments
+    </a>
+    <a href="/tenant/dashboard#verification" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/65 hover:bg-white/8 hover:text-white">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      Documents
+    </a>
+  </nav>
+
+  <div class="px-3 py-4 border-t border-white/10">
+    <a href="/tenant/logout" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/50 hover:bg-white/8 hover:text-red-300">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      Logout
+    </a>
+  </div>
+</aside>
+
+<!-- Mobile Top Bar (hidden on lg+) -->
+<div class="lg:hidden sticky top-0 z-20 bg-primary text-white px-4 py-3 flex items-center justify-between">
+  <div class="flex items-center gap-2">
+    <button onclick="toggleSidebar()" class="text-white/80 hover:text-white p-1 mr-1" aria-label="Menu">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <img src="/static/white-logo.webp" alt="Vats Apartment" class="h-7 w-auto">
+    <span class="text-white/40 text-xs">Tenant</span>
+  </div>
+  <a href="/tenant/logout" class="text-white/60 hover:text-white text-sm">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+  </a>
+</div>
+
+<!-- Desktop Top Bar (hidden on mobile) -->
+<div class="hidden lg:flex sticky top-0 z-20 bg-primary text-white px-6 py-3 items-center justify-between ml-64">
+  <span class="text-base font-medium tracking-tight">Tenant Portal</span>
+  <a href="/tenant/logout" class="text-white/60 hover:text-white text-sm flex items-center gap-1.5">
     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
     Logout
   </a>
 </div>
 
 {{if .Error}}
-<div class="mx-4 mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{{.Error}}</div>
+<div class="mx-4 mt-4 lg:ml-64 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{{.Error}}</div>
 {{end}}
 {{if .Msg}}
-<div class="mx-4 mt-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">{{.Msg}}</div>
+<div class="mx-4 mt-4 lg:ml-64 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">{{.Msg}}</div>
 {{end}}
 
-<main class="max-w-2xl mx-auto px-4 py-4">
+<main class="lg:ml-64 min-h-[calc(100vh-12rem)]">
+  <div class="max-w-4xl mx-auto px-4 py-4 lg:py-6">
 {{end}}
 
 {{define "tenant_footer"}}
+  </div>
 </main>
 
-<!-- Bottom Navigation -->
-<nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-sf-lowest border-t border-ol-variant z-20 flex items-center justify-around px-2 py-2">
+<!-- Bottom Navigation (mobile only, hidden on lg+) -->
+<nav class="bottom-nav lg:hidden fixed bottom-0 left-0 right-0 bg-sf-lowest border-t border-ol-variant z-20 flex items-center justify-around px-2 py-2">
   {{$active := .Active}}
   <a href="/tenant/dashboard" class="flex flex-col items-center gap-0.5 px-3 py-1 text-xs {{if eq $active "dashboard"}}active{{end}} text-on-sf-variant">
     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -55,7 +110,17 @@
 </nav>
 
 <script>
-// Auto-hide success/error messages after 5s
+function toggleSidebar() {
+  document.getElementById('tenant-sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('tenant-sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+}
+document.querySelectorAll('#tenant-sidebar a').forEach(function(a) {
+  a.addEventListener('click', function() { closeSidebar(); });
+});
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.bg-red-50, .bg-green-50').forEach(function(el) {
     setTimeout(function() { el.style.display = 'none'; }, 5000);

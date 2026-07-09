@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"path/filepath"
 	"strings"
 	"time"
@@ -81,17 +82,20 @@ func handleTenantDashboard(w http.ResponseWriter, r *http.Request) {
 	currentMonth := time.Now().Format("2006-01")
 	type BillInfo struct {
 		RentAmount, MaintenanceAmt, ElectricityAmt, WaterAmt, TotalAmount float64
+		DiscountAmount                                                    float64
+		DiscountNote                                                      string
 		Status                                                             string
 	}
 	var currentBill BillInfo
 	db.DB.QueryRow(`
 		SELECT COALESCE(rent_amount, 0), COALESCE(maintenance_amount, 0),
 			COALESCE(electricity_amount, 0), COALESCE(water_amount, 0),
-			COALESCE(total_amount, 0), COALESCE(status, 'not_generated')
+			COALESCE(discount_amount, 0), COALESCE(discount_note, ''), COALESCE(total_amount, 0), COALESCE(status, 'not_generated')
 		FROM bills WHERE tenant_id = $1 AND billing_month = $2`,
 		tenantID, currentMonth,
 	).Scan(&currentBill.RentAmount, &currentBill.MaintenanceAmt, &currentBill.ElectricityAmt,
-		&currentBill.WaterAmt, &currentBill.TotalAmount, &currentBill.Status)
+		&currentBill.WaterAmt, &currentBill.DiscountAmount, &currentBill.DiscountNote,
+		&currentBill.TotalAmount, &currentBill.Status)
 
 	var prevMonthDue float64
 	prevMonth := time.Now().AddDate(0, -1, 0).Format("2006-01")
@@ -108,6 +112,74 @@ func handleTenantDashboard(w http.ResponseWriter, r *http.Request) {
 		tenantID,
 	).Scan(&totalPending)
 
+	// Electricity rate
+	var ratePerUnit float64 = 12
+	var unitRate string
+	db.DB.QueryRow("SELECT value FROM settings WHERE key = 'electricity_rate'").Scan(&unitRate)
+	if unitRate != "" {
+		if r, err := strconv.ParseFloat(unitRate, 64); err == nil {
+			ratePerUnit = r
+		}
+	}
+
+	// Meter readings for tenant'''s room (current month)
+	type MeterReading struct {
+		MeterType, MeterNumber         string
+		InitialReading, CurrentReading int
+		Units                          int
+		RatePerUnit                    float64
+		Amount                         float64
+	}
+	var meterReadings []MeterReading
+	if ti.RoomID != "" {
+		roomRows, mrErr := db.DB.Query(`
+			SELECT m.meter_type, m.meter_number,
+				COALESCE(mr.initial_reading, 0), COALESCE(mr.current_reading, 0),
+				COALESCE(mr.current_reading, 0) - COALESCE(mr.initial_reading, 0) as units
+			FROM meters m
+			JOIN monthly_readings mr ON mr.meter_id = m.id AND mr.billing_month = $1
+			WHERE m.room_id = $2 AND m.is_active = true AND m.room_id != 'BUILDING'
+			ORDER BY m.meter_type`, currentMonth, ti.RoomID)
+		if mrErr == nil {
+			defer roomRows.Close()
+			for roomRows.Next() {
+				var mr MeterReading
+				roomRows.Scan(&mr.MeterType, &mr.MeterNumber, &mr.InitialReading, &mr.CurrentReading, &mr.Units)
+				mr.RatePerUnit = ratePerUnit
+				mr.Amount = float64(mr.Units) * ratePerUnit
+				meterReadings = append(meterReadings, mr)
+			}
+		}
+	}
+	if meterReadings == nil {
+		meterReadings = []MeterReading{}
+	}
+
+	// Water per-room amount
+	var waterPerRoom float64
+	db.DB.QueryRow("SELECT value FROM settings WHERE key = 'water_per_room_' || $1", currentMonth).Scan(&waterPerRoom)
+
+	// Recent payments
+	type PaymentCard struct {
+		ID, Date, Method, Status, MonthCovered, Notes string
+		Amount, LateFee                               float64
+	}
+	var recentPayments []PaymentCard
+	payRows, payErr := db.DB.Query(`
+		SELECT id, amount, COALESCE(payment_date::text,''), COALESCE(payment_method,''), COALESCE(status,''), COALESCE(month_covered,''), COALESCE(late_fee,0), COALESCE(notes,'')
+		FROM payments WHERE tenant_id = $1 ORDER BY payment_date DESC LIMIT 5`, tenantID)
+	if payErr == nil {
+		defer payRows.Close()
+		for payRows.Next() {
+			var p PaymentCard
+			payRows.Scan(&p.ID, &p.Amount, &p.Date, &p.Method, &p.Status, &p.MonthCovered, &p.LateFee, &p.Notes)
+			recentPayments = append(recentPayments, p)
+		}
+	}
+	if recentPayments == nil {
+		recentPayments = []PaymentCard{}
+	}
+
 	renderPrivate(w, "tenant_dashboard.html", map[string]interface{}{
 		"Tenant":             ti,
 		"VerificationStatus": verificationStatus,
@@ -119,8 +191,13 @@ func handleTenantDashboard(w http.ResponseWriter, r *http.Request) {
 		"PrevMonthDue":       prevMonthDue,
 		"TotalPending":       totalPending,
 		"PrevMonth":          prevMonth,
+		"MeterReadings":      meterReadings,
+		"RatePerUnit":        ratePerUnit,
+		"WaterPerRoom":       waterPerRoom,
+		"RecentPayments":     recentPayments,
 		"Msg":                msg,
 		"Error":              errMsg,
+		"Active":             "dashboard",
 	})
 }
 
@@ -256,6 +333,99 @@ func handleTenantPayments(w http.ResponseWriter, r *http.Request) {
 	renderPrivate(w, "tenant_payments.html", map[string]interface{}{
 		"Payments": payments,
 		"Active":   "payments",
+	})
+}
+
+
+func handleTenantMeterDetails(w http.ResponseWriter, r *http.Request) {
+	tenantID, ok := requireTenant(w, r)
+	if !ok {
+		return
+	}
+
+	month := r.URL.Query().Get("month")
+	if month == "" {
+		month = time.Now().Format("2006-01")
+	}
+
+	var roomID string
+	db.DB.QueryRow("SELECT COALESCE(room_id,'') FROM tenants WHERE id = $1", tenantID).Scan(&roomID)
+
+	// Rate
+	var ratePerUnit float64 = 12
+	var unitRate string
+	db.DB.QueryRow("SELECT value FROM settings WHERE key = 'electricity_rate'").Scan(&unitRate)
+	if unitRate != "" {
+		if r, err := strconv.ParseFloat(unitRate, 64); err == nil {
+			ratePerUnit = r
+		}
+	}
+
+	type MeterDetail struct {
+		MeterType, MeterNumber          string
+		InitialReading, CurrentReading  int
+		Units                           int
+		RatePerUnit                     float64
+		Amount                          float64
+	}
+	var meters []MeterDetail
+	rows, err := db.DB.Query(`
+		SELECT m.meter_type, m.meter_number,
+			COALESCE(mr.initial_reading, 0), COALESCE(mr.current_reading, 0),
+			COALESCE(mr.current_reading, 0) - COALESCE(mr.initial_reading, 0) as units
+		FROM meters m
+		JOIN monthly_readings mr ON mr.meter_id = m.id AND mr.billing_month = $1
+		WHERE m.room_id = $2 AND m.is_active = true AND m.room_id != 'BUILDING'
+		ORDER BY m.meter_type`, month, roomID)
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var md MeterDetail
+			rows.Scan(&md.MeterType, &md.MeterNumber, &md.InitialReading, &md.CurrentReading, &md.Units)
+			md.RatePerUnit = ratePerUnit
+			md.Amount = float64(md.Units) * ratePerUnit
+			meters = append(meters, md)
+		}
+	}
+	if meters == nil {
+		meters = []MeterDetail{}
+	}
+
+	// Water share
+	var waterPerRoom float64
+	var waterUnits int
+	var occupiedCount int
+	db.DB.QueryRow("SELECT value FROM settings WHERE key = 'water_per_room_' || $1", month).Scan(&waterPerRoom)
+	db.DB.QueryRow("SELECT COUNT(*) FROM tenants WHERE status = 'active' AND room_id IS NOT NULL AND (end_date IS NULL OR end_date = '')").Scan(&occupiedCount)
+	if waterPerRoom == 0 && occupiedCount > 0 {
+		var buildingUnits int
+		db.DB.QueryRow(`
+			SELECT COALESCE(SUM(mr.current_reading - mr.initial_reading), 0)
+			FROM meters m
+			JOIN monthly_readings mr ON mr.meter_id = m.id AND mr.billing_month = $1
+			WHERE m.room_id = 'BUILDING' AND m.meter_type = 'Water' AND m.is_active = true`, month).Scan(&buildingUnits)
+		waterUnits = buildingUnits
+		if occupiedCount > 0 {
+			waterPerRoom = (float64(buildingUnits) / float64(occupiedCount)) * ratePerUnit
+		}
+	} else if occupiedCount > 0 {
+		waterUnits = int(waterPerRoom / ratePerUnit * float64(occupiedCount))
+	}
+
+	monthLabel := month
+	if t, err := time.Parse("2006-01", month); err == nil {
+		monthLabel = t.Format("January 2006")
+	}
+
+	renderPrivate(w, "tenant_meter_details.html", map[string]interface{}{
+		"Meters":        meters,
+		"Month":         month,
+		"MonthLabel":    monthLabel,
+		"RatePerUnit":   ratePerUnit,
+		"WaterPerRoom":  waterPerRoom,
+		"WaterUnits":    waterUnits,
+		"OccupiedCount": occupiedCount,
+		"Active":        "payments",
 	})
 }
 
