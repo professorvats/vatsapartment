@@ -51,7 +51,7 @@
 
     {{if or (gt .ElectricityAmt 0.0) (gt .WaterAmt 0.0)}}
     <div class="flex justify-between text-sm">
-      <span class="text-on-surface">Electricity Bill</span>
+      <span class="text-on-surface">Electricity Bill <a href="/tenant/meter-details" class="text-primary hover:underline text-[11px] font-medium ml-1">View Details →</a></span>
       <span class="font-semibold text-on-surface">₹{{printf "%.0f" (add .ElectricityAmt .WaterAmt)}}</span>
     </div>
     {{end}}

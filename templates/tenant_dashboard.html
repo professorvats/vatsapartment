@@ -81,17 +81,10 @@
     </div>
     {{end}}
 
-    {{if gt .CurrentBill.ElectricityAmt 0.0}}
+    {{if or (gt .CurrentBill.ElectricityAmt 0.0) (gt .CurrentBill.WaterAmt 0.0)}}
     <div class="flex justify-between">
-      <span class="text-on-sf-variant">Electricity <button onclick="openMeterModal()" class="text-primary hover:underline text-[11px] font-medium ml-1">View Details &#8594;</button></span>
-      <span class="font-medium">₹{{printf "%.0f" .CurrentBill.ElectricityAmt}}</span>
-    </div>
-    {{end}}
-
-    {{if gt .CurrentBill.WaterAmt 0.0}}
-    <div class="flex justify-between">
-      <span class="text-on-sf-variant">Water</span>
-      <span class="font-medium">₹{{printf "%.0f" .CurrentBill.WaterAmt}}</span>
+      <span class="text-on-sf-variant">Electricity Bill <button onclick="openMeterModal()" class="text-primary hover:underline text-[11px] font-medium ml-1">View Details &#8594;</button></span>
+      <span class="font-medium">₹{{printf "%.0f" (add .CurrentBill.ElectricityAmt .CurrentBill.WaterAmt)}}</span>
     </div>
     {{end}}
 
