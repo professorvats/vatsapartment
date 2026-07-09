@@ -207,9 +207,12 @@ func handleTenantVerificationUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.ParseMultipartForm(10 << 20)
-	lpuFile, lpuHeader, _ := r.FormFile("lpu_id_photo")
-	aadharFile, aadharHeader, _ := r.FormFile("aadhar_photo")
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Redirect(w, r, "/tenant/dashboard?error=Upload+failed:+file+too+large+(max+10MB)", http.StatusSeeOther)
+		return
+	}
+	lpuFile, lpuHeader, lpuErr := r.FormFile("lpu_id_photo")
+	aadharFile, aadharHeader, aadharErr := r.FormFile("aadhar_photo")
 
 	saveFile := func(file io.Reader, header *http.Header, prefix string) string {
 		if file == nil {
@@ -230,12 +233,14 @@ func handleTenantVerificationUpload(w http.ResponseWriter, r *http.Request) {
 			return ""
 		}
 		defer dst.Close()
-		io.Copy(dst, file)
+		if _, copyErr := io.Copy(dst, file); copyErr != nil {
+			return ""
+		}
 		return "/uploads/" + filename
 	}
 
 	var lpuPath, aadharPath string
-	if lpuFile != nil {
+	if lpuFile != nil && lpuErr == nil {
 		defer lpuFile.Close()
 		contentType := ""
 		if lpuHeader != nil {
@@ -244,8 +249,11 @@ func handleTenantVerificationUpload(w http.ResponseWriter, r *http.Request) {
 		hdr := make(http.Header)
 		hdr.Set("Content-Type", contentType)
 		lpuPath = saveFile(lpuFile, &hdr, "lpu")
+	} else if lpuErr != nil {
+		http.Redirect(w, r, "/tenant/dashboard?error=Upload+failed:+could+not+read+file", http.StatusSeeOther)
+		return
 	}
-	if aadharFile != nil {
+	if aadharFile != nil && aadharErr == nil {
 		defer aadharFile.Close()
 		contentType := ""
 		if aadharHeader != nil {
@@ -254,6 +262,9 @@ func handleTenantVerificationUpload(w http.ResponseWriter, r *http.Request) {
 		hdr := make(http.Header)
 		hdr.Set("Content-Type", contentType)
 		aadharPath = saveFile(aadharFile, &hdr, "aadhar")
+	} else if aadharErr != nil {
+		http.Redirect(w, r, "/tenant/dashboard?error=Upload+failed:+could+not+read+file", http.StatusSeeOther)
+		return
 	}
 
 	if lpuPath != "" {
@@ -443,9 +454,35 @@ func getTenantIDFromSession(r *http.Request) string {
 
 func handleTenantUploadedFile(w http.ResponseWriter, r *http.Request) {
 	filePath := r.URL.Path
-	if strings.HasPrefix(filePath, "/uploads/") {
-		http.ServeFile(w, r, filePath[1:])
+	if !strings.HasPrefix(filePath, "/uploads/") {
+		http.NotFound(w, r)
 		return
 	}
+
+	// Check admin session
+	if adminCookie, err := r.Cookie("session"); err == nil && adminCookie.Value != "" {
+		var role string
+		db.DB.QueryRow("SELECT role FROM users WHERE username = $1", adminCookie.Value).Scan(&role)
+		if role == "admin" {
+			http.ServeFile(w, r, filePath[1:])
+			return
+		}
+	}
+
+	// Check tenant session — only serve if the file belongs to this tenant
+	if tenantCookie, err := r.Cookie("tenant_session"); err == nil && tenantCookie.Value != "" {
+		parts := strings.SplitN(tenantCookie.Value, ":", 2)
+		if len(parts) == 2 && parts[0] == "tenant" {
+			tenantID := parts[1]
+			// Filename format: {prefix}_{tenantID}_{timestamp}.{ext}
+			filename := filepath.Base(filePath)
+			fileParts := strings.SplitN(filename, "_", 3)
+			if len(fileParts) >= 2 && fileParts[1] == tenantID {
+				http.ServeFile(w, r, filePath[1:])
+				return
+			}
+		}
+	}
+
 	http.NotFound(w, r)
 }

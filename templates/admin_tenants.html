@@ -53,42 +53,54 @@
         </td>
         <!-- Verification column -->
         <td class="px-3 py-3">
-          {{if eq .VerificationStatus "verified"}}
-          <div class="flex flex-col gap-0.5">
-            <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-green-50 text-success border border-green-200 w-fit">Verified</span>
-            {{if .VerificationNotes}}<span class="text-[10px] text-on-sf-variant italic">{{.VerificationNotes}}</span>{{end}}
-          </div>
-          {{else if eq .VerificationStatus "pending"}}
           <div class="flex flex-col gap-1">
+            <!-- Status badge -->
+            {{if eq .VerificationStatus "verified"}}
+            <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-green-50 text-success border border-green-200 w-fit">Verified</span>
+            {{else if eq .VerificationStatus "pending"}}
             <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-amber-50 text-warning border border-amber-200 w-fit">Pending</span>
+            {{else if eq .VerificationStatus "rejected"}}
+            <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-red-50 text-error border border-red-200 w-fit">Rejected</span>
+            {{else}}
+            <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-gray-50 text-on-sf-variant border border-ol-variant">Not Submitted</span>
+            {{end}}
+
+            <!-- Document thumbnails — visible for all statuses except not_submitted -->
             {{if or .LpuPhoto .AadharPhoto}}
-            <div class="flex items-center gap-1.5">
-              {{if .LpuPhoto}}<a href="{{.LpuPhoto}}" target="_blank" class="text-[10px] text-primary font-semibold hover:underline">LPU ID</a>{{end}}
-              {{if .AadharPhoto}}<a href="{{.AadharPhoto}}" target="_blank" class="text-[10px] text-primary font-semibold hover:underline">Aadhar</a>{{end}}
+            <div class="flex items-center gap-1.5 mt-0.5">
+              {{if .LpuPhoto}}
+              <a href="{{.LpuPhoto}}" target="_blank" class="relative group" title="LPU ID Card">
+                <img src="{{.LpuPhoto}}" class="h-10 w-10 object-cover rounded border border-ol-variant hover:border-primary transition-colors" onerror="this.style.display='none'">
+              </a>
+              {{end}}
+              {{if .AadharPhoto}}
+              <a href="{{.AadharPhoto}}" target="_blank" class="relative group" title="Aadhar Card">
+                <img src="{{.AadharPhoto}}" class="h-10 w-10 object-cover rounded border border-ol-variant hover:border-primary transition-colors" onerror="this.style.display='none'">
+              </a>
+              {{end}}
             </div>
             {{end}}
-            <div class="flex items-center gap-1.5">
+
+            <!-- Notes -->
+            {{if .VerificationNotes}}<span class="text-[10px] text-on-sf-variant italic">{{.VerificationNotes}}</span>{{end}}
+
+            <!-- Actions for pending -->
+            {{if eq .VerificationStatus "pending"}}
+            <div class="flex items-center gap-1.5 mt-0.5">
               <form method="POST" action="/admin/tenants/save" class="inline">
                 <input type="hidden" name="action" value="verify_tenant">
-                <input type="hidden" name="verification_id" value="{{.VerificationID}}">
+                <input type="hidden" name="id" value="{{.ID}}">
                 <button type="submit" class="text-[10px] text-success font-semibold hover:underline">Approve</button>
               </form>
               <form method="POST" action="/admin/tenants/save" class="inline flex items-center gap-0.5">
                 <input type="hidden" name="action" value="reject_tenant">
-                <input type="hidden" name="verification_id" value="{{.VerificationID}}">
-                <input type="text" name="notes" placeholder="Reason" class="w-14 text-[10px] border border-ol-variant rounded px-1 py-0.5">
+                <input type="hidden" name="id" value="{{.ID}}">
+                <input type="text" name="notes" placeholder="Reason" class="w-16 text-[10px] border border-ol-variant rounded px-1 py-0.5">
                 <button type="submit" class="text-[10px] text-error font-semibold hover:underline">Reject</button>
               </form>
             </div>
+            {{end}}
           </div>
-          {{else if eq .VerificationStatus "rejected"}}
-          <div class="flex flex-col gap-0.5">
-            <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-red-50 text-error border border-red-200 w-fit">Rejected</span>
-            {{if .VerificationNotes}}<span class="text-[10px] text-error italic">{{.VerificationNotes}}</span>{{end}}
-          </div>
-          {{else}}
-          <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-gray-50 text-on-sf-variant border border-ol-variant">Not Submitted</span>
-          {{end}}
         </td>
         <td class="px-3 py-3">
           <form method="POST" action="/admin/tenants/save" class="inline">
