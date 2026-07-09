@@ -109,7 +109,7 @@
 {{end}}
 
 <script>
-// Live update Total Due when discount changes
+// Live update Total Due display when discount changes (don't touch hidden amount — handler calculates final)
 document.querySelectorAll('input[name="discount_amount"]').forEach(function(input) {
   var form = input.closest('form');
   var totalEl = form.querySelector('.total-due-display');
@@ -120,7 +120,6 @@ document.querySelectorAll('input[name="discount_amount"]').forEach(function(inpu
     var discount = parseFloat(this.value) || 0;
     var newTotal = Math.max(0, originalTotal - discount);
     totalEl.textContent = '₹' + newTotal.toFixed(0);
-    amountInput.value = newTotal;
   });
 });
 
