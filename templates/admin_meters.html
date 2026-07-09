@@ -172,10 +172,6 @@
 
     <!-- Totals -->
     <div class="mt-2 pt-2 border-t-2 border-ol-variant space-y-1">
-      <div class="flex justify-between items-center">
-        <span class="font-bold text-sm">Room Total</span>
-        <span class="room-total font-bold text-base">--</span>
-      </div>
       {{if and $.HasWaterMeter $.WaterPerRoom}}
       <div class="flex justify-between items-center pt-1 border-t border-ol-variant">
         <span class="font-bold text-sm">Grand Total</span>
@@ -215,7 +211,6 @@ function recalcAll() {
       roomTotal += amount;
     });
 
-    card.querySelector('.room-total').textContent = '₹' + Math.round(roomTotal);
     card.dataset.roomTotal = roomTotal;
   });
 
