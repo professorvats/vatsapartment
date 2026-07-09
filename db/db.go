@@ -283,6 +283,8 @@ func runMigrations() error {
 				notes TEXT,
 				UNIQUE(tenant_id, billing_month)
 			)`},
+		{"bill_discount", `ALTER TABLE bills ADD COLUMN IF NOT EXISTS discount_amount DOUBLE PRECISION DEFAULT 0`},
+		{"bill_discount_note", `ALTER TABLE bills ADD COLUMN IF NOT EXISTS discount_note TEXT DEFAULT ''`},
 		{"payment_bill_id", `ALTER TABLE payments ADD COLUMN IF NOT EXISTS bill_id TEXT`},
 		// ─── Indexes ──────────────────────────────────────
 		{"idx_ra_room_id", `CREATE INDEX IF NOT EXISTS idx_ra_room_id ON room_assignments(room_id)`},

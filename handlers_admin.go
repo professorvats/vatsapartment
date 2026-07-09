@@ -516,6 +516,8 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 			COALESCE(b.id, '') as bill_id,
 			COALESCE(b.electricity_amount, 0) as bill_elec,
 			COALESCE(b.water_amount, 0) as bill_water,
+			COALESCE(b.discount_amount, 0) as bill_discount,
+			COALESCE(b.discount_note, '') as bill_discount_note,
 			COALESCE(b.total_amount, 0) as bill_total,
 			COALESCE(b.status, '') as bill_status,
 			COALESCE(p.id, '') as payment_id,
@@ -539,11 +541,11 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 	var cards []RoomPaymentCard
 	for rows.Next() {
 		var c RoomPaymentCard
-		var billID, billStatus string
-		var billElec, billWater, billTotal float64
+		var billID, billStatus, billDiscountNote string
+		var billElec, billWater, billDiscount, billTotal float64
 		if err := rows.Scan(&c.RoomID, &c.RoomNumber, &c.TenantID, &c.TenantName,
 			&c.RentAmount, &c.RoomPrice, &c.HasMaintenance, &c.MaintenanceAmt,
-			&billID, &billElec, &billWater, &billTotal, &billStatus,
+			&billID, &billElec, &billWater, &billDiscount, &billDiscountNote, &billTotal, &billStatus,
 			&c.PaymentID, &c.PaymentAmount, &c.PaymentDate, &c.PaymentMethod, &c.PaymentNotes, &c.PaidTo); err != nil {
 			log.Printf("ERROR scanning payment card: %v", err)
 			continue
@@ -558,8 +560,10 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 
 		if billID != "" {
 			c.ElectricityAmt = billElec
-			c.WaterAmt = billWater
-			c.TotalDue = billTotal
+			c.ElectricityAmt = billElec + billWater
+			c.WaterAmt = 0
+			c.DiscountAmount = billDiscount
+			c.TotalDue = billTotal - billDiscount
 		} else {
 			c.TotalDue = c.RentAmount
 			if c.HasMaintenance {
@@ -733,6 +737,28 @@ func handleAdminPaymentsSave(w http.ResponseWriter, r *http.Request) {
 		db.DB.Exec("UPDATE tenants SET has_maintenance = $1, updated_at = NOW() WHERE id = $2", hasMaint, tenantID)
 		db.DB.Exec(`UPDATE rooms SET maintenance_amount = $1, updated_at = NOW()
 			WHERE id = (SELECT COALESCE(room_id,'') FROM tenants WHERE id = $2)`, maintAmt, tenantID)
+		http.Redirect(w, r, "/admin/payments?month="+monthCovered, http.StatusSeeOther)
+		return
+	} else if action == "save_discount" {
+		tenantID := r.FormValue("tenant_id")
+		discountAmt, _ := strconv.ParseFloat(r.FormValue("discount_amount"), 64)
+		discountNote := r.FormValue("discount_note")
+		monthCovered := r.FormValue("month_covered")
+		// Upsert bill with just discount
+		var billID string
+		db.DB.QueryRow(`SELECT id FROM bills WHERE tenant_id = $1 AND billing_month = $2`,
+			tenantID, monthCovered).Scan(&billID)
+		if billID != "" {
+			db.DB.Exec(`UPDATE bills SET discount_amount = $1, discount_note = $2 WHERE id = $3`,
+				discountAmt, discountNote, billID)
+		} else {
+			billID = fmt.Sprintf("BILL%d", time.Now().UnixNano())
+			var roomID string
+			db.DB.QueryRow(`SELECT COALESCE(room_id,'') FROM tenants WHERE id = $1`, tenantID).Scan(&roomID)
+			db.DB.Exec(`INSERT INTO bills (id, tenant_id, room_id, billing_month, rent_amount, total_amount, discount_amount, discount_note, status)
+				VALUES ($1, $2, $3, $4, 0, 0, $5, $6, 'pending')`,
+				billID, tenantID, roomID, monthCovered, discountAmt, discountNote)
+		}
 		http.Redirect(w, r, "/admin/payments?month="+monthCovered, http.StatusSeeOther)
 		return
 	} else if action == "toggle_maintenance" {

@@ -68,6 +68,22 @@
       </div>
     </div>
 
+    <!-- Monthly Discount -->
+    {{if not .HasPaid}}
+    <div class="flex items-center gap-2 mb-2">
+      <span class="text-xs text-on-sf-variant whitespace-nowrap">Discount ₹</span>
+      <form method="POST" action="/admin/payments/save" class="inline-flex items-center gap-1">
+        <input type="hidden" name="action" value="save_discount">
+        <input type="hidden" name="tenant_id" value="{{.TenantID}}">
+        <input type="hidden" name="month_covered" value="{{$.Month}}">
+        <input type="hidden" name="month" value="{{$.Month}}">
+        <input name="discount_amount" type="number" value="{{printf "%.0f" .DiscountAmount}}" class="w-20 border border-ol-variant rounded px-2 py-1 text-xs">
+        <input name="discount_note" type="text" placeholder="Reason" value="" class="w-24 border border-ol-variant rounded px-2 py-1 text-xs">
+        <button type="submit" class="text-xs bg-primary/10 text-primary px-2 py-1 rounded font-medium hover:bg-primary/20">Apply</button>
+      </form>
+    </div>
+    {{end}}
+
     <!-- Action -->
     <div class="flex items-center gap-2">
       {{if .HasPaid}}
