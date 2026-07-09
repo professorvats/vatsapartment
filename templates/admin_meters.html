@@ -90,9 +90,9 @@
 
 <!-- Room Cards -->
 {{if .RoomMeters}}
-<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
   {{range .RoomMeters}}
-  <div class="room-card bg-sf-lowest border border-ol-variant rounded-lg p-4">
+  <div class="room-card bg-sf-lowest border border-ol-variant rounded-xl p-4 flex flex-col">
     <div class="flex items-center justify-between mb-2">
       <h3 class="text-lg font-bold">Room {{.RoomNumber}} {{if .Occupied}}<span class="inline-flex items-center gap-1 text-sm font-medium px-2.5 py-1 rounded-full bg-green-700 text-white ml-2">Occupied</span>{{else}}<span class="inline-flex items-center gap-1 text-sm font-medium px-2.5 py-1 rounded-full bg-on-sf-variant text-white ml-2">Vacant</span>{{end}}</h3>
     </div>
@@ -171,9 +171,9 @@
     </div>
 
     <!-- Totals -->
-    <div class="pt-1 border-t border-ol-variant space-y-1">
+    <div class="mt-auto pt-2 space-y-1">
       {{if and $.HasWaterMeter $.WaterPerRoom}}
-      <div class="flex justify-between items-center pt-1 border-t border-ol-variant">
+      <div class="flex justify-between items-center">
         <span class="font-bold text-sm">Grand Total</span>
         <span class="grand-total font-bold text-base text-primary">--</span>
       </div>
