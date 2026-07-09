@@ -2,40 +2,58 @@
 
 {{$currentMonth := .CurrentMonth}}
 
-<!-- Current Pending + QR Section -->
+<!-- Current Payment Section -->
 <div class="bg-sf-lowest rounded-xl p-5 border border-ol-variant mb-4">
-  <h2 class="text-lg font-bold mb-1">Current Payment</h2>
+  <h2 class="text-lg font-bold mb-4">Current Payment</h2>
 
   {{if .PendingBills}}
   {{range .PendingBills}}
-  <div class="flex items-center justify-between mb-3">
-    <div>
+  <!-- Desktop: side-by-side layout -->
+  <div class="flex flex-col md:flex-row items-center gap-6">
+    <!-- Left: Amount + Upload -->
+    <div class="flex-1 w-full text-center md:text-left">
       <p class="text-sm text-on-sf-variant">{{.Month}} Bill</p>
-      <p class="text-2xl font-bold text-primary">₹{{printf "%.0f" .TotalAmount}}</p>
+      <p class="text-3xl font-bold text-primary mt-0.5">₹{{printf "%.0f" .TotalAmount}}</p>
+
+      {{if eq .Status "paid_by_user"}}
+      <span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-amber-50 text-warning border border-amber-200 mt-2">
+        <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+        Verifying...
+      </span>
+      {{else}}
+      <!-- Upload area inline with QR -->
+      <div class="mt-4" id="pay-form-inline">
+        <p class="text-xs font-medium text-on-sf-variant mb-2">Attach Screenshot to confirm payment</p>
+        <form method="POST" action="/tenant/payments/mark-paid" enctype="multipart/form-data">
+          <input type="hidden" name="month_covered" value="{{.Month}}">
+          <input type="hidden" name="amount" value="{{printf "%.0f" .TotalAmount}}">
+
+          <label class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-ol-variant rounded-lg cursor-pointer hover:border-primary transition-colors bg-sf-low" id="upload-zone">
+            <div class="flex flex-col items-center justify-center" id="upload-hint">
+              <svg class="w-6 h-6 text-on-sf-variant mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              <p class="text-xs text-on-sf-variant">Tap to attach screenshot</p>
+            </div>
+            <img id="upload-preview" src="" class="hidden h-24 w-auto object-contain rounded-lg" alt="Preview">
+            <input type="file" name="screenshot" accept="image/*" required class="hidden" id="file-input" onchange="previewImage(event)">
+          </label>
+          <p id="file-name" class="text-xs text-on-sf-variant mt-1 hidden"></p>
+
+          <button type="submit" class="w-full mt-2 bg-primary text-on-primary py-2.5 rounded-lg text-sm font-semibold hover:bg-primary/90">
+            Attach Screenshot
+          </button>
+        </form>
+      </div>
+      {{end}}
     </div>
-    {{if eq .Status "paid_by_user"}}
-    <span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-amber-50 text-warning border border-amber-200">
-      <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-      Verifying...
-    </span>
-    {{end}}
-  </div>
-  {{end}}
 
-  <!-- QR Code -->
-  <div class="text-center mb-4">
-    <img src="/static/qr-code.jpg" alt="Payment QR Code"
-         class="mx-auto h-48 w-48 object-contain rounded-lg border border-ol-variant cursor-pointer hover:shadow-lg transition-shadow"
-         onclick="openQRModal()" id="qr-thumb">
-    <p class="text-xs text-on-sf-variant mt-2">Tap QR to expand • Scan with any UPI app</p>
+    <!-- Right: QR Code -->
+    <div class="flex-shrink-0 text-center">
+      <img src="/static/qr-code.jpg" alt="Payment QR Code"
+           class="h-56 w-56 object-contain rounded-xl border-2 border-ol-variant cursor-pointer hover:shadow-lg transition-shadow"
+           onclick="openQRModal()" id="qr-thumb">
+      <p class="text-xs text-on-sf-variant mt-2">Tap to expand • Scan with any UPI app</p>
+    </div>
   </div>
-
-  <!-- Mark as Paid Button -->
-  {{if not $.HasVerifying}}
-  <button onclick="togglePayForm()" id="pay-btn"
-          class="w-full bg-primary text-on-primary py-3 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors">
-    I've Paid — Submit Proof
-  </button>
   {{end}}
   {{else}}
   <div class="text-center py-6">
@@ -46,42 +64,6 @@
     <p class="text-xs text-on-sf-variant mt-1">No pending bills. Great job!</p>
   </div>
   {{end}}
-</div>
-
-<!-- Mark as Paid Form (hidden by default) -->
-<div id="pay-form" class="hidden bg-sf-lowest rounded-xl p-5 border border-ol-variant mb-4">
-  <h3 class="font-semibold text-sm mb-3">Submit Payment Proof</h3>
-  <form method="POST" action="/tenant/payments/mark-paid" enctype="multipart/form-data" class="space-y-4">
-    {{if .PendingBills}}{{range .PendingBills}}
-    <input type="hidden" name="month_covered" value="{{.Month}}">
-    <input type="hidden" name="amount" value="{{printf "%.0f" .TotalAmount}}">
-    {{end}}{{end}}
-
-    <div>
-      <label class="block text-xs font-medium text-on-sf-variant mb-1">Payment Screenshot</label>
-      <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-ol-variant rounded-lg cursor-pointer hover:border-primary transition-colors bg-sf-low" id="upload-zone">
-        <div class="flex flex-col items-center justify-center pt-5 pb-6" id="upload-hint">
-          <svg class="w-8 h-8 text-on-sf-variant mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-          <p class="text-xs text-on-sf-variant">Tap to upload screenshot</p>
-          <p class="text-[10px] text-on-sf-variant mt-0.5">PNG, JPG or WebP (max 5MB)</p>
-        </div>
-        <img id="upload-preview" src="" class="hidden h-28 w-auto object-contain rounded-lg" alt="Preview">
-        <input type="file" name="screenshot" accept="image/*" required
-               class="hidden" id="file-input"
-               onchange="previewImage(event)">
-      </label>
-      <p id="file-name" class="text-xs text-on-sf-variant mt-1 hidden"></p>
-    </div>
-
-    <div class="flex gap-3">
-      <button type="submit" class="flex-1 bg-primary text-on-primary py-2.5 rounded-lg text-sm font-semibold hover:bg-primary/90">
-        Submit for Verification
-      </button>
-      <button type="button" onclick="togglePayForm()" class="px-4 py-2.5 border border-ol-variant rounded-lg text-sm">
-        Cancel
-      </button>
-    </div>
-  </form>
 </div>
 
 <!-- QR Code Modal (expanded) -->
@@ -143,13 +125,6 @@ function openQRModal() {
 }
 function closeQRModal() {
   document.getElementById('qr-modal').classList.add('hidden');
-}
-
-function togglePayForm() {
-  var form = document.getElementById('pay-form');
-  var btn = document.getElementById('pay-btn');
-  form.classList.toggle('hidden');
-  if (btn) btn.classList.toggle('hidden');
 }
 
 function previewImage(event) {
