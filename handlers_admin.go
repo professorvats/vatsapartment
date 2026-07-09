@@ -710,6 +710,10 @@ func handleAdminPaymentsSave(w http.ResponseWriter, r *http.Request) {
 	} else if action == "complete" {
 		tenantID := r.FormValue("tenant_id")
 		amount, _ := strconv.ParseFloat(r.FormValue("amount"), 64)
+		discount, _ := strconv.ParseFloat(r.FormValue("discount_amount"), 64)
+		discountNote := r.FormValue("discount_note")
+		paidAmount := amount - discount
+		if paidAmount < 0 { paidAmount = 0 }
 		date := r.FormValue("date")
 		method := r.FormValue("method")
 		monthCovered := r.FormValue("month_covered")
@@ -726,41 +730,19 @@ func handleAdminPaymentsSave(w http.ResponseWriter, r *http.Request) {
 			billID = fmt.Sprintf("BILL%d", time.Now().UnixNano())
 			var roomID string
 			db.DB.QueryRow(`SELECT COALESCE(room_id,'') FROM tenants WHERE id = $1`, tenantID).Scan(&roomID)
-			db.DB.Exec(`INSERT INTO bills (id, tenant_id, room_id, billing_month, rent_amount, total_amount, status)
+			db.DB.Exec(`INSERT INTO bills (id, tenant_id, room_id, billing_month, rent_amount, total_amount, discount_amount, discount_note, status)
 				VALUES ($1, $2, $3, $4, $5, $5, 'paid')`,
-				billID, tenantID, roomID, monthCovered, amount)
+				billID, tenantID, roomID, monthCovered, amount, discount, discountNote)
 		} else {
-			db.DB.Exec("UPDATE bills SET status = 'paid' WHERE id = $1", billID)
+			db.DB.Exec("UPDATE bills SET discount_amount = $1, discount_note = $2, status = 'paid' WHERE id = $3", discount, discountNote, billID)
 		}
 
-		db.DB.Exec(`INSERT INTO payments (id, tenant_id, bill_id, amount, payment_date, payment_method, status, month_covered, notes, paid_to)
+		db.DB.Exec(`INSERT INTO payments (id, tenant_id, bill_id, paidAmount, payment_date, payment_method, status, month_covered, notes, paid_to)
 			VALUES ($1, $2, $3, $4, $5, $6, 'completed', $7, $8, $9)`,
-			id, tenantID, billID, amount, date, method, monthCovered, notes, paidTo)
+			id, tenantID, billID, paidAmount, date, method, monthCovered, notes, paidTo)
 		db.DB.Exec("UPDATE tenants SET has_maintenance = $1, updated_at = NOW() WHERE id = $2", hasMaint, tenantID)
 		db.DB.Exec(`UPDATE rooms SET maintenance_amount = $1, updated_at = NOW()
 			WHERE id = (SELECT COALESCE(room_id,'') FROM tenants WHERE id = $2)`, maintAmt, tenantID)
-		http.Redirect(w, r, "/admin/payments?month="+monthCovered, http.StatusSeeOther)
-		return
-	} else if action == "save_discount" {
-		tenantID := r.FormValue("tenant_id")
-		discountAmt, _ := strconv.ParseFloat(r.FormValue("discount_amount"), 64)
-		discountNote := r.FormValue("discount_note")
-		monthCovered := r.FormValue("month_covered")
-		// Upsert bill with just discount
-		var billID string
-		db.DB.QueryRow(`SELECT id FROM bills WHERE tenant_id = $1 AND billing_month = $2`,
-			tenantID, monthCovered).Scan(&billID)
-		if billID != "" {
-			db.DB.Exec(`UPDATE bills SET discount_amount = $1, discount_note = $2 WHERE id = $3`,
-				discountAmt, discountNote, billID)
-		} else {
-			billID = fmt.Sprintf("BILL%d", time.Now().UnixNano())
-			var roomID string
-			db.DB.QueryRow(`SELECT COALESCE(room_id,'') FROM tenants WHERE id = $1`, tenantID).Scan(&roomID)
-			db.DB.Exec(`INSERT INTO bills (id, tenant_id, room_id, billing_month, rent_amount, total_amount, discount_amount, discount_note, status)
-				VALUES ($1, $2, $3, $4, 0, 0, $5, $6, 'pending')`,
-				billID, tenantID, roomID, monthCovered, discountAmt, discountNote)
-		}
 		http.Redirect(w, r, "/admin/payments?month="+monthCovered, http.StatusSeeOther)
 		return
 	} else if action == "toggle_maintenance" {

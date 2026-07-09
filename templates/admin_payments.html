@@ -66,11 +66,11 @@
     <div class="flex items-center gap-3 mb-3 p-3 bg-sf-low rounded-lg">
       <div class="flex-1">
         <label class="block text-sm text-on-sf-variant mb-1">Note</label>
-        <input name="notes" type="text" placeholder="Reason for discount" class="w-full border border-ol-variant rounded-lg px-3 py-2 text-base">
+        <input name="discount_note" type="text" placeholder="Reason" value="{{.MonthlyDiscountNote}}" class="w-full border border-ol-variant rounded-lg px-3 py-2 text-base" {{if .HasPaid}}disabled{{end}}>
       </div>
       <div class="w-24">
         <label class="block text-sm text-on-sf-variant mb-1">Discount</label>
-        <input name="discount_amount" type="number" value="0" class="w-full border border-ol-variant rounded-lg px-3 py-2 text-base">
+        <input name="discount_amount" type="number" value="{{if gt .MonthlyDiscount 0.0}}{{printf "%.0f" .MonthlyDiscount}}{{end}}" class="w-full border border-ol-variant rounded-lg px-3 py-2 text-base" {{if .HasPaid}}disabled{{end}}>
       </div>
     </div>
 
