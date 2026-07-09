@@ -42,6 +42,17 @@
       <span class="font-semibold text-on-surface">₹{{printf "%.0f" .RentAmount}}</span>
     </div>
 
+    {{if gt .DiscountAmount 0.0}}
+    <div class="flex justify-between text-sm">
+      <span class="text-success font-medium">Discount{{if .DiscountNote}} ({{.DiscountNote}}){{end}}</span>
+      <span class="text-success font-bold">−₹{{printf "%.0f" .DiscountAmount}}</span>
+    </div>
+    <div class="flex justify-between text-sm">
+      <span class="text-on-surface font-medium">Rent After Discount</span>
+      <span class="font-semibold text-on-surface">₹{{printf "%.0f" (sub .RentAmount .DiscountAmount)}}</span>
+    </div>
+    {{end}}
+
     {{if gt .MaintenanceAmt 0.0}}
     <div class="flex justify-between text-sm">
       <span class="text-on-surface">Maintenance</span>
@@ -53,13 +64,6 @@
     <div class="flex justify-between text-sm">
       <span class="text-on-surface">Electricity Bill <a href="/tenant/meter-details" class="text-primary hover:underline text-[11px] font-medium ml-1">View Details →</a></span>
       <span class="font-semibold text-on-surface">₹{{printf "%.0f" (add .ElectricityAmt .WaterAmt)}}</span>
-    </div>
-    {{end}}
-
-    {{if gt .DiscountAmount 0.0}}
-    <div class="flex justify-between text-sm">
-      <span class="text-success font-medium">Discount{{if .DiscountNote}} ({{.DiscountNote}}){{end}}</span>
-      <span class="text-success font-bold">−₹{{printf "%.0f" .DiscountAmount}}</span>
     </div>
     {{end}}
 
