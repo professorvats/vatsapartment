@@ -115,6 +115,7 @@ func main() {
 
 	// Tenant Portal
 	mux.HandleFunc("GET /tenant/dashboard", handleTenantDashboard)
+	mux.HandleFunc("GET /tenant/documents", handleTenantDocuments)
 	mux.HandleFunc("POST /tenant/verification/upload", handleTenantVerificationUpload)
 	mux.HandleFunc("POST /tenant/change-password", handleTenantSetPassword)
 	mux.HandleFunc("GET /tenant/payments", handleTenantPayments)

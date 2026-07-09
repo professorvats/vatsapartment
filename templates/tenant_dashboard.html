@@ -11,14 +11,14 @@
       {{if eq .VerificationStatus "not_submitted"}}
       <p class="font-semibold text-sm text-amber-800">Verification Pending</p>
       <p class="text-xs text-amber-600 mt-0.5">Please upload your documents to complete your profile.</p>
-      <a href="#verification" class="inline-block mt-2 text-xs font-semibold bg-amber-100 text-amber-800 px-3 py-1.5 rounded-lg hover:bg-amber-200">Upload Now</a>
+      <a href="/tenant/documents" class="inline-block mt-2 text-xs font-semibold bg-amber-100 text-amber-800 px-3 py-1.5 rounded-lg hover:bg-amber-200">Upload Now</a>
       {{else if eq .VerificationStatus "pending"}}
       <p class="font-semibold text-sm text-amber-800">Documents Submitted</p>
       <p class="text-xs text-amber-600 mt-0.5">Your documents are being reviewed by the admin.</p>
       {{else if eq .VerificationStatus "rejected"}}
       <p class="font-semibold text-sm text-red-800">Verification Rejected</p>
       <p class="text-xs text-red-600 mt-0.5">Please re-upload correct documents.</p>
-      <a href="#verification" class="inline-block mt-2 text-xs font-semibold bg-red-100 text-red-800 px-3 py-1.5 rounded-lg hover:bg-red-200">Re-upload</a>
+      <a href="/tenant/documents" class="inline-block mt-2 text-xs font-semibold bg-red-100 text-red-800 px-3 py-1.5 rounded-lg hover:bg-red-200">Re-upload</a>
       {{end}}
     </div>
   </div>
@@ -218,63 +218,6 @@
   </div>
 </div>
 
-<!-- Document Verification -->
-<div id="verification" class="bg-sf-lowest rounded-xl p-5 border border-ol-variant mb-4">
-  <h3 class="font-semibold text-sm mb-3">Document Verification</h3>
-
-  {{if eq .VerificationStatus "verified"}}
-  <div class="text-center py-6">
-    <div class="w-12 h-12 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-3">
-      <svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-    </div>
-    <p class="font-semibold text-sm text-success">All documents verified</p>
-    <p class="text-xs text-on-sf-variant mt-1">Your identity documents have been approved.</p>
-  </div>
-  {{else}}
-  <div class="mb-3">
-    <div class="flex justify-between text-xs mb-1">
-      <span class="text-on-sf-variant">Progress</span>
-      <span class="font-medium">
-        {{if eq .VerificationStatus "not_submitted"}}0%{{else if eq .VerificationStatus "pending"}}50%{{else}}0%{{end}}
-      </span>
-    </div>
-    <div class="w-full bg-ol-variant rounded-full h-2">
-      <div class="bg-primary h-2 rounded-full transition-all" style="width:{{if eq .VerificationStatus "not_submitted"}}0%{{else if eq .VerificationStatus "pending"}}50%{{else}}0%{{end}}"></div>
-    </div>
-    <p class="text-xs text-on-sf-variant mt-2">
-      {{if eq .VerificationStatus "not_submitted"}}Status: <span class="text-amber-600 font-medium">Not Submitted</span>{{else if eq .VerificationStatus "pending"}}Status: <span class="text-amber-600 font-medium">Pending Review</span>{{else if eq .VerificationStatus "rejected"}}Status: <span class="text-error font-medium">Rejected</span>{{end}}
-    </p>
-  </div>
-
-  {{if ne .VerificationStatus "verified"}}
-  <form method="POST" action="/tenant/verification/upload" enctype="multipart/form-data" class="space-y-3">
-    <div>
-      <label class="block text-xs font-medium text-on-sf-variant mb-1">LPU ID Card Photo</label>
-      {{if .LpuPhoto}}
-      <div class="flex items-center gap-2 mb-1">
-        <span class="text-xs text-success font-medium">Uploaded &#10003;</span>
-        <a href="{{.LpuPhoto}}" target="_blank" class="text-xs text-primary hover:underline">View</a>
-      </div>
-      {{end}}
-      <input type="file" name="lpu_id_photo" accept="image/*" class="w-full text-sm border border-ol-variant rounded-lg p-2 bg-white">
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-on-sf-variant mb-1">Aadhar Card Photo</label>
-      {{if .AadharPhoto}}
-      <div class="flex items-center gap-2 mb-1">
-        <span class="text-xs text-success font-medium">Uploaded &#10003;</span>
-        <a href="{{.AadharPhoto}}" target="_blank" class="text-xs text-primary hover:underline">View</a>
-      </div>
-      {{end}}
-      <input type="file" name="aadhar_photo" accept="image/*" class="w-full text-sm border border-ol-variant rounded-lg p-2 bg-white">
-    </div>
-    <button type="submit" class="w-full bg-secondary text-on-secondary py-2.5 rounded-lg text-sm font-semibold hover:bg-secondary/90">
-      {{if or .LpuPhoto .AadharPhoto}}Update & Submit{{else}}Submit for Verification{{end}}
-    </button>
-  </form>
-  {{end}}
-  {{end}}
-</div>
 
 <script>
 function openMeterModal() {

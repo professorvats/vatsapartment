@@ -202,6 +202,42 @@ func handleTenantDashboard(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+
+func handleTenantDocuments(w http.ResponseWriter, r *http.Request) {
+	tenantID, ok := requireTenant(w, r)
+	if !ok {
+		return
+	}
+
+	msg := r.URL.Query().Get("msg")
+	errMsg := r.URL.Query().Get("error")
+
+	type TenantInfo struct {
+		Name, Phone, LpuPhoto, AadharPhoto, VerificationStatus string
+	}
+	var ti TenantInfo
+	db.DB.QueryRow(`
+		SELECT t.name, t.phone,
+			COALESCE(t.lpu_id_photo,''), COALESCE(t.aadhar_photo,''),
+			COALESCE(t.verification_status,'not_submitted')
+		FROM tenants t WHERE t.id = $1`, tenantID,
+	).Scan(&ti.Name, &ti.Phone, &ti.LpuPhoto, &ti.AadharPhoto, &ti.VerificationStatus)
+
+	if ti.VerificationStatus == "" {
+		ti.VerificationStatus = "not_submitted"
+	}
+
+	renderPrivate(w, "tenant_documents.html", map[string]interface{}{
+		"Tenant":             ti,
+		"VerificationStatus": ti.VerificationStatus,
+		"LpuPhoto":           ti.LpuPhoto,
+		"AadharPhoto":        ti.AadharPhoto,
+		"Msg":                msg,
+		"Error":              errMsg,
+		"Active":             "documents",
+	})
+}
+
 func handleTenantVerificationUpload(w http.ResponseWriter, r *http.Request) {
 	tenantID, ok := requireTenant(w, r)
 	if !ok {
@@ -209,7 +245,7 @@ func handleTenantVerificationUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		http.Redirect(w, r, "/tenant/dashboard?error=Upload+failed:+file+too+large+(max+10MB)", http.StatusSeeOther)
+		http.Redirect(w, r, "/tenant/documents?error=Upload+failed:+file+too+large+(max+10MB)", http.StatusSeeOther)
 		return
 	}
 	lpuFile, lpuHeader, lpuErr := r.FormFile("lpu_id_photo")
@@ -251,7 +287,7 @@ func handleTenantVerificationUpload(w http.ResponseWriter, r *http.Request) {
 		hdr.Set("Content-Type", contentType)
 		lpuPath = saveFile(lpuFile, &hdr, "lpu")
 	} else if lpuErr != nil {
-		http.Redirect(w, r, "/tenant/dashboard?error=Upload+failed:+could+not+read+file", http.StatusSeeOther)
+		http.Redirect(w, r, "/tenant/documents?error=Upload+failed:+could+not+read+file", http.StatusSeeOther)
 		return
 	}
 	if aadharFile != nil && aadharErr == nil {
@@ -264,7 +300,7 @@ func handleTenantVerificationUpload(w http.ResponseWriter, r *http.Request) {
 		hdr.Set("Content-Type", contentType)
 		aadharPath = saveFile(aadharFile, &hdr, "aadhar")
 	} else if aadharErr != nil {
-		http.Redirect(w, r, "/tenant/dashboard?error=Upload+failed:+could+not+read+file", http.StatusSeeOther)
+		http.Redirect(w, r, "/tenant/documents?error=Upload+failed:+could+not+read+file", http.StatusSeeOther)
 		return
 	}
 
@@ -275,7 +311,7 @@ func handleTenantVerificationUpload(w http.ResponseWriter, r *http.Request) {
 		db.DB.Exec("UPDATE tenants SET aadhar_photo=$1, verification_status='pending', verification_submitted_at=NOW() WHERE id=$2", aadharPath, tenantID)
 	}
 
-	http.Redirect(w, r, "/tenant/dashboard", http.StatusSeeOther)
+	http.Redirect(w, r, "/tenant/documents?msg=Documents+uploaded+successfully", http.StatusSeeOther)
 }
 
 func handleTenantLogout(w http.ResponseWriter, r *http.Request) {
