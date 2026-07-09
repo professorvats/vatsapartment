@@ -20,91 +20,84 @@
 {{if .Cards}}
 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
   {{range .Cards}}
-  <form method="POST" action="/admin/payments/save" class="room-card rounded-lg p-4 {{if .HasPaid}}bg-green-50 border border-green-300{{else}}bg-sf-lowest border border-ol-variant{{end}}" data-rent="{{printf "%.0f" .RentAmount}}" data-discount="{{printf "%.0f" .DiscountAmount}}" data-paid="{{.HasPaid}}">
+  <form method="POST" action="/admin/payments/save" class="room-card rounded-lg p-3 {{if .HasPaid}}bg-green-50 border border-green-300{{else}}bg-sf-lowest border border-ol-variant{{end}}">
     <input type="hidden" name="action" value="complete">
     <input type="hidden" name="tenant_id" value="{{.TenantID}}">
     <input type="hidden" name="month" value="{{$.Month}}">
     <input type="hidden" name="month_covered" value="{{$.Month}}">
 
     <!-- Card header -->
-    <div class="flex items-center justify-between mb-2">
-      <h3 class="text-lg font-bold">Room {{.RoomNumber}} — {{.TenantName}}</h3>
+    <div class="flex items-center justify-between mb-1.5">
+      <h3 class="text-base font-bold">Room {{.RoomNumber}} <span class="text-on-sf-variant font-normal text-sm">— {{.TenantName}}</span></h3>
       {{if .HasPaid}}
-      <span class="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-green-700 text-white">Paid</span>
+      <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-green-700 text-white">Paid</span>
       {{else}}
-      <span class="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-yellow-600 text-white">Pending</span>
+      <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-yellow-600 text-white">Pending</span>
       {{end}}
     </div>
 
     <!-- Amount rows -->
-    <div class="space-y-1.5 mb-2">
-      <div class="flex justify-between text-sm">
+    <div class="space-y-1 mb-1.5 text-sm">
+      <div class="flex justify-between">
         <span class="text-on-sf-variant">Rent</span>
         <span class="font-semibold">₹{{printf "%.0f" .RentAmount}}</span>
       </div>
       {{if gt .DiscountAmount 0.0}}
-      <div class="flex justify-between text-sm">
+      <div class="flex justify-between">
         <span class="text-on-sf-variant">Discount</span>
         <span class="font-semibold text-green-700">−₹{{printf "%.0f" .DiscountAmount}}</span>
       </div>
       {{end}}
       {{if .HasMaintenance}}
-      <div class="flex justify-between text-sm">
+      <div class="flex justify-between">
         <span class="text-on-sf-variant">Maintenance</span>
         <span class="font-semibold">₹{{printf "%.0f" .MaintenanceAmt}}</span>
       </div>
       {{end}}
       {{if gt .ElectricityAmt 0.0}}
-      <div class="flex justify-between text-sm">
+      <div class="flex justify-between">
         <span class="text-on-sf-variant">Electricity Bill</span>
         <span class="font-semibold">₹{{printf "%.0f" (add .ElectricityAmt .WaterAmt)}}</span>
       </div>
       {{end}}
-      <div class="flex justify-between text-sm pt-1 border-t border-ol-variant/50">
+      <div class="flex justify-between pt-1 border-t border-ol-variant/50">
         <span class="font-bold">Total Due</span>
-        <span class="font-bold text-base text-primary">₹{{printf "%.0f" .TotalDue}}</span>
+        <span class="font-bold text-primary">₹{{printf "%.0f" .TotalDue}}</span>
         <input type="hidden" name="amount" value="{{printf "%.0f" .TotalDue}}">
         <input type="hidden" name="maintenance_amount" value="{{printf "%.0f" .MaintenanceAmt}}">
       </div>
     </div>
 
-    <!-- Monthly Discount -->
-    {{if not .HasPaid}}
-    <div class="flex items-center gap-2 mb-2">
-      <span class="text-xs text-on-sf-variant whitespace-nowrap">Discount ₹</span>
+    <!-- Action Row -->
+    {{if .HasPaid}}
+    <div class="flex items-center gap-2 mt-1 pt-2 border-t border-ol-variant/30">
+      <div class="flex-1 text-xs text-on-sf-variant bg-green-100 rounded p-1.5">
+        Paid ₹{{printf "%.0f" .PaymentAmount}} on {{.PaymentDate}}{{if .PaymentMethod}} via {{.PaymentMethod}}{{if .PaidTo}} to {{.PaidTo}}{{end}}{{end}}{{if .PaymentNotes}} — {{.PaymentNotes}}{{end}}
+      </div>
+      <button type="button" onclick="undoPayment('{{.PaymentID}}', '{{$.Month}}')" class="text-xs bg-red-50 text-error border border-red-200 px-2.5 py-1 rounded-lg font-semibold hover:bg-red-100 whitespace-nowrap">↩</button>
+    </div>
+    {{else}}
+    <div class="flex items-center gap-1.5 mt-1 pt-2 border-t border-ol-variant/30">
       <form method="POST" action="/admin/payments/save" class="inline-flex items-center gap-1">
         <input type="hidden" name="action" value="save_discount">
         <input type="hidden" name="tenant_id" value="{{.TenantID}}">
         <input type="hidden" name="month_covered" value="{{$.Month}}">
         <input type="hidden" name="month" value="{{$.Month}}">
-        <input name="discount_amount" type="number" value="{{printf "%.0f" .DiscountAmount}}" class="w-20 border border-ol-variant rounded px-2 py-1 text-xs">
-        <input name="discount_note" type="text" placeholder="Reason" value="" class="w-24 border border-ol-variant rounded px-2 py-1 text-xs">
-        <button type="submit" class="text-xs bg-primary/10 text-primary px-2 py-1 rounded font-medium hover:bg-primary/20">Apply</button>
+        <input name="discount_amount" type="number" placeholder="Disc" value="{{if gt .DiscountAmount 0.0}}{{printf "%.0f" .DiscountAmount}}{{end}}" class="w-14 border border-ol-variant rounded px-1.5 py-1 text-[11px]">
+        <button type="submit" class="text-[11px] text-primary/60 hover:text-primary font-medium">Set</button>
       </form>
-    </div>
-    {{end}}
-
-    <!-- Action -->
-    <div class="flex items-center gap-2">
-      {{if .HasPaid}}
-      <div class="flex-1 text-xs text-on-sf-variant space-y-0.5 bg-green-100 rounded p-2">
-        <p>Paid ₹{{printf "%.0f" .PaymentAmount}} on {{.PaymentDate}}{{if .PaymentMethod}} via {{.PaymentMethod}}{{if .PaidTo}} to {{.PaidTo}}{{end}}{{end}}</p>
-        {{if .PaymentNotes}}<p class="italic">{{.PaymentNotes}}</p>{{end}}
-      </div>
-      <button type="button" onclick="undoPayment('{{.PaymentID}}', '{{$.Month}}')" class="text-xs bg-red-50 text-error border border-red-200 px-3 py-1.5 rounded-lg font-semibold hover:bg-red-100 whitespace-nowrap">↩ Undo</button>
-      {{else}}
-      <select name="method" class="border border-ol-variant rounded px-2 py-1.5 text-xs">
+      <select name="method" class="border border-ol-variant rounded px-1.5 py-1 text-[11px]">
         <option>Cash</option><option>UPI</option><option>Bank Transfer</option>
       </select>
-      <input name="date" type="date" value="{{$.Month}}-01" class="border border-ol-variant rounded px-2 py-1.5 text-xs flex-1">
-      <input name="notes" type="text" placeholder="Note" class="border border-ol-variant rounded px-2 py-1.5 text-xs w-20">
-      <select name="paid_to" class="border border-ol-variant rounded px-2 py-1.5 text-xs">
+      <input name="date" type="date" value="{{$.Month}}-01" class="border border-ol-variant rounded px-1.5 py-1 text-[11px] w-28">
+      <select name="paid_to" class="border border-ol-variant rounded px-1.5 py-1 text-[11px]">
         <option value="">To</option>
         <option>Shashi</option><option>Sarla</option><option>Hament</option><option>Bhoop Singh</option>
       </select>
-      <button type="submit" class="bg-primary text-on-primary px-4 py-1.5 rounded-lg text-xs font-semibold hover:bg-primary/90 whitespace-nowrap">✓ Complete</button>
-      {{end}}
+      <input name="notes" type="text" placeholder="Note" class="border border-ol-variant rounded px-1.5 py-1 text-[11px] w-16">
+      <button type="submit" class="bg-primary text-on-primary px-3 py-1 rounded text-[11px] font-semibold hover:bg-primary/90 whitespace-nowrap">✓ Complete</button>
     </div>
+    {{end}}
   </form>
   {{end}}
 </div>
