@@ -79,7 +79,7 @@
     <!-- Total -->
     <div class="flex justify-between items-center mb-3 px-3 py-2 bg-primary/5 rounded-lg">
       <span class="text-lg font-bold">Total Due</span>
-      <span class="text-xl font-bold text-primary">₹{{printf "%.0f" .TotalDue}}</span>
+      <span class="total-due-display text-xl font-bold text-primary">₹{{printf "%.0f" .TotalDue}}</span>
       <input type="hidden" name="amount" value="{{printf "%.0f" .TotalDue}}">
       <input type="hidden" name="maintenance_amount" value="{{printf "%.0f" .MaintenanceAmt}}">
     </div>
@@ -115,6 +115,21 @@
 {{end}}
 
 <script>
+// Live update Total Due when discount changes
+document.querySelectorAll('input[name="discount_amount"]').forEach(function(input) {
+  var form = input.closest('form');
+  var totalEl = form.querySelector('.total-due-display');
+  var amountInput = form.querySelector('input[name="amount"]');
+  var originalTotal = parseFloat(amountInput.value) || 0;
+
+  input.addEventListener('input', function() {
+    var discount = parseFloat(this.value) || 0;
+    var newTotal = Math.max(0, originalTotal - discount);
+    totalEl.textContent = '₹' + newTotal.toFixed(0);
+    amountInput.value = newTotal;
+  });
+});
+
 function undoPayment(paymentId, month) {
   if (!confirm('Undo this payment?')) return;
   var form = document.createElement('form');
