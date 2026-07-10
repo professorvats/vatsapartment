@@ -56,13 +56,13 @@
           <div class="flex flex-col gap-1">
             <!-- Status badge -->
             {{if eq .VerificationStatus "verified"}}
-            <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-green-50 text-success border border-green-200 w-fit">Verified</span>
+            <span class="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full bg-green-50 text-success border border-green-200 w-fit">Verified</span>
             {{else if eq .VerificationStatus "pending"}}
-            <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-amber-50 text-warning border border-amber-200 w-fit">Pending</span>
+            <span class="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full bg-amber-50 text-warning border border-amber-200 w-fit">Pending</span>
             {{else if eq .VerificationStatus "rejected"}}
-            <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-red-50 text-error border border-red-200 w-fit">Rejected</span>
+            <span class="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full bg-red-50 text-error border border-red-200 w-fit">Rejected</span>
             {{else}}
-            <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-gray-50 text-on-sf-variant border border-ol-variant">Not Submitted</span>
+            <span class="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full bg-gray-50 text-on-sf-variant border border-ol-variant">Not Submitted</span>
             {{end}}
 
             <!-- Document thumbnails — visible for all statuses except not_submitted -->
