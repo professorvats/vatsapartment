@@ -173,12 +173,7 @@
         Undo Payment
       </button>
       {{else if eq .PaymentStatus "paid_by_user"}}
-      {{if .ScreenshotsJSON}}
-      <a href="javascript:openScreenshotGallery({{.ScreenshotsJSON}})"
-        class="block w-full text-center bg-sf-low border border-ol-variant text-on-surface px-4 py-2 rounded-xl text-xs font-semibold hover:bg-sf-variant transition-colors mb-2">
-        📎 View Screenshots ({{len .Screenshots}})
-      </a>
-      {{end}}
+      <div class="flex gap-2">
         <form method="POST" action="/admin/payments/save" class="flex-1">
           <input type="hidden" name="action" value="verify_payment">
           <input type="hidden" name="payment_id" value="{{.PaymentID}}">
