@@ -173,27 +173,16 @@
         Undo Payment
       </button>
       {{else if eq .PaymentStatus "paid_by_user"}}
-      <div class="flex gap-2">
-        <form method="POST" action="/admin/payments/save" class="flex-1">
-          <input type="hidden" name="action" value="verify_payment">
-          <input type="hidden" name="payment_id" value="{{.PaymentID}}">
-          <input type="hidden" name="bill_id" value="{{.BillID}}">
-          <input type="hidden" name="month" value="{{$.Month}}">
-          <button type="submit" class="w-full bg-green-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-green-700 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-            Verify
-          </button>
-        </form>
-        <form method="POST" action="/admin/payments/save" class="flex-1">
-          <input type="hidden" name="action" value="reject_payment">
-          <input type="hidden" name="payment_id" value="{{.PaymentID}}">
-          <input type="hidden" name="month" value="{{$.Month}}">
-          <button type="submit" class="w-full bg-red-50 text-error border border-red-200 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-100 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-            Reject
-          </button>
-        </form>
-      </div>
+      <form method="POST" action="/admin/payments/save">
+        <input type="hidden" name="action" value="verify_payment">
+        <input type="hidden" name="payment_id" value="{{.PaymentID}}">
+        <input type="hidden" name="bill_id" value="{{.BillID}}">
+        <input type="hidden" name="month" value="{{$.Month}}">
+        <button type="submit" class="w-full bg-green-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-green-700 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          Mark as Paid
+        </button>
+      </form>
       {{else}}
       <button type="submit" class="w-full bg-primary text-on-primary px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
