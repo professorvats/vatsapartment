@@ -74,33 +74,21 @@
   <div class="border-t border-ol-variant px-4 py-4">
     <h3 class="text-xs font-semibold text-on-surface uppercase tracking-wide mb-3">How to Pay</h3>
 
-    <div class="flex gap-4 mb-3">
-      <!-- Step 1: Scan QR -->
-      <div class="flex-1 flex gap-2">
-        <div class="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">1</div>
-        <div>
-          <p class="text-sm font-semibold text-on-surface">Scan the QR Code</p>
-          <p class="text-xs text-on-sf-variant mt-0.5">Use any UPI app (Google Pay, PhonePe, Paytm)</p>
-          <img src="/static/qr-code.jpg" alt="Payment QR Code"
-               class="mt-2 h-32 w-32 object-contain rounded-xl border border-ol-variant cursor-pointer hover:shadow-md transition-shadow bg-white"
-               onclick="openQRModal()">
-          <p class="text-[10px] text-on-sf-variant mt-1">Tap QR to expand</p>
-        </div>
-      </div>
-
-      <!-- Step 2: Pay Amount -->
-      <div class="flex-1 flex gap-2">
-        <div class="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">2</div>
-        <div>
-          <p class="text-sm font-semibold text-on-surface">Complete the Payment</p>
-          <p class="text-xs text-on-sf-variant mt-0.5">Pay <span class="font-bold text-primary">₹{{printf "%.0f" .TotalAmount}}</span> using the QR code</p>
-        </div>
+    <div class="flex gap-3 mb-3">
+      <div class="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">1</div>
+      <div>
+        <p class="text-sm font-semibold text-on-surface">Scan and Pay <span class="text-primary">₹{{printf "%.0f" .TotalAmount}}</span></p>
+        <p class="text-xs text-on-sf-variant mt-0.5">Use any UPI app (Google Pay, PhonePe, Paytm)</p>
+        <img src="/static/qr-code.jpg" alt="Payment QR Code"
+             class="mt-2 h-40 w-40 object-contain rounded-xl border border-ol-variant cursor-pointer hover:shadow-md transition-shadow bg-white"
+             onclick="openQRModal()">
+        <p class="text-[10px] text-on-sf-variant mt-1">Tap QR to expand</p>
       </div>
     </div>
 
-    <!-- Step 3: Upload Screenshot -->
+    <!-- Step 2: Upload Screenshot -->
     <div class="flex gap-3 mb-3">
-      <div class="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">3</div>
+      <div class="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">2</div>
       <div class="flex-1">
         <p class="text-sm font-semibold text-on-surface">Confirm Your Payment</p>
         <p class="text-xs text-on-sf-variant mt-0.5">Attach screenshots of your successful payment</p>
