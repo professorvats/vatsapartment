@@ -448,6 +448,7 @@ func handleTenantPayments(w http.ResponseWriter, r *http.Request) {
 		"Payments":      payments,
 		"PendingBills":  pendingBills,
 		"CurrentMonth":  currentMonth,
+		"Month":         currentMonth,
 		"HasVerifying":  hasVerifying,
 		"TenantInfo":    tpi,
 		"Msg":           msg,

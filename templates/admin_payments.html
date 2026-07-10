@@ -1,12 +1,22 @@
 {{template "admin_header" .}}
 
-<!-- Screenshot Modal -->
-<div id="screenshot-modal" class="hidden fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4" onclick="closeScreenshotModal()">
-  <div class="relative max-w-lg w-full" onclick="event.stopPropagation()">
-    <button onclick="closeScreenshotModal()" class="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-100 z-10">
+<!-- Screenshot Gallery Modal -->
+<div id="screenshot-modal" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onclick="closeScreenshotGallery()">
+  <div class="relative max-w-2xl w-full" onclick="event.stopPropagation()">
+    <button onclick="closeScreenshotGallery()" class="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-100 z-10">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
     </button>
-    <img id="screenshot-img" src="" class="w-full rounded-xl shadow-2xl" alt="Payment Screenshot">
+    <p id="gallery-counter" class="text-white/80 text-sm text-center mb-2 font-medium"></p>
+    <div class="relative">
+      <button id="gallery-prev" onclick="galleryNav(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white hidden">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+      </button>
+      <img id="screenshot-img" src="" class="w-full rounded-xl" alt="Payment Screenshot" style="max-height:70vh; object-fit:contain;">
+      <button id="gallery-next" onclick="galleryNav(1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white hidden">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+    <div id="gallery-thumbnails" class="flex gap-2 mt-3 justify-center overflow-x-auto pb-2"></div>
   </div>
 </div>
 
@@ -153,13 +163,12 @@
         Undo Payment
       </button>
       {{else if eq .PaymentStatus "paid_by_user"}}
-      {{if .Screenshot}}
-      <a href="javascript:openScreenshot('{{.Screenshot}}')"
+      {{if .ScreenshotsJSON}}
+      <a href="javascript:openScreenshotGallery({{.ScreenshotsJSON}})"
         class="block w-full text-center bg-sf-low border border-ol-variant text-on-surface px-4 py-2 rounded-xl text-xs font-semibold hover:bg-sf-variant transition-colors mb-2">
-        📎 View Payment Screenshot
+        📎 View Screenshots ({{len .Screenshots}})
       </a>
       {{end}}
-      <div class="flex gap-2">
         <form method="POST" action="/admin/payments/save" class="flex-1">
           <input type="hidden" name="action" value="verify_payment">
           <input type="hidden" name="payment_id" value="{{.PaymentID}}">
@@ -215,17 +224,55 @@ document.querySelectorAll('input[name="discount_amount"]').forEach(function(inpu
   });
 });
 
-function openScreenshot(url) {
-  document.getElementById('screenshot-img').src = url;
+var galleryUrls = [];
+var galleryIndex = 0;
+
+function openScreenshotGallery(urls) {
+  galleryUrls = urls || [];
+  galleryIndex = 0;
+  if (galleryUrls.length === 0) return;
+  showGalleryImage();
   document.getElementById('screenshot-modal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
-function closeScreenshotModal() {
+
+function showGalleryImage() {
+  var img = document.getElementById('screenshot-img');
+  var counter = document.getElementById('gallery-counter');
+  var prevBtn = document.getElementById('gallery-prev');
+  var nextBtn = document.getElementById('gallery-next');
+  var thumbs = document.getElementById('gallery-thumbnails');
+
+  img.src = galleryUrls[galleryIndex];
+  counter.textContent = (galleryIndex + 1) + ' / ' + galleryUrls.length;
+  prevBtn.style.display = galleryIndex > 0 ? 'flex' : 'none';
+  nextBtn.style.display = galleryIndex < galleryUrls.length - 1 ? 'flex' : 'none';
+
+  thumbs.innerHTML = '';
+  galleryUrls.forEach(function(url, i) {
+    var thumb = document.createElement('img');
+    thumb.src = url;
+    thumb.className = 'w-12 h-16 object-cover rounded-lg cursor-pointer border-2 ' +
+      (i === galleryIndex ? 'border-white opacity-100' : 'border-transparent opacity-60 hover:opacity-80');
+    thumb.onclick = function() { galleryIndex = i; showGalleryImage(); };
+    thumbs.appendChild(thumb);
+  });
+}
+
+function galleryNav(delta) {
+  var newIdx = galleryIndex + delta;
+  if (newIdx >= 0 && newIdx < galleryUrls.length) {
+    galleryIndex = newIdx;
+    showGalleryImage();
+  }
+}
+
+function closeScreenshotGallery() {
   document.getElementById('screenshot-modal').classList.add('hidden');
   document.body.style.overflow = '';
 }
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeScreenshotModal();
+  if (e.key === 'Escape') closeScreenshotGallery();
 });
 
 function undoPayment(paymentId, month) {

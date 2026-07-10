@@ -349,6 +349,15 @@ func runMigrations() error {
 					created_at TIMESTAMPTZ DEFAULT NOW(),
 					updated_at TIMESTAMPTZ DEFAULT NOW()
 				)`},
+			{"complaints_fix_columns", `
+				DO $$
+				BEGIN
+					IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='complaints' AND column_name='problem') THEN
+						ALTER TABLE complaints RENAME COLUMN problem TO subcategory;
+					END IF;
+				END $$`},
+			{"complaints_add_image", `ALTER TABLE complaints ADD COLUMN IF NOT EXISTS image TEXT DEFAULT ''`},
+			{"complaints_add_admin_notes", `ALTER TABLE complaints ADD COLUMN IF NOT EXISTS admin_notes TEXT DEFAULT ''`},
 			{"idx_complaints_tenant", `CREATE INDEX IF NOT EXISTS idx_complaints_tenant ON complaints(tenant_id)`},
 			{"idx_complaints_status", `CREATE INDEX IF NOT EXISTS idx_complaints_status ON complaints(status)`},
 			{"idx_complaints_room", `CREATE INDEX IF NOT EXISTS idx_complaints_room ON complaints(room_id)`},

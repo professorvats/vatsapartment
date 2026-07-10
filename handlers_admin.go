@@ -460,6 +460,8 @@ type RoomPaymentCard struct {
 	BillID, BillStatus                                     string
 	PaymentID, PaymentDate, PaymentMethod, PaymentNotes, PaidTo string
 	PaymentStatus, Screenshot                              string
+	Screenshots                                            []string
+	ScreenshotsJSON                                        string
 	PaymentAmount                                          float64
 }
 
@@ -537,6 +539,24 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 		}
 		c.MonthlyDiscount = billDiscount
 		c.MonthlyDiscountNote = billDiscountNote
+		// Split comma-separated screenshot paths
+		if c.Screenshot != "" {
+			parts := strings.Split(c.Screenshot, ",")
+			for _, p := range parts {
+				if trimmed := strings.TrimSpace(p); trimmed != "" {
+					c.Screenshots = append(c.Screenshots, trimmed)
+				}
+			}
+		}
+		if c.Screenshots == nil {
+			c.Screenshots = []string{}
+		}
+		if b, err := json.Marshal(c.Screenshots); err == nil {
+			c.ScreenshotsJSON = string(b)
+		} else {
+			c.ScreenshotsJSON = "[]"
+		}
+
 		c.HasPaid = c.PaymentID != "" && c.PaymentStatus != "paid_by_user"
 
 		if billID != "" {
@@ -733,7 +753,12 @@ func handleAdminPaymentsSave(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if action == "reject_payment" {
 		pid := r.FormValue("payment_id")
+		var billID string
+		db.DB.QueryRow("SELECT COALESCE(bill_id,'') FROM payments WHERE id = $1", pid).Scan(&billID)
 		db.DB.Exec("DELETE FROM payments WHERE id = $1", pid)
+		if billID != "" {
+			db.DB.Exec("UPDATE bills SET status = 'pending' WHERE id = $1", billID)
+		}
 		http.Redirect(w, r, "/admin/payments?month="+r.FormValue("month"), http.StatusSeeOther)
 		return
 	} else if action == "toggle_maintenance" {
