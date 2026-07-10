@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	htmltpl "html/template"
 	"log"
 	"net/http"
 	"strconv"
@@ -461,7 +462,7 @@ type RoomPaymentCard struct {
 	PaymentID, PaymentDate, PaymentMethod, PaymentNotes, PaidTo string
 	PaymentStatus, Screenshot                              string
 	Screenshots                                            []string
-	ScreenshotsJSON                                        string
+	ScreenshotsJSON                                        htmltpl.JS
 	PaymentAmount                                          float64
 }
 
@@ -565,7 +566,7 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if b, err := json.Marshal(c.Screenshots); err == nil {
-			c.ScreenshotsJSON = string(b)
+			c.ScreenshotsJSON = htmltpl.JS(b)
 		} else {
 			c.ScreenshotsJSON = "[]"
 		}
