@@ -50,3 +50,5 @@ vatsapartment-go
 vatsapartment-go
 .agents/
 .claude/
+.playwright-mcp/
+payments-header.jpg
