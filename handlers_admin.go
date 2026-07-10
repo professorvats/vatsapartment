@@ -749,11 +749,15 @@ func handleAdminPaymentsSave(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Update existing paid_by_user payment if one exists, otherwise create new
+		// Check by bill_id first, then by tenant+month to avoid duplicates
 		var existingPayID string
 		db.DB.QueryRow(`SELECT id FROM payments WHERE bill_id = $1 AND status = 'paid_by_user'`, billID).Scan(&existingPayID)
+		if existingPayID == "" {
+			db.DB.QueryRow(`SELECT id FROM payments WHERE tenant_id = $1 AND month_covered = $2 AND status = 'paid_by_user' LIMIT 1`, tenantID, monthCovered).Scan(&existingPayID)
+		}
 		if existingPayID != "" {
-			db.DB.Exec(`UPDATE payments SET amount = $1, payment_date = $2, payment_method = $3, status = 'completed', month_covered = $4, notes = $5, paid_to = $6, updated_at = NOW() WHERE id = $7`,
-				paidAmount, date, method, monthCovered, notes, paidTo, existingPayID)
+			db.DB.Exec(`UPDATE payments SET amount = $1, payment_date = $2, payment_method = $3, status = 'completed', month_covered = $4, notes = $5, paid_to = $6, bill_id = COALESCE(NULLIF($10,''),bill_id), updated_at = NOW() WHERE id = $7`,
+				paidAmount, date, method, monthCovered, notes, paidTo, existingPayID, billID)
 		} else {
 			db.DB.Exec(`INSERT INTO payments (id, tenant_id, bill_id, amount, payment_date, payment_method, status, month_covered, notes, paid_to)
 				VALUES ($1, $2, $3, $4, $5, $6, 'completed', $7, $8, $9)`,
