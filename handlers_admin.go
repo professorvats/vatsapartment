@@ -553,15 +553,15 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 		}
 		// Also load proofs from payment_proofs table (catches uploads before tenant submits payment)
 		if len(c.Screenshots) == 0 && c.TenantID != "" {
-			proofRows, _ := db.DB.Query(`SELECT file_path FROM payment_proofs WHERE tenant_id = $1 AND billing_month = $2 ORDER BY created_at ASC`, c.TenantID, month)
-			if proofRows != nil {
-				defer proofRows.Close()
+			proofRows, err := db.DB.Query(`SELECT file_path FROM payment_proofs WHERE tenant_id = $1 AND billing_month = $2 ORDER BY created_at ASC`, c.TenantID, month)
+			if err == nil && proofRows != nil {
 				for proofRows.Next() {
 					var fp string
 					if proofRows.Scan(&fp) == nil {
 						c.Screenshots = append(c.Screenshots, fp)
 					}
 				}
+				proofRows.Close()
 			}
 		}
 		if b, err := json.Marshal(c.Screenshots); err == nil {
