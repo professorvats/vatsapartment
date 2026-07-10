@@ -74,38 +74,41 @@
   <div class="border-t border-ol-variant px-4 py-4">
     <h3 class="text-xs font-semibold text-on-surface uppercase tracking-wide mb-3">How to Pay</h3>
 
-    <div class="flex gap-3 mb-3">
-      <div class="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">1</div>
-      <div>
-        <p class="text-sm font-semibold text-on-surface">Scan and Pay <span class="text-primary">₹{{printf "%.0f" .TotalAmount}}</span></p>
-        <p class="text-xs text-on-sf-variant mt-0.5">Use any UPI app (Google Pay, PhonePe, Paytm)</p>
-        <img src="/static/qr-code.jpg" alt="Payment QR Code"
-             class="mt-2 h-40 w-40 object-contain rounded-xl border border-ol-variant cursor-pointer hover:shadow-md transition-shadow bg-white"
-             onclick="openQRModal()">
-        <p class="text-[10px] text-on-sf-variant mt-1">Tap QR to expand</p>
+    <div class="flex flex-col md:flex-row gap-4 mb-3">
+      <!-- Step 1: Scan & Pay -->
+      <div class="flex-1 flex gap-3">
+        <div class="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">1</div>
+        <div>
+          <p class="text-sm font-semibold text-on-surface">Scan and Pay <span class="text-primary">₹{{printf "%.0f" .TotalAmount}}</span></p>
+          <p class="text-xs text-on-sf-variant mt-0.5">Use any UPI app (Google Pay, PhonePe, Paytm)</p>
+          <img src="/static/qr-code.jpg" alt="Payment QR Code"
+               class="mt-2 h-40 w-40 object-contain rounded-xl border border-ol-variant cursor-pointer hover:shadow-md transition-shadow bg-white"
+               onclick="openQRModal()">
+          <p class="text-[10px] text-on-sf-variant mt-1">Tap QR to expand</p>
+        </div>
       </div>
-    </div>
 
-    <!-- Step 2: Upload Screenshot -->
-    <div class="flex gap-3 mb-3">
-      <div class="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">2</div>
-      <div class="flex-1">
-        <p class="text-sm font-semibold text-on-surface">Confirm Your Payment</p>
-        <p class="text-xs text-on-sf-variant mt-0.5">Attach screenshots of your successful payment</p>
+      <!-- Step 2: Upload Screenshot -->
+      <div class="flex-1 flex gap-3">
+        <div class="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">2</div>
+        <div>
+          <p class="text-sm font-semibold text-on-surface">Confirm Your Payment</p>
+          <p class="text-xs text-on-sf-variant mt-0.5">Attach screenshots of your successful payment</p>
 
-        <!-- Saved proofs gallery -->
-        <div id="proofs-gallery" class="flex flex-wrap gap-2 mt-2"></div>
+          <!-- Saved proofs gallery -->
+          <div id="proofs-gallery" class="flex flex-wrap gap-2 mt-2"></div>
 
-        <!-- Upload zone — 1:2 ratio -->
-        <div class="mt-2" style="max-width:160px">
-          <label class="flex flex-col items-center justify-center border-2 border-dashed border-ol-variant rounded-xl cursor-pointer hover:border-primary transition-all bg-sf-low" style="aspect-ratio:1/2; width:100%">
-            <div class="text-center px-2">
-              <svg class="w-5 h-5 text-on-sf-variant mx-auto mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-              <p class="text-sm text-on-surface">Tap to add screenshot</p>
-              <p class="text-[10px] text-on-sf-variant mt-0.5">PNG, JPG or WebP</p>
-            </div>
-            <input type="file" name="proof" accept="image/*" class="hidden" id="proof-file-input" onchange="uploadProof(event)">
-          </label>
+          <!-- Upload zone — 1:2 ratio -->
+          <div class="mt-2" style="max-width:160px">
+            <label class="flex flex-col items-center justify-center border-2 border-dashed border-ol-variant rounded-xl cursor-pointer hover:border-primary transition-all bg-sf-low" style="aspect-ratio:1/2; width:100%">
+              <div class="text-center px-2">
+                <svg class="w-5 h-5 text-on-sf-variant mx-auto mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <p class="text-sm text-on-surface">Tap to add screenshot</p>
+                <p class="text-[10px] text-on-sf-variant mt-0.5">PNG, JPG or WebP</p>
+              </div>
+              <input type="file" name="proof" accept="image/*" class="hidden" id="proof-file-input" onchange="uploadProof(event)">
+            </label>
+          </div>
         </div>
       </div>
     </div>
