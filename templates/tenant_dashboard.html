@@ -141,7 +141,7 @@
           <p class="text-xs text-on-sf-variant">{{.MonthCovered}} &#183; {{.Method}}</p>
         </div>
       </div>
-      <span class="text-xs px-2 py-0.5 rounded-full font-medium {{if eq .Status "completed"}}bg-green-50 text-success{{else}}bg-amber-50 text-warning{{end}}">{{.Status}}</span>
+      <span class="text-xs px-2 py-0.5 rounded-full font-medium {{if eq .Status "completed"}}bg-green-50 text-success{{else if eq .Status "paid_by_user"}}bg-amber-50 text-warning{{else}}bg-amber-50 text-warning{{end}}">{{if eq .Status "completed"}}Confirmed{{else if eq .Status "paid_by_user"}}Under Review{{else}}{{.Status}}{{end}}</span>
     </div>
     {{end}}
   </div>
