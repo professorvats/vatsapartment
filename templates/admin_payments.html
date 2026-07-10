@@ -49,10 +49,7 @@
 {{if .Cards}}
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
   {{range .Cards}}
-  <form method="POST" action="/admin/payments/save" class="rounded-2xl overflow-hidden border shadow-sm transition-all
-    {{if .HasPaid}}bg-green-50/50 border-green-300
-    {{else if eq .PaymentStatus "paid_by_user"}}bg-amber-50/50 border-amber-300
-    {{else}}bg-sf-lowest border-ol-variant hover:shadow-md{{end}}">
+  <form method="POST" action="/admin/payments/save" class="rounded-2xl overflow-hidden border border-ol-variant shadow-sm bg-sf-lowest">
 
     <input type="hidden" name="action" value="complete">
     <input type="hidden" name="tenant_id" value="{{.TenantID}}">
@@ -60,13 +57,10 @@
     <input type="hidden" name="month_covered" value="{{$.Month}}">
 
     <!-- Card Header -->
-    <div class="px-5 py-4 flex items-center justify-between
-      {{if .HasPaid}}bg-green-100/50 border-b border-green-200
-      {{else if eq .PaymentStatus "paid_by_user"}}bg-amber-100/50 border-b border-amber-200
-      {{else}}bg-sf-low border-b border-ol-variant{{end}}">
+    <div class="text-white px-5 py-4 flex items-center justify-between" style="background:linear-gradient(to bottom right, #111, #222)">
       <div>
-        <h3 class="font-bold text-sm">Room {{.RoomNumber}}</h3>
-        <p class="text-xs text-on-sf-variant">{{.TenantName}}</p>
+        <p class="text-xs text-white/60 uppercase tracking-wide font-medium">Room {{.RoomNumber}}</p>
+        <h3 class="text-lg font-bold mt-0.5">{{.TenantName}}</h3>
       </div>
       {{if .HasPaid}}
       <span class="text-xs font-semibold px-3 py-1 rounded-full bg-green-600 text-white flex items-center gap-1">
