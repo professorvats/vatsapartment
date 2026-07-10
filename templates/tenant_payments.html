@@ -112,14 +112,12 @@
       </div>
     </div>
 
-    <!-- Submit Payment -->
-    <form method="POST" action="/tenant/payments/mark-paid" enctype="multipart/form-data" class="px-4 pb-4">
-      <input type="hidden" name="month_covered" value="{{.Month}}">
-      <input type="hidden" name="amount" value="{{printf "%.0f" .TotalAmount}}">
-      <button type="submit" class="w-full bg-primary text-on-primary py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all">
-        Submit Payment for Verification
-      </button>
-    </form>
+    <!-- Status Message -->
+    <div class="px-4 pb-4">
+      <p class="text-xs text-center text-on-sf-variant bg-sf-low rounded-lg py-2.5 px-3">
+        Verification may take up to 24 hours. Admin will review your payment. Add more images if needed.
+      </p>
+    </div>
   </div>
   {{else}}
   <!-- Payment Under Review -->

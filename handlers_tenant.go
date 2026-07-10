@@ -519,6 +519,21 @@ func handleTenantUploadProof(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Auto-submit payment on first proof upload
+	var existingPayCount int
+	db.DB.QueryRow(`SELECT COUNT(*) FROM payments WHERE tenant_id = $1 AND month_covered = $2 AND status = 'paid_by_user'`, tenantID, month).Scan(&existingPayCount)
+	if existingPayCount == 0 {
+		var billID string
+		var totalAmt float64
+		db.DB.QueryRow(`SELECT id, total_amount FROM bills WHERE tenant_id = $1 AND billing_month = $2 AND status = 'pending'`, tenantID, month).Scan(&billID, &totalAmt)
+		if billID != "" {
+			payID := fmt.Sprintf("PAY%d", time.Now().UnixNano())
+			db.DB.Exec(`INSERT INTO payments (id, tenant_id, bill_id, amount, payment_date, payment_method, status, month_covered) VALUES ($1, $2, $3, $4, $5, 'UPI', 'paid_by_user', $6)`,
+				payID, tenantID, billID, totalAmt, time.Now().Format("2006-01-02"), month)
+			db.DB.Exec(`UPDATE bills SET status = 'paid_by_user' WHERE id = $1`, billID)
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(fmt.Sprintf(`{"id":"%s","path":"%s"}`, proofID, filePath)))
 }
