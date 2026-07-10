@@ -253,10 +253,10 @@ function loadProofs() {
       proofs.forEach(function(p) {
         var card = document.createElement('div');
         card.id = 'proof-' + p.id;
-        card.className = 'proof-card relative inline-block bg-sf-low border border-ol-variant rounded-xl overflow-hidden flex-shrink-0';
+        card.className = 'proof-card relative inline-block bg-sf-low border border-ol-variant rounded-xl flex-shrink-0';
         card.style.width = '120px';
-        card.innerHTML = '<img src="' + p.path + '" class="w-full object-contain" style="max-height:240px; aspect-ratio:1/2" alt="Proof">' +
-          '<button onclick="deleteProof(\'' + p.id + '\')" class="absolute top-1 right-1 w-5 h-5 bg-error text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-red-600 shadow">✕</button>';
+        card.innerHTML = '<img src="' + p.path + '" class="w-full object-cover" style="aspect-ratio:1/2" alt="Proof">' +
+          '<button onclick="deleteProof(\'' + p.id + '\')" class="proof-del absolute top-0 right-0 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-red-700 z-10 shadow-md">✕</button>';
         gallery.insertBefore(card, uploadBtn);
       });
     });
