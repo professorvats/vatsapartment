@@ -748,9 +748,17 @@ func handleAdminPaymentsSave(w http.ResponseWriter, r *http.Request) {
 			db.DB.Exec("UPDATE bills SET discount_amount = $1, discount_note = $2, status = 'paid' WHERE id = $3", discount, discountNote, billID)
 		}
 
-		db.DB.Exec(`INSERT INTO payments (id, tenant_id, bill_id, amount, payment_date, payment_method, status, month_covered, notes, paid_to)
-			VALUES ($1, $2, $3, $4, $5, $6, 'completed', $7, $8, $9)`,
-			id, tenantID, billID, paidAmount, date, method, monthCovered, notes, paidTo)
+		// Update existing paid_by_user payment if one exists, otherwise create new
+		var existingPayID string
+		db.DB.QueryRow(`SELECT id FROM payments WHERE bill_id = $1 AND status = 'paid_by_user'`, billID).Scan(&existingPayID)
+		if existingPayID != "" {
+			db.DB.Exec(`UPDATE payments SET amount = $1, payment_date = $2, payment_method = $3, status = 'completed', month_covered = $4, notes = $5, paid_to = $6, updated_at = NOW() WHERE id = $7`,
+				paidAmount, date, method, monthCovered, notes, paidTo, existingPayID)
+		} else {
+			db.DB.Exec(`INSERT INTO payments (id, tenant_id, bill_id, amount, payment_date, payment_method, status, month_covered, notes, paid_to)
+				VALUES ($1, $2, $3, $4, $5, $6, 'completed', $7, $8, $9)`,
+				id, tenantID, billID, paidAmount, date, method, monthCovered, notes, paidTo)
+		}
 		db.DB.Exec("UPDATE tenants SET has_maintenance = $1, updated_at = NOW() WHERE id = $2", hasMaint, tenantID)
 		db.DB.Exec(`UPDATE rooms SET maintenance_amount = $1, updated_at = NOW()
 			WHERE id = (SELECT COALESCE(room_id,'') FROM tenants WHERE id = $2)`, maintAmt, tenantID)
