@@ -148,6 +148,7 @@ func main() {
 
 	// Tenant agreement
 	mux.HandleFunc("GET /tenant/agreement", handleTenantAgreement)
+	mux.HandleFunc("POST /tenant/agreement/accept", handleTenantAgreementAccept)
 	mux.HandleFunc("GET /tenant/agreement/print", handleAgreementPrint)
 
 	// Tenant complaints

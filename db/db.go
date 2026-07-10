@@ -406,6 +406,9 @@ E'1. The tenant shall pay a monthly rent of Rs. [RENT_AMOUNT] on or before the 7
 15. The tenant agrees to keep the premises clean and hygienic at all times. Regular room inspections may be conducted by the management to ensure compliance with cleanliness standards.',
 'Rent agreement terms and conditions with [RENT_AMOUNT], [DEPOSIT_AMOUNT], [LOCK_IN_PERIOD], [ELECTRICITY_RATE] placeholders') ON CONFLICT (key) DO NOTHING`},
 			{"property_address", `INSERT INTO settings (key, value, description) VALUES ('property_address', 'Near Apna Chai Wala, Lovely Professional University, Jalandhar, Punjab', 'Property address printed on rent agreements') ON CONFLICT (key) DO NOTHING`},
+			{"agreement_version", `INSERT INTO settings (key, value, description) VALUES ('agreement_version', '1.0', 'Current agreement terms version for tenant display') ON CONFLICT (key) DO NOTHING`},
+			{"t_agreement_accepted", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS agreement_accepted BOOLEAN DEFAULT false`},
+			{"t_agreement_accepted_at", `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS agreement_accepted_at TIMESTAMPTZ`},
 	}
 
 	for _, m := range migrations {

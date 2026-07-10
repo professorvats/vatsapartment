@@ -1,36 +1,98 @@
 {{template "tenant_header" .}}
 
-<div class="flex items-center justify-between mb-5">
-  <div>
-    <h1 class="text-lg font-bold">My Rent Agreement</h1>
-    <p class="text-xs text-on-sf-variant mt-0.5">Room {{.RoomNumber}} · Agreement No: {{.AgreementNo}}</p>
+{{if .HasError}}
+<!-- Error State -->
+<div class="bg-sf-lowest border border-ol-variant rounded-xl p-8 text-center">
+  <div class="w-16 h-16 mx-auto mb-4 bg-red-50 rounded-full flex items-center justify-center">
+    <svg class="w-8 h-8 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+    </svg>
   </div>
-  <a href="/tenant/agreement/print" target="_blank"
-     class="bg-secondary text-on-secondary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-secondary/90 flex items-center gap-2">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z"/></svg>
-    Print / Download
+  <h2 class="text-lg font-bold mb-2">Agreement Unavailable</h2>
+  <p class="text-on-sf-variant text-sm mb-4">{{.ErrorMessage}}</p>
+  <a href="/tenant/dashboard" class="inline-flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+    Back to Dashboard
   </a>
 </div>
 
-<!-- Tenant Info Card -->
-<div class="bg-sf-lowest border border-ol-variant rounded-xl p-4 mb-5">
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-    <div>
-      <p class="text-xs text-on-sf-variant">Check-in Date</p>
-      <p class="font-semibold">{{.CheckInDate}}</p>
+{{else}}
+
+<!-- Header -->
+<div class="flex items-start justify-between mb-4">
+  <div>
+    <h1 class="text-lg font-bold">My Rent Agreement</h1>
+    <div class="flex flex-wrap items-center gap-2 mt-1">
+      <p class="text-xs text-on-sf-variant">Room {{.RoomNumber}} · {{.AgreementNo}}</p>
+
+      {{if .AgreementAccepted}}
+      <span class="inline-flex items-center gap-1 text-xs bg-green-50 text-green-700 border border-green-200 px-2.5 py-0.5 rounded-full font-medium">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+        Acknowledged
+      </span>
+      {{else}}
+      <span class="inline-flex items-center gap-1 text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-full font-medium">
+        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg>
+        Ready to Acknowledge
+      </span>
+      {{end}}
     </div>
-    <div>
-      <p class="text-xs text-on-sf-variant">Monthly Rent</p>
-      <p class="font-semibold">Rs. {{printf "%.0f" .RentAmount}}</p>
+  </div>
+
+  <a href="/tenant/agreement/print" target="_blank"
+     class="bg-primary text-on-primary px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-primary/90 flex items-center gap-2 shrink-0">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z"/></svg>
+    Print / Download PDF
+  </a>
+</div>
+
+<!-- Version Info -->
+<p class="text-xs text-on-sf-variant/60 mb-4">{{.VersionInfo}}</p>
+
+<!-- Tenant Info Cards -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+  <!-- Check-in Date -->
+  <div class="bg-sf-lowest border border-ol-variant rounded-xl p-4">
+    <div class="w-9 h-9 rounded-lg bg-secondary/10 flex items-center justify-center mb-2.5">
+      <svg class="w-4 h-4 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
+      </svg>
     </div>
-    <div>
-      <p class="text-xs text-on-sf-variant">Security Deposit</p>
-      <p class="font-semibold">Rs. {{printf "%.0f" .SecurityDeposit}}</p>
+    <p class="text-xs text-on-sf-variant">Check-in Date</p>
+    <p class="font-semibold text-sm mt-0.5">{{.CheckInDate}}</p>
+  </div>
+
+  <!-- Monthly Rent -->
+  <div class="bg-sf-lowest border border-ol-variant rounded-xl p-4">
+    <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center mb-2.5">
+      <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
     </div>
-    <div>
-      <p class="text-xs text-on-sf-variant">Lock-in Period</p>
-      <p class="font-semibold">{{.LockInPeriod}} months</p>
+    <p class="text-xs text-on-sf-variant">Monthly Rent</p>
+    <p class="font-semibold text-sm mt-0.5">Rs. {{printf "%.0f" .RentAmount}}</p>
+  </div>
+
+  <!-- Security Deposit -->
+  <div class="bg-sf-lowest border border-ol-variant rounded-xl p-4">
+    <div class="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center mb-2.5">
+      <svg class="w-4 h-4 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+      </svg>
     </div>
+    <p class="text-xs text-on-sf-variant">Security Deposit</p>
+    <p class="font-semibold text-sm mt-0.5">Rs. {{printf "%.0f" .SecurityDeposit}}</p>
+  </div>
+
+  <!-- Lock-in Period -->
+  <div class="bg-sf-lowest border border-ol-variant rounded-xl p-4">
+    <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center mb-2.5">
+      <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+      </svg>
+    </div>
+    <p class="text-xs text-on-sf-variant">Lock-in Period</p>
+    <p class="font-semibold text-sm mt-0.5">{{.LockInPeriod}} months</p>
   </div>
 </div>
 
@@ -40,7 +102,7 @@
     <h2 class="font-semibold text-sm">Agreement Document</h2>
   </div>
 
-  <div class="p-5 max-h-[500px] overflow-y-auto font-[Georgia,'Times_New_Roman',serif] text-[#1a1a1a] leading-relaxed text-sm bg-white border-b border-ol-variant">
+  <div id="agreement-document" class="p-5 max-h-[350px] md:max-h-[60vh] overflow-y-auto font-[Georgia,'Times_New_Roman',serif] text-[#1a1a1a] leading-relaxed text-sm bg-white border-b border-ol-variant">
 
     <!-- Header -->
     <div class="text-center border-b-2 border-[#222] pb-4 mb-5">
@@ -87,14 +149,60 @@
     </div>
   </div>
 
-  <div class="px-5 py-4 flex items-center justify-between">
-    <p class="text-xs text-on-sf-variant">Review your agreement above, then print or download a copy.</p>
-    <a href="/tenant/agreement/print" target="_blank"
-       class="bg-secondary text-on-secondary px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-secondary/90 flex items-center gap-2">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z"/></svg>
-      Print / Download
-    </a>
+  <!-- Bottom Action Bar -->
+  <div class="px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+    <div class="flex items-center gap-2 text-xs text-on-sf-variant">
+      <svg class="w-3.5 h-3.5 text-on-sf-variant/50 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75"/>
+      </svg>
+      <span>Review the agreement above, then print a copy for your records.</span>
+    </div>
+
+    {{if not .AgreementAccepted}}
+    <form method="POST" action="/tenant/agreement/accept" id="accept-form" class="w-full sm:w-auto">
+      <button type="submit" id="accept-btn" disabled
+         class="w-full sm:w-auto bg-sf-variant text-on-sf-variant px-5 py-2.5 rounded-lg text-sm font-semibold cursor-not-allowed flex items-center justify-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Scroll to bottom to acknowledge
+      </button>
+    </form>
+    {{else}}
+    <div class="flex items-center gap-2 text-sm text-green-700 bg-green-50 px-4 py-2 rounded-lg font-medium">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      Acknowledged{{if .AgreementAcceptedAt}} on {{.AgreementAcceptedAt}}{{end}}
+    </div>
+    {{end}}
   </div>
 </div>
+
+{{end}}{{/* end of !HasError */}}
+
+<!-- Scroll-to-enable acknowledge button -->
+{{if and (not .HasError) (not .AgreementAccepted)}}
+<script>
+(function() {
+  var docEl = document.getElementById('agreement-document');
+  var acceptBtn = document.getElementById('accept-btn');
+  if (docEl && acceptBtn) {
+    function checkScroll() {
+      var threshold = docEl.scrollHeight - docEl.clientHeight - 10;
+      if (docEl.scrollTop >= threshold) {
+        acceptBtn.disabled = false;
+        acceptBtn.className = 'w-full sm:w-auto bg-secondary text-on-secondary px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-secondary/90 flex items-center justify-center gap-2 cursor-pointer';
+        acceptBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg> I Acknowledge the Agreement';
+        docEl.removeEventListener('scroll', checkScroll);
+      }
+    }
+    docEl.addEventListener('scroll', checkScroll);
+    // Check immediately in case content is shorter than max-height
+    checkScroll();
+  }
+})();
+</script>
+{{end}}
 
 {{template "tenant_footer" .}}

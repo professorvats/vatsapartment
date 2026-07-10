@@ -13,27 +13,34 @@ import (
 // ─── Agreement data ─────────────────────────────────────────
 
 type agreementData struct {
-	Active            string
-	Title             string
-	TenantID          string
-	TenantName        string
-	TenantPhone       string
-	TenantEmail       string
-	RoomNumber        string
-	RentAmount        float64
-	SecurityDeposit   float64
-	LockInPeriod      int
-	CheckInDate       string
-	EndDate           string
-	HasMaintenance    bool
-	MaintenanceAmount float64
-	ElectricityRate   float64
-	PropertyAddress   string
-	AgreementVersion  string
-	GeneratedAt       string
-	AgreementTerms    string // processed terms with placeholders replaced
-	AgreementNo       string
-	IsPrint           bool
+	Active              string
+	Title               string
+	TenantID            string
+	TenantName          string
+	TenantPhone         string
+	TenantEmail         string
+	RoomNumber          string
+	RentAmount          float64
+	SecurityDeposit     float64
+	LockInPeriod        int
+	CheckInDate         string
+	EndDate             string
+	HasMaintenance      bool
+	MaintenanceAmount   float64
+	ElectricityRate     float64
+	PropertyAddress     string
+	AgreementVersion    string
+	GeneratedAt         string
+	AgreementTerms      string // processed terms with placeholders replaced
+	AgreementNo         string
+	IsPrint             bool
+	HasError            bool
+	ErrorMessage        string
+	AgreementStatus     string // "active", "pending"
+	VersionInfo         string // "Version 1.0 — Generated 02 July 2026"
+	AgreementAccepted   bool
+	AgreementAcceptedAt string
+	HasRoom             bool
 }
 
 func buildAgreementData(tenantID string) agreementData {
@@ -52,14 +59,16 @@ func buildAgreementData(tenantID string) agreementData {
 			COALESCE(t.end_date, ''),
 			COALESCE(t.has_maintenance, false),
 			COALESCE(r.room_number, ''),
-			COALESCE(r.maintenance_amount, 500)
+			COALESCE(r.maintenance_amount, 500),
+			COALESCE(t.agreement_accepted, false)
 		FROM tenants t
 		LEFT JOIN rooms r ON t.room_id = r.id
 		WHERE t.id = $1`, tenantID).Scan(
 		&d.TenantName, &d.TenantPhone, &d.TenantEmail,
 		&d.RentAmount, &d.SecurityDeposit, &d.LockInPeriod,
 		&d.CheckInDate, &endDateStr, &d.HasMaintenance,
-		&d.RoomNumber, &maintAmt)
+		&d.RoomNumber, &maintAmt,
+		&d.AgreementAccepted)
 	if err != nil {
 		log.Printf("ERROR building agreement data for %s: %v", tenantID, err)
 		return d
@@ -69,11 +78,35 @@ func buildAgreementData(tenantID string) agreementData {
 		d.EndDate = endDateStr
 	}
 
+	// Check for error states
+	if d.TenantName == "" {
+		d.HasError = true
+		d.ErrorMessage = "Your account information could not be found. Please contact the management."
+		return d
+	}
+	d.HasRoom = d.RoomNumber != ""
+	if !d.HasRoom {
+		d.HasError = true
+		d.ErrorMessage = "No room has been assigned to you yet. Please contact the management."
+		return d
+	}
+
+	// Determine agreement status
+	if d.AgreementAccepted {
+		d.AgreementStatus = "active"
+	} else {
+		d.AgreementStatus = "pending"
+	}
+
 	// Read settings
-	var terms, address, rateStr string
+	var terms, address, rateStr, agVersion string
 	db.DB.QueryRow(`SELECT COALESCE((SELECT value FROM settings WHERE key = 'agreement_terms'), '')`).Scan(&terms)
 	db.DB.QueryRow(`SELECT COALESCE((SELECT value FROM settings WHERE key = 'property_address'), '')`).Scan(&address)
 	db.DB.QueryRow(`SELECT COALESCE((SELECT value FROM settings WHERE key = 'electricity_rate'), '12')`).Scan(&rateStr)
+	db.DB.QueryRow(`SELECT COALESCE((SELECT value FROM settings WHERE key = 'agreement_version'), '1.0')`).Scan(&agVersion)
+
+	d.AgreementVersion = agVersion
+	d.VersionInfo = fmt.Sprintf("Version %s · Generated %s", agVersion, d.GeneratedAt)
 
 	d.PropertyAddress = address
 	if d.PropertyAddress == "" {
@@ -108,10 +141,49 @@ func buildAgreementData(tenantID string) agreementData {
 	}
 	d.AgreementTerms = strings.Join(paragraphs, "\n")
 
-	// Agreement number
-	d.AgreementNo = fmt.Sprintf("VATS/AG/%s/%s", time.Now().Format("2006-01"), tenantID)
+	// Agreement number — use check-in month for stability
+	monthYear := parseCheckInMonth(d.CheckInDate)
+	if monthYear != "" {
+		d.AgreementNo = fmt.Sprintf("VATS/AG/%s/%s", monthYear, tenantID)
+	} else {
+		d.AgreementNo = fmt.Sprintf("VATS/AG/%s/%s", time.Now().Format("2006-01"), tenantID)
+	}
+
+	// Query acceptance timestamp separately (can be NULL)
+	var acceptedAtStr string
+	db.DB.QueryRow(`SELECT COALESCE(agreement_accepted_at::text, '') FROM tenants WHERE id = $1`, tenantID).Scan(&acceptedAtStr)
+	if acceptedAtStr != "" {
+		// Format timestamp nicely for display
+		if t, err := time.Parse(time.RFC3339, acceptedAtStr); err == nil {
+			d.AgreementAcceptedAt = t.Format("02 January 2006 at 3:04 PM")
+		} else {
+			d.AgreementAcceptedAt = acceptedAtStr
+		}
+	}
 
 	return d
+}
+
+// parseCheckInMonth extracts YYYY-MM from a check-in date string.
+// Tries multiple common date formats.
+func parseCheckInMonth(dateStr string) string {
+	if dateStr == "" {
+		return ""
+	}
+	formats := []string{
+		"2006-01-02",
+		"02 January 2006",
+		"2 January 2006",
+		"January 2006",
+		"02 Jan 2006",
+		"2 Jan 2006",
+	}
+	for _, f := range formats {
+		if t, err := time.Parse(f, dateStr); err == nil {
+			return t.Format("2006-01")
+		}
+	}
+	return ""
 }
 
 // ─── Admin agreement view ───────────────────────────────────
@@ -150,6 +222,32 @@ func handleTenantAgreement(w http.ResponseWriter, r *http.Request) {
 	d.Title = "My Rent Agreement"
 
 	renderPrivate(w, "tenant_agreement.html", d)
+}
+
+// ─── Tenant agreement acceptance ────────────────────────────
+
+func handleTenantAgreementAccept(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	tenantID, ok := requireTenant(w, r)
+	if !ok {
+		return
+	}
+
+	_, err := db.DB.Exec(
+		`UPDATE tenants SET agreement_accepted = true, agreement_accepted_at = NOW() WHERE id = $1`,
+		tenantID,
+	)
+	if err != nil {
+		log.Printf("ERROR accepting agreement for %s: %v", tenantID, err)
+		http.Redirect(w, r, "/tenant/agreement?error=Failed+to+acknowledge+agreement", http.StatusSeeOther)
+		return
+	}
+
+	http.Redirect(w, r, "/tenant/agreement?msg=Agreement+acknowledged+successfully", http.StatusSeeOther)
 }
 
 // ─── Print agreement (standalone, no layout) ───────────────
