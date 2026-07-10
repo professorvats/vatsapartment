@@ -334,6 +334,36 @@ func runMigrations() error {
 				created_at TIMESTAMPTZ DEFAULT NOW()
 			)`},
 		{"idx_pproofs_tenant_month", `CREATE INDEX IF NOT EXISTS idx_pproofs_tenant_month ON payment_proofs(tenant_id, billing_month)`},
+
+			{"complaints", `
+				CREATE TABLE IF NOT EXISTS complaints (
+					id TEXT PRIMARY KEY,
+					tenant_id TEXT NOT NULL,
+					room_id TEXT NOT NULL,
+					category TEXT NOT NULL,
+					subcategory TEXT NOT NULL,
+					description TEXT DEFAULT '',
+					image TEXT DEFAULT '',
+					status TEXT DEFAULT 'pending',
+					admin_notes TEXT DEFAULT '',
+					created_at TIMESTAMPTZ DEFAULT NOW(),
+					updated_at TIMESTAMPTZ DEFAULT NOW()
+				)`},
+			{"idx_complaints_tenant", `CREATE INDEX IF NOT EXISTS idx_complaints_tenant ON complaints(tenant_id)`},
+			{"idx_complaints_status", `CREATE INDEX IF NOT EXISTS idx_complaints_status ON complaints(status)`},
+			{"idx_complaints_room", `CREATE INDEX IF NOT EXISTS idx_complaints_room ON complaints(room_id)`},
+
+			{"room_maintenance", `
+				CREATE TABLE IF NOT EXISTS room_maintenance (
+					id TEXT PRIMARY KEY,
+					room_id TEXT NOT NULL,
+					item_type TEXT NOT NULL,
+					last_serviced_date TEXT DEFAULT '',
+					notes TEXT DEFAULT '',
+					updated_at TIMESTAMPTZ DEFAULT NOW(),
+					UNIQUE(room_id, item_type)
+				)`},
+			{"idx_rm_room", `CREATE INDEX IF NOT EXISTS idx_rm_room ON room_maintenance(room_id)`},
 	}
 
 	for _, m := range migrations {

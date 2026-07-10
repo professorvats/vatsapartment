@@ -26,13 +26,14 @@ func handleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 }
 
 type DashboardStats struct {
-	TotalRooms      int     `json:"totalRooms"`
-	OccupiedRooms   int     `json:"occupiedRooms"`
-	TotalTenants    int     `json:"totalTenants"`
-	ActiveTenants   int     `json:"activeTenants"`
-	MonthlyRevenue  float64 `json:"monthlyRevenue"`
-	CollectionRate  float64 `json:"collectionRate"`
-	PendingPayments int     `json:"pendingPayments"`
+	TotalRooms        int     `json:"totalRooms"`
+	OccupiedRooms     int     `json:"occupiedRooms"`
+	TotalTenants      int     `json:"totalTenants"`
+	ActiveTenants     int     `json:"activeTenants"`
+	MonthlyRevenue    float64 `json:"monthlyRevenue"`
+	CollectionRate    float64 `json:"collectionRate"`
+	PendingPayments   int     `json:"pendingPayments"`
+	PendingComplaints int     `json:"pendingComplaints"`
 }
 
 func getDashboardStats() DashboardStats {
@@ -60,6 +61,10 @@ func getDashboardStats() DashboardStats {
 	if total > 0 {
 		s.CollectionRate = (completed / total) * 100
 	}
+
+	// Pending complaints count
+	db.DB.QueryRow(`SELECT COUNT(*) FROM complaints WHERE status = 'pending'`).Scan(&s.PendingComplaints)
+
 	return s
 }
 

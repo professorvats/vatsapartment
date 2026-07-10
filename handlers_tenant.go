@@ -495,8 +495,13 @@ func handleTenantUploadProof(w http.ResponseWriter, r *http.Request) {
 
 	proofID := fmt.Sprintf("PP%d", time.Now().UnixNano())
 	filename := fmt.Sprintf("proof_%s_%d%s", tenantID, time.Now().UnixNano(), ext)
+
+	// Ensure uploads directory exists
+	os.MkdirAll("uploads", 0755)
+
 	dst, err := os.Create(filepath.Join("uploads", filename))
 	if err != nil {
+		log.Printf("ERROR creating proof file: %v", err)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"error":"Failed to save file"}`))
 		return

@@ -38,6 +38,10 @@
     <h3 class="font-semibold mb-2">Record Payments</h3>
     <p class="text-sm text-on-sf-variant">Track rent, late fees, and payment history.</p>
   </a>
+  <a href="/admin/complaints" class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant hover:border-primary transition-colors">
+    <h3 class="font-semibold mb-2">Maintenance Complaints</h3>
+    <p class="text-sm text-on-sf-variant">{{if gt .Stats.PendingComplaints 0}}<strong style="color:#ba1a1a">{{.Stats.PendingComplaints}} pending</strong> — {{end}}Review and resolve tenant issues.</p>
+  </a>
   <a href="/admin/meters" class="bg-sf-lowest rounded-xl p-6 shadow-sm border border-ol-variant hover:border-primary transition-colors">
     <h3 class="font-semibold mb-2">Electricity Meters</h3>
     <p class="text-sm text-on-sf-variant">Manage meter readings and electricity billing rate.</p>
