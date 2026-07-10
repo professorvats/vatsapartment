@@ -131,6 +131,9 @@ func main() {
 	mux.HandleFunc("POST /tenant/change-password", handleTenantSetPassword)
 	mux.HandleFunc("GET /tenant/payments", handleTenantPayments)
 	mux.HandleFunc("POST /tenant/payments/mark-paid", handleTenantMarkPaid)
+	mux.HandleFunc("POST /tenant/payments/upload-proof", handleTenantUploadProof)
+	mux.HandleFunc("GET /tenant/payments/proofs", handleTenantListProofs)
+	mux.HandleFunc("POST /tenant/payments/proofs/delete", handleTenantDeleteProof)
 	mux.HandleFunc("GET /tenant/meter-details", handleTenantMeterDetails)
 	mux.HandleFunc("GET /tenant/logout", handleTenantLogout)
 

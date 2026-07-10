@@ -1,0 +1,33 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - img "Vats Apartment" [ref=e4]
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - paragraph [ref=e7]: Portal Access
+        - heading "Your Property, Simplified." [level=1] [ref=e8]: Your Property,Simplified.
+        - paragraph [ref=e9]: Manage rooms, tenants, bookings, and payments — all from one dashboard. Fully furnished spaces near LPU, starting at ₹9,000/month.
+      - generic [ref=e10]:
+        - generic [ref=e11]: High-Speed WiFi
+        - generic [ref=e18]: 24/7 Security
+        - generic [ref=e22]: Fully Furnished
+        - generic [ref=e26]: 10 min from LPU
+      - generic [ref=e31]: Near Apna Chai Wala, LPU, Jalandhar, Punjab
+    - paragraph [ref=e37]: © 2026 Vats Apartment. All rights reserved.
+  - generic [ref=e39]:
+    - generic [ref=e40]:
+      - heading "Sign in" [level=2] [ref=e41]
+      - paragraph [ref=e42]: Enter your credentials to continue
+    - generic [ref=e43]:
+      - generic [ref=e44]:
+        - generic [ref=e45]: Username or Phone
+        - textbox "Username or Phone" [ref=e46]:
+          - /placeholder: Admin username or tenant phone number
+      - generic [ref=e47]:
+        - generic [ref=e48]: Password
+        - textbox "Password" [ref=e49]:
+          - /placeholder: Enter your password
+      - button "Sign In" [ref=e50]
+    - paragraph [ref=e54]:
+      - text: Need help?
+      - link "Contact on WhatsApp" [ref=e55] [cursor=pointer]:
+        - /url: https://wa.me/919992937447

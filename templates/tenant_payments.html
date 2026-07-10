@@ -99,35 +99,47 @@
     </div>
 
     <!-- Step 3: Upload Screenshot -->
-    <div class="flex gap-3">
+    <div class="flex gap-3 mb-3">
       <div class="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">3</div>
       <div class="flex-1">
         <p class="text-sm font-semibold text-on-surface">Confirm Your Payment</p>
-        <p class="text-xs text-on-sf-variant mt-0.5">Attach a screenshot of your successful payment</p>
+        <p class="text-xs text-on-sf-variant mt-0.5">Attach screenshots of your successful payment</p>
 
-        <form method="POST" action="/tenant/payments/mark-paid" enctype="multipart/form-data" class="mt-2">
-          <input type="hidden" name="month_covered" value="{{.Month}}">
-          <input type="hidden" name="amount" value="{{printf "%.0f" .TotalAmount}}">
+        <!-- Saved proofs gallery -->
+        <div id="proofs-gallery" class="flex flex-wrap gap-3 mt-2"></div>
 
-          <label class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-ol-variant rounded-xl cursor-pointer hover:border-primary transition-all bg-sf-low" id="upload-zone">
-            <div id="upload-hint" class="text-center">
-              <svg class="w-6 h-6 text-on-sf-variant mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-              <p class="text-sm text-on-surface">Tap to attach screenshot</p>
-              <p class="text-[10px] text-on-sf-variant mt-0.5">PNG, JPG or WebP</p>
+        <!-- Upload zone -->
+        <div id="proof-upload-area" class="mt-2">
+          <div id="proof-upload-preview" class="hidden mb-3">
+            <div class="inline-block bg-sf-low border border-ol-variant rounded-xl overflow-hidden" style="max-width:180px">
+              <img id="proof-preview-img" src="" class="w-full object-contain" style="max-height:320px" alt="Preview">
+              <div class="flex gap-2 p-2 border-t border-ol-variant">
+                <button onclick="saveProof()" class="flex-1 bg-primary text-white text-xs font-semibold py-1.5 rounded-lg hover:bg-primary/90">Save</button>
+                <button onclick="cancelProof()" class="flex-1 bg-sf-high text-on-surface text-xs py-1.5 rounded-lg hover:bg-sf-highest">Cancel</button>
+              </div>
             </div>
-            <img id="upload-preview" src="" class="hidden h-24 w-auto object-contain rounded-lg" alt="Preview">
-            <input type="file" name="screenshot" accept="image/*" required class="hidden" id="file-input" onchange="previewImage(event)">
-          </label>
-          <p id="file-name" class="text-xs text-on-sf-variant mt-1.5 hidden">
-            <span id="file-name-text"></span>
-          </p>
+          </div>
 
-          <button type="submit" class="w-full mt-2 bg-primary text-on-primary py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all">
-            Submit Payment for Verification
-          </button>
-        </form>
+          <label id="proof-upload-label" class="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-ol-variant rounded-xl cursor-pointer hover:border-primary transition-all bg-sf-low">
+            <div class="text-center">
+              <svg class="w-5 h-5 text-on-sf-variant mx-auto mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              <p class="text-sm text-on-surface">Tap to add screenshot</p>
+              <p class="text-[10px] text-on-sf-variant">PNG, JPG or WebP</p>
+            </div>
+            <input type="file" name="proof" accept="image/*" class="hidden" id="proof-file-input" onchange="previewProof(event)">
+          </label>
+        </div>
       </div>
     </div>
+
+    <!-- Submit Payment -->
+    <form method="POST" action="/tenant/payments/mark-paid" enctype="multipart/form-data" class="px-4 pb-4">
+      <input type="hidden" name="month_covered" value="{{.Month}}">
+      <input type="hidden" name="amount" value="{{printf "%.0f" .TotalAmount}}">
+      <button type="submit" class="w-full bg-primary text-on-primary py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all">
+        Submit Payment for Verification
+      </button>
+    </form>
   </div>
   {{else}}
   <!-- Under Review -->
@@ -222,6 +234,85 @@
 </div>
 
 <script>
+var currentMonth = '{{.Month}}';
+var pendingFile = null;
+
+// Load existing proofs on page load
+function loadProofs() {
+  fetch('/tenant/payments/proofs?month=' + currentMonth)
+    .then(function(r) { return r.json(); })
+    .then(function(proofs) {
+      var gallery = document.getElementById('proofs-gallery');
+      gallery.innerHTML = '';
+      proofs.forEach(function(p) {
+        var card = document.createElement('div');
+        card.id = 'proof-' + p.id;
+        card.className = 'inline-block bg-sf-low border border-ol-variant rounded-xl overflow-hidden';
+        card.style.maxWidth = '150px';
+        card.innerHTML = '<img src="' + p.path + '" class="w-full object-contain" style="max-height:280px" alt="Proof">' +
+          '<div class="p-1.5 border-t border-ol-variant">' +
+          '<button onclick="deleteProof(\'' + p.id + '\')" class="w-full text-[10px] text-error font-medium hover:bg-error/10 rounded py-0.5">✕ Remove</button>' +
+          '</div>';
+        gallery.appendChild(card);
+      });
+    });
+}
+
+// Preview selected file
+function previewProof(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  pendingFile = file;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('proof-preview-img').src = e.target.result;
+    document.getElementById('proof-upload-preview').classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+
+// Save proof to server
+function saveProof() {
+  if (!pendingFile) return;
+  var formData = new FormData();
+  formData.append('proof', pendingFile);
+  formData.append('billing_month', currentMonth);
+
+  fetch('/tenant/payments/upload-proof', { method: 'POST', body: formData })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.id) {
+        pendingFile = null;
+        document.getElementById('proof-upload-preview').classList.add('hidden');
+        document.getElementById('proof-file-input').value = '';
+        loadProofs();
+      }
+    });
+}
+
+// Cancel preview
+function cancelProof() {
+  pendingFile = null;
+  document.getElementById('proof-upload-preview').classList.add('hidden');
+  document.getElementById('proof-file-input').value = '';
+}
+
+// Delete proof
+function deleteProof(id) {
+  if (!confirm('Remove this screenshot?')) return;
+  var formData = new FormData();
+  formData.append('id', id);
+  fetch('/tenant/payments/proofs/delete', { method: 'POST', body: formData })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.ok) {
+        var card = document.getElementById('proof-' + id);
+        if (card) card.remove();
+      }
+    });
+}
+
+// QR modal
 function openQRModal() {
   document.getElementById('qr-modal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
@@ -230,23 +321,13 @@ function closeQRModal() {
   document.getElementById('qr-modal').classList.add('hidden');
   document.body.style.overflow = '';
 }
-function previewImage(event) {
-  var file = event.target.files[0];
-  if (file) {
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      document.getElementById('upload-preview').src = e.target.result;
-      document.getElementById('upload-preview').classList.remove('hidden');
-      document.getElementById('upload-hint').classList.add('hidden');
-      document.getElementById('file-name-text').textContent = file.name;
-      document.getElementById('file-name').classList.remove('hidden');
-    };
-    reader.readAsDataURL(file);
-  }
-}
+
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeQRModal();
 });
+
+// Load proofs on page load
+loadProofs();
 </script>
 
 {{template "tenant_footer" .}}

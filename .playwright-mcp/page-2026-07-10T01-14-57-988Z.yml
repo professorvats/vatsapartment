@@ -1,0 +1,61 @@
+- generic [active] [ref=f9e1]:
+  - complementary [ref=f9e2]:
+    - generic [ref=f9e3]:
+      - img "Vats Apartment" [ref=f9e4]
+      - generic [ref=f9e5]: Tenant Portal
+    - navigation [ref=f9e6]:
+      - link "Dashboard" [ref=f9e7] [cursor=pointer]:
+        - /url: /tenant/dashboard
+      - link "Payments" [ref=f9e10] [cursor=pointer]:
+        - /url: /tenant/payments
+      - link "Documents" [ref=f9e13] [cursor=pointer]:
+        - /url: /tenant/documents
+    - link "Logout" [ref=f9e17] [cursor=pointer]:
+      - /url: /tenant/logout
+  - main [ref=f9e20]:
+    - generic [ref=f9e21]:
+      - generic [ref=f9e22]:
+        - heading "Payments" [level=1] [ref=f9e23]
+        - paragraph [ref=f9e24]: Pay your rent & bills via UPI
+      - generic [ref=f9e25]:
+        - generic [ref=f9e27]:
+          - generic [ref=f9e28]:
+            - paragraph [ref=f9e29]: Bill
+            - paragraph [ref=f9e30]: ₹0
+          - generic [ref=f9e31]: Due
+        - generic [ref=f9e33]:
+          - heading "Bill Breakdown" [level=3] [ref=f9e34]
+          - generic [ref=f9e35]:
+            - generic [ref=f9e36]: Room Rent
+            - generic [ref=f9e37]: ₹0
+          - separator [ref=f9e38]
+          - generic [ref=f9e39]:
+            - generic [ref=f9e40]: Total Due
+            - generic [ref=f9e41]: ₹0
+        - generic [ref=f9e42]:
+          - heading "How to Pay" [level=3] [ref=f9e43]
+          - generic [ref=f9e44]:
+            - generic [ref=f9e45]: "1"
+            - generic [ref=f9e46]:
+              - paragraph [ref=f9e47]: Scan the QR Code
+              - paragraph [ref=f9e48]: Use any UPI app (Google Pay, PhonePe, Paytm)
+              - img "Payment QR Code" [ref=f9e49] [cursor=pointer]
+              - paragraph [ref=f9e50]: Tap QR to expand
+          - generic [ref=f9e51]:
+            - generic [ref=f9e52]: "2"
+            - generic [ref=f9e53]:
+              - paragraph [ref=f9e54]: Complete the Payment
+              - paragraph [ref=f9e55]: Pay ₹0 using the QR code above
+          - generic [ref=f9e56]:
+            - generic [ref=f9e57]: "3"
+            - generic [ref=f9e58]:
+              - paragraph [ref=f9e59]: Confirm Your Payment
+              - paragraph [ref=f9e60]: Attach a screenshot of your successful payment
+              - generic [ref=f9e61]:
+                - generic [ref=f9e63] [cursor=pointer]:
+                  - paragraph [ref=f9e66]: Tap to attach screenshot
+                  - paragraph [ref=f9e67]: PNG, JPG or WebP
+                - button "Submit Payment for Verification" [ref=f9e68]
+      - generic [ref=f9e69]:
+        - heading "Payment History" [level=2] [ref=f9e71]
+        - paragraph [ref=f9e73]: No payment history yet

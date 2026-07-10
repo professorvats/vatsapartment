@@ -325,6 +325,15 @@ func runMigrations() error {
 
 		{"payment_paid_to", `ALTER TABLE payments ADD COLUMN IF NOT EXISTS paid_to TEXT DEFAULT ''`},
 		{"payment_screenshot", `ALTER TABLE payments ADD COLUMN IF NOT EXISTS screenshot TEXT`},
+		{"payment_proofs", `
+			CREATE TABLE IF NOT EXISTS payment_proofs (
+				id TEXT PRIMARY KEY,
+				tenant_id TEXT NOT NULL,
+				billing_month TEXT NOT NULL,
+				file_path TEXT NOT NULL,
+				created_at TIMESTAMPTZ DEFAULT NOW()
+			)`},
+		{"idx_pproofs_tenant_month", `CREATE INDEX IF NOT EXISTS idx_pproofs_tenant_month ON payment_proofs(tenant_id, billing_month)`},
 	}
 
 	for _, m := range migrations {

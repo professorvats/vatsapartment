@@ -1,0 +1,65 @@
+- generic [active] [ref=f12e1]:
+  - complementary [ref=f12e2]:
+    - generic [ref=f12e3]:
+      - img "Vats Apartment" [ref=f12e4]
+      - generic [ref=f12e5]: Tenant Portal
+    - navigation [ref=f12e6]:
+      - link "Dashboard" [ref=f12e7] [cursor=pointer]:
+        - /url: /tenant/dashboard
+      - link "Payments" [ref=f12e10] [cursor=pointer]:
+        - /url: /tenant/payments
+      - link "Documents" [ref=f12e13] [cursor=pointer]:
+        - /url: /tenant/documents
+    - link "Logout" [ref=f12e17] [cursor=pointer]:
+      - /url: /tenant/logout
+  - main [ref=f12e20]:
+    - generic [ref=f12e21]:
+      - generic [ref=f12e26]:
+        - paragraph [ref=f12e27]: Verification Pending
+        - paragraph [ref=f12e28]: Please upload your documents to complete your profile.
+        - link "Upload Now" [ref=f12e29] [cursor=pointer]:
+          - /url: /tenant/documents
+      - generic [ref=f12e30]:
+        - generic [ref=f12e31]:
+          - generic [ref=f12e32]:
+            - heading "Welcome, Nandhana" [level=2] [ref=f12e33]
+            - paragraph [ref=f12e34]: "Room 101 · Monthly Rent: ₹8000"
+          - paragraph [ref=f12e36]: "Check-in: 2026-06-13 00:00:00"
+        - generic [ref=f12e37]:
+          - generic [ref=f12e38]: 📞 7736954417
+          - generic [ref=f12e39]: ✉️ nandhacs247@gamil.com
+      - generic [ref=f12e40]:
+        - generic [ref=f12e41]:
+          - heading "2026-07 Bill" [level=3] [ref=f12e42]
+          - generic [ref=f12e43]: Pending
+        - generic [ref=f12e44]:
+          - generic [ref=f12e45]:
+            - generic [ref=f12e46]: Room Rent
+            - generic [ref=f12e47]: ₹9000
+          - generic [ref=f12e48]:
+            - generic [ref=f12e49]: Discount
+            - generic [ref=f12e50]: −₹1000
+          - generic [ref=f12e51]:
+            - generic [ref=f12e52]: Rent After Discount
+            - generic [ref=f12e53]: ₹8000
+          - generic [ref=f12e54]:
+            - generic [ref=f12e55]: Maintenance
+            - generic [ref=f12e56]: ₹200
+          - generic [ref=f12e57]:
+            - generic [ref=f12e58]:
+              - text: Electricity Bill
+              - button "View Details →" [ref=f12e59]
+            - generic [ref=f12e60]: ₹2313
+          - separator [ref=f12e61]
+          - generic [ref=f12e62]:
+            - generic [ref=f12e63]: Total Due
+            - generic [ref=f12e64]: ₹10513
+          - link "Pay Now" [ref=f12e65] [cursor=pointer]:
+            - /url: /tenant/payments
+      - generic [ref=f12e68]:
+        - generic [ref=f12e69]:
+          - paragraph [ref=f12e70]: Previous Due (2026-06)
+          - paragraph [ref=f12e71]: ₹0
+        - generic [ref=f12e72]:
+          - paragraph [ref=f12e73]: Total Pending
+          - paragraph [ref=f12e74]: ₹10513

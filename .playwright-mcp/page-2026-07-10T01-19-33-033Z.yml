@@ -1,0 +1,76 @@
+- generic [active] [ref=f13e1]:
+  - complementary [ref=f13e2]:
+    - generic [ref=f13e3]:
+      - img "Vats Apartment" [ref=f13e4]
+      - generic [ref=f13e5]: Tenant Portal
+    - navigation [ref=f13e6]:
+      - link "Dashboard" [ref=f13e7] [cursor=pointer]:
+        - /url: /tenant/dashboard
+      - link "Payments" [ref=f13e10] [cursor=pointer]:
+        - /url: /tenant/payments
+      - link "Documents" [ref=f13e13] [cursor=pointer]:
+        - /url: /tenant/documents
+    - link "Logout" [ref=f13e17] [cursor=pointer]:
+      - /url: /tenant/logout
+  - main [ref=f13e20]:
+    - generic [ref=f13e21]:
+      - generic [ref=f13e22]:
+        - heading "Payments" [level=1] [ref=f13e23]
+        - paragraph [ref=f13e24]: Pay your rent & bills via UPI
+      - generic [ref=f13e25]:
+        - generic [ref=f13e27]:
+          - generic [ref=f13e28]:
+            - paragraph [ref=f13e29]: 2026-07 Bill
+            - paragraph [ref=f13e30]: ₹10513
+          - generic [ref=f13e31]: Due
+        - generic [ref=f13e33]:
+          - heading "Bill Breakdown" [level=3] [ref=f13e34]
+          - generic [ref=f13e35]:
+            - generic [ref=f13e36]: Room Rent
+            - generic [ref=f13e37]: ₹9000
+          - generic [ref=f13e38]:
+            - generic [ref=f13e39]: Discount
+            - generic [ref=f13e40]: −₹1000
+          - generic [ref=f13e41]:
+            - generic [ref=f13e42]: Rent After Discount
+            - generic [ref=f13e43]: ₹8000
+          - generic [ref=f13e44]:
+            - generic [ref=f13e45]: Maintenance
+            - generic [ref=f13e46]: ₹200
+          - generic [ref=f13e47]:
+            - generic [ref=f13e48]:
+              - text: Electricity Bill
+              - link "View Details →" [ref=f13e49] [cursor=pointer]:
+                - /url: /tenant/meter-details
+            - generic [ref=f13e50]: ₹2313
+          - separator [ref=f13e51]
+          - generic [ref=f13e52]:
+            - generic [ref=f13e53]: Total Due
+            - generic [ref=f13e54]: ₹10513
+        - generic [ref=f13e55]:
+          - heading "How to Pay" [level=3] [ref=f13e56]
+          - generic [ref=f13e57]:
+            - generic [ref=f13e58]: "1"
+            - generic [ref=f13e59]:
+              - paragraph [ref=f13e60]: Scan the QR Code
+              - paragraph [ref=f13e61]: Use any UPI app (Google Pay, PhonePe, Paytm)
+              - img "Payment QR Code" [ref=f13e62] [cursor=pointer]
+              - paragraph [ref=f13e63]: Tap QR to expand
+          - generic [ref=f13e64]:
+            - generic [ref=f13e65]: "2"
+            - generic [ref=f13e66]:
+              - paragraph [ref=f13e67]: Complete the Payment
+              - paragraph [ref=f13e68]: Pay ₹10513 using the QR code above
+          - generic [ref=f13e69]:
+            - generic [ref=f13e70]: "3"
+            - generic [ref=f13e71]:
+              - paragraph [ref=f13e72]: Confirm Your Payment
+              - paragraph [ref=f13e73]: Attach a screenshot of your successful payment
+              - generic [ref=f13e74]:
+                - generic [ref=f13e76] [cursor=pointer]:
+                  - paragraph [ref=f13e79]: Tap to attach screenshot
+                  - paragraph [ref=f13e80]: PNG, JPG or WebP
+                - button "Submit Payment for Verification" [ref=f13e81]
+      - generic [ref=f13e82]:
+        - heading "Payment History" [level=2] [ref=f13e84]
+        - paragraph [ref=f13e86]: No payment history yet

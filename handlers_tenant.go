@@ -458,6 +458,141 @@ func handleTenantPayments(w http.ResponseWriter, r *http.Request) {
 
 
 
+// --- Payment Proof Image Uploads ---
+
+func handleTenantUploadProof(w http.ResponseWriter, r *http.Request) {
+	tenantID, ok := requireTenant(w, r)
+	if !ok {
+		return
+	}
+
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"error":"File too large (max 10MB)"}`))
+		return
+	}
+
+	month := r.FormValue("billing_month")
+	if month == "" {
+		month = time.Now().Format("2006-01")
+	}
+
+	file, header, err := r.FormFile("proof")
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"error":"No file uploaded"}`))
+		return
+	}
+	defer file.Close()
+
+	ext := ".jpg"
+	ct := header.Header.Get("Content-Type")
+	if strings.Contains(ct, "png") {
+		ext = ".png"
+	} else if strings.Contains(ct, "webp") {
+		ext = ".webp"
+	}
+
+	proofID := fmt.Sprintf("PP%d", time.Now().UnixNano())
+	filename := fmt.Sprintf("proof_%s_%d%s", tenantID, time.Now().UnixNano(), ext)
+	dst, err := os.Create(filepath.Join("uploads", filename))
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"error":"Failed to save file"}`))
+		return
+	}
+	defer dst.Close()
+	io.Copy(dst, file)
+
+	filePath := "/uploads/" + filename
+	_, err = db.DB.Exec(`INSERT INTO payment_proofs (id, tenant_id, billing_month, file_path) VALUES ($1, $2, $3, $4)`,
+		proofID, tenantID, month, filePath)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"error":"Failed to save proof record"}`))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(fmt.Sprintf(`{"id":"%s","path":"%s"}`, proofID, filePath)))
+}
+
+func handleTenantListProofs(w http.ResponseWriter, r *http.Request) {
+	tenantID, ok := requireTenant(w, r)
+	if !ok {
+		return
+	}
+
+	month := r.URL.Query().Get("month")
+	if month == "" {
+		month = time.Now().Format("2006-01")
+	}
+
+	rows, err := db.DB.Query(`SELECT id, file_path FROM payment_proofs WHERE tenant_id = $1 AND billing_month = $2 ORDER BY created_at ASC`, tenantID, month)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`[]`))
+		return
+	}
+	defer rows.Close()
+
+	type Proof struct {
+		ID   string `json:"id"`
+		Path string `json:"path"`
+	}
+	var proofs []Proof
+	for rows.Next() {
+		var p Proof
+		rows.Scan(&p.ID, &p.Path)
+		proofs = append(proofs, p)
+	}
+	if proofs == nil {
+		proofs = []Proof{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	jsonStr := "["
+	for i, p := range proofs {
+		if i > 0 {
+			jsonStr += ","
+		}
+		jsonStr += fmt.Sprintf(`{"id":"%s","path":"%s"}`, p.ID, p.Path)
+	}
+	jsonStr += "]"
+	w.Write([]byte(jsonStr))
+}
+
+func handleTenantDeleteProof(w http.ResponseWriter, r *http.Request) {
+	tenantID, ok := requireTenant(w, r)
+	if !ok {
+		return
+	}
+
+	proofID := r.FormValue("id")
+	if proofID == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"error":"Missing proof id"}`))
+		return
+	}
+
+	// Verify ownership before deleting
+	var filePath string
+	err := db.DB.QueryRow(`SELECT file_path FROM payment_proofs WHERE id = $1 AND tenant_id = $2`, proofID, tenantID).Scan(&filePath)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"error":"Proof not found"}`))
+		return
+	}
+
+	db.DB.Exec(`DELETE FROM payment_proofs WHERE id = $1 AND tenant_id = $2`, proofID, tenantID)
+
+	// Delete file from disk
+	os.Remove(filePath[1:]) // remove leading /
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(`{"ok":true}`))
+}
+
 func handleTenantMarkPaid(w http.ResponseWriter, r *http.Request) {
 	tenantID, ok := requireTenant(w, r)
 	if !ok {
