@@ -634,6 +634,10 @@ func handleTenantMarkPaid(w http.ResponseWriter, r *http.Request) {
 	}
 	screenshotPath := strings.Join(proofPaths, ",")
 
+	// Find the bill for this tenant/month
+	var billID string
+	db.DB.QueryRow("SELECT id FROM bills WHERE tenant_id = $1 AND billing_month = $2 AND status = 'pending'", tenantID, monthCovered).Scan(&billID)
+
 	// Create payment record
 	paymentID := fmt.Sprintf("PAY%d", time.Now().UnixNano())
 	if monthCovered == "" {
@@ -641,9 +645,9 @@ func handleTenantMarkPaid(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err := db.DB.Exec(`
-		INSERT INTO payments (id, tenant_id, amount, payment_date, payment_method, status, month_covered, screenshot)
-		VALUES ($1, $2, $3, $4, 'UPI', 'paid_by_user', $5, $6)`,
-		paymentID, tenantID, amount, time.Now().Format("2006-01-02"), monthCovered, screenshotPath)
+		INSERT INTO payments (id, tenant_id, bill_id, amount, payment_date, payment_method, status, month_covered, screenshot)
+		VALUES ($1, $2, $3, $4, $5, 'UPI', 'paid_by_user', $6, $7)`,
+		paymentID, tenantID, billID, amount, time.Now().Format("2006-01-02"), monthCovered, screenshotPath)
 	if err != nil {
 		log.Printf("ERROR creating payment: %v", err)
 		http.Redirect(w, r, "/tenant/payments?error=Failed+to+submit+payment", http.StatusSeeOther)
@@ -651,7 +655,7 @@ func handleTenantMarkPaid(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update bill status if this payment covers a bill
-	db.DB.Exec("UPDATE bills SET status = 'paid_by_user' WHERE tenant_id = $1 AND billing_month = $2 AND status = 'pending'", tenantID, monthCovered)
+	db.DB.Exec("UPDATE bills SET status = 'paid_by_user' WHERE id = $1 AND status = 'pending'", billID)
 
 	http.Redirect(w, r, "/tenant/payments?msg=Payment+submitted!+Admin+will+verify+shortly", http.StatusSeeOther)
 }

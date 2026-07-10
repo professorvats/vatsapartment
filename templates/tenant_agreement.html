@@ -1,0 +1,100 @@
+{{template "tenant_header" .}}
+
+<div class="flex items-center justify-between mb-5">
+  <div>
+    <h1 class="text-lg font-bold">My Rent Agreement</h1>
+    <p class="text-xs text-on-sf-variant mt-0.5">Room {{.RoomNumber}} · Agreement No: {{.AgreementNo}}</p>
+  </div>
+  <a href="/tenant/agreement/print" target="_blank"
+     class="bg-secondary text-on-secondary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-secondary/90 flex items-center gap-2">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z"/></svg>
+    Print / Download
+  </a>
+</div>
+
+<!-- Tenant Info Card -->
+<div class="bg-sf-lowest border border-ol-variant rounded-xl p-4 mb-5">
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+    <div>
+      <p class="text-xs text-on-sf-variant">Check-in Date</p>
+      <p class="font-semibold">{{.CheckInDate}}</p>
+    </div>
+    <div>
+      <p class="text-xs text-on-sf-variant">Monthly Rent</p>
+      <p class="font-semibold">Rs. {{printf "%.0f" .RentAmount}}</p>
+    </div>
+    <div>
+      <p class="text-xs text-on-sf-variant">Security Deposit</p>
+      <p class="font-semibold">Rs. {{printf "%.0f" .SecurityDeposit}}</p>
+    </div>
+    <div>
+      <p class="text-xs text-on-sf-variant">Lock-in Period</p>
+      <p class="font-semibold">{{.LockInPeriod}} months</p>
+    </div>
+  </div>
+</div>
+
+<!-- Agreement Document Preview -->
+<div class="bg-sf-lowest border border-ol-variant rounded-xl overflow-hidden">
+  <div class="px-5 py-3 border-b border-ol-variant">
+    <h2 class="font-semibold text-sm">Agreement Document</h2>
+  </div>
+
+  <div class="p-5 max-h-[500px] overflow-y-auto font-[Georgia,'Times_New_Roman',serif] text-[#1a1a1a] leading-relaxed text-sm bg-white border-b border-ol-variant">
+
+    <!-- Header -->
+    <div class="text-center border-b-2 border-[#222] pb-4 mb-5">
+      <h1 class="text-lg font-bold tracking-wide mb-1">VATS APARTMENT</h1>
+      <p class="text-[10px] text-[#555]">{{.PropertyAddress}}</p>
+      <h2 class="text-base font-bold mt-3">RENT AGREEMENT</h2>
+      <p class="text-[9px] text-[#666] mt-1">Agreement No: {{.AgreementNo}} &nbsp;|&nbsp; Date: {{.GeneratedAt}}</p>
+    </div>
+
+    <!-- Parties -->
+    <h3 class="text-[13px] font-bold border-b border-[#ddd] pb-1 mb-3">PARTIES</h3>
+    <p class="mb-2 text-justify"><strong>THIS RENTAL AGREEMENT</strong> is made on <strong>{{.GeneratedAt}}</strong> between:</p>
+    <div class="mb-4 pl-4">
+      <p class="mb-2"><strong>LANDLORD / OWNER:</strong><br>Vats Apartment, represented by its authorized management<br>{{.PropertyAddress}}</p>
+      <p class="mb-2"><strong>TENANT:</strong><br>{{.TenantName}}<br>{{if .TenantPhone}}Phone: {{.TenantPhone}}{{end}}{{if .TenantEmail}} &nbsp;|&nbsp; Email: {{.TenantEmail}}{{end}}</p>
+    </div>
+    <p class="mb-4 text-justify"><strong>PROPERTY:</strong> Room No. <strong>{{.RoomNumber}}</strong>, Vats Apartment, {{.PropertyAddress}}.</p>
+
+    <!-- Terms of Tenancy -->
+    <h3 class="text-[13px] font-bold border-b border-[#ddd] pb-1 mb-3 mt-4">TERMS OF TENANCY</h3>
+    <table class="w-full border-collapse mb-4 text-[11px]">
+      <tr><td class="py-1.5 px-3 border border-[#ddd] bg-[#f9f9f9] w-2/5 font-semibold">Monthly Rent</td><td class="py-1.5 px-3 border border-[#ddd]">Rs. {{printf "%.0f" .RentAmount}} per month</td></tr>
+      <tr><td class="py-1.5 px-3 border border-[#ddd] bg-[#f9f9f9] font-semibold">Security Deposit</td><td class="py-1.5 px-3 border border-[#ddd]">Rs. {{printf "%.0f" .SecurityDeposit}} (refundable, subject to terms)</td></tr>
+      <tr><td class="py-1.5 px-3 border border-[#ddd] bg-[#f9f9f9] font-semibold">Lock-in Period</td><td class="py-1.5 px-3 border border-[#ddd]">{{.LockInPeriod}} months from check-in date</td></tr>
+      <tr><td class="py-1.5 px-3 border border-[#ddd] bg-[#f9f9f9] font-semibold">Check-in Date</td><td class="py-1.5 px-3 border border-[#ddd]">{{.CheckInDate}}{{if .EndDate}} to {{.EndDate}}{{else}} (ongoing){{end}}</td></tr>
+      <tr><td class="py-1.5 px-3 border border-[#ddd] bg-[#f9f9f9] font-semibold">Maintenance</td><td class="py-1.5 px-3 border border-[#ddd]">{{if .HasMaintenance}}Rs. {{printf "%.0f" .MaintenanceAmount}} per month{{else}}Included in rent{{end}}</td></tr>
+      <tr><td class="py-1.5 px-3 border border-[#ddd] bg-[#f9f9f9] font-semibold">Electricity Rate</td><td class="py-1.5 px-3 border border-[#ddd]">Rs. {{printf "%.0f" .ElectricityRate}} per unit</td></tr>
+    </table>
+
+    <!-- Terms & Conditions -->
+    <h3 class="text-[13px] font-bold border-b border-[#ddd] pb-1 mb-3 mt-4">TERMS AND CONDITIONS</h3>
+    <div class="text-[11px] text-justify">
+      {{.AgreementTerms | safeHTML}}
+    </div>
+
+    <!-- Signatures -->
+    <div class="mt-10 flex justify-between">
+      <div class="w-[42%]"><div class="border-t border-[#333] mt-12 pt-1.5 text-[10px] text-center"><strong>MANAGEMENT</strong><br><span class="text-[9px] text-[#666]">(Authorized Signatory)</span></div></div>
+      <div class="w-[42%]"><div class="border-t border-[#333] mt-12 pt-1.5 text-[10px] text-center"><strong>TENANT</strong><br><span class="text-[9px] text-[#666]">({{.TenantName}})</span></div></div>
+    </div>
+
+    <div class="mt-8 pt-3 border-t border-[#ddd] text-center text-[8.5px] text-[#999]">
+      This is a system-generated agreement for reference purposes. The original signed copy shall prevail in case of any dispute.
+    </div>
+  </div>
+
+  <div class="px-5 py-4 flex items-center justify-between">
+    <p class="text-xs text-on-sf-variant">Review your agreement above, then print or download a copy.</p>
+    <a href="/tenant/agreement/print" target="_blank"
+       class="bg-secondary text-on-secondary px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-secondary/90 flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z"/></svg>
+      Print / Download
+    </a>
+  </div>
+</div>
+
+{{template "tenant_footer" .}}

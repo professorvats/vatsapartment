@@ -373,6 +373,39 @@ func runMigrations() error {
 					UNIQUE(room_id, item_type)
 				)`},
 			{"idx_rm_room", `CREATE INDEX IF NOT EXISTS idx_rm_room ON room_maintenance(room_id)`},
+			// ─── Agreement settings ──────────────────────────
+			{"agreement_terms", `INSERT INTO settings (key, value, description) VALUES ('agreement_terms',
+E'1. The tenant shall pay a monthly rent of Rs. [RENT_AMOUNT] on or before the 7th day of each calendar month. Late payment may attract a penalty as determined by the management.
+
+2. The tenant has paid a refundable security deposit of Rs. [DEPOSIT_AMOUNT]. This deposit will be refunded at the time of vacating the premises, subject to deductions for any damages to the property, outstanding dues, or unpaid bills.
+
+3. There is a lock-in period of [LOCK_IN_PERIOD] months from the check-in date. If the tenant vacates the room before the completion of the lock-in period, the full security deposit of Rs. [DEPOSIT_AMOUNT] shall be forfeited.
+
+4. The tenant is responsible for electricity charges at the rate of Rs. [ELECTRICITY_RATE] per unit as per the individual room meter reading. Electricity billing will be done on a monthly basis along with the rent.
+
+5. The tenant shall maintain the room and its furnishings in good condition. Any damage to the property, furniture, fixtures, or equipment shall be repaired at the tenant''s expense, recoverable from the security deposit.
+
+6. The tenant shall not sublet the room or assign this agreement to any other person without prior written consent from the management. Violation of this clause shall result in immediate termination of the agreement.
+
+7. The tenant shall not cause any nuisance or disturbance to other tenants. Playing loud music, creating noise, or any behavior that disrupts the peaceful environment of the premises is strictly prohibited.
+
+8. Visitors are allowed only during daytime hours (6 AM to 8 PM). Overnight guests are not permitted without prior written approval from the management. The tenant is responsible for their visitors'' conduct.
+
+9. The tenant shall comply with all building rules and regulations including proper waste disposal, maintaining acceptable noise levels, and responsible usage of common areas.
+
+10. The management reserves the right to enter the room for inspection, maintenance, or in case of emergency, with a prior notice of 24 hours.
+
+11. The notice period for vacating the room is 30 days (one full calendar month) from the date of written intimation to the management. Rent for the notice period is payable in full.
+
+12. Any dispute arising from this agreement shall be subject to the jurisdiction of courts in Jalandhar, Punjab. Both parties agree to attempt amicable resolution before resorting to legal proceedings.
+
+13. The management is not responsible for loss or theft of the tenant''s personal belongings. The tenant is advised to secure their valuables at all times.
+
+14. The use, possession, or distribution of narcotics, alcohol, or any illegal substances on the premises is strictly prohibited and will result in immediate termination of the agreement and forfeiture of the security deposit.
+
+15. The tenant agrees to keep the premises clean and hygienic at all times. Regular room inspections may be conducted by the management to ensure compliance with cleanliness standards.',
+'Rent agreement terms and conditions with [RENT_AMOUNT], [DEPOSIT_AMOUNT], [LOCK_IN_PERIOD], [ELECTRICITY_RATE] placeholders') ON CONFLICT (key) DO NOTHING`},
+			{"property_address", `INSERT INTO settings (key, value, description) VALUES ('property_address', 'Near Apna Chai Wala, Lovely Professional University, Jalandhar, Punjab', 'Property address printed on rent agreements') ON CONFLICT (key) DO NOTHING`},
 	}
 
 	for _, m := range migrations {

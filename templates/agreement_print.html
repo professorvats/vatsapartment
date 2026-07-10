@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rent Agreement — {{.TenantName}} — Vats Apartment</title>
+<style>
+  /* ── Screen styles ── */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: #1a1a1a;
+    background: #e5e5e5;
+    padding: 20px;
+  }
+  .agreement-container {
+    max-width: 210mm;
+    margin: 0 auto;
+    background: #fff;
+    padding: 50px 55px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  }
+  .no-print { margin-top: 24px; text-align: center; }
+  .no-print button, .no-print a {
+    display: inline-block;
+    padding: 10px 28px;
+    margin: 0 6px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: system-ui, -apple-system, sans-serif;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn-print { background: #111; color: #fff; border: none; }
+  .btn-print:hover { background: #333; }
+  .btn-back { background: #fff; color: #111; border: 1px solid #ccc; }
+  .btn-back:hover { background: #f5f5f5; }
+
+  /* ── Print styles ── */
+  @media print {
+    html, body {
+      background: #fff;
+      color: #000;
+      font-size: 11pt;
+      line-height: 1.45;
+      margin: 0;
+      padding: 0;
+    }
+    @page { size: A4; margin: 20mm 18mm 20mm 18mm; }
+    .agreement-container {
+      max-width: none; padding: 0; margin: 0;
+      box-shadow: none;
+    }
+    .no-print { display: none !important; }
+    .page-break { page-break-before: always; }
+    a { color: #000; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="agreement-container">
+
+  <!-- Header -->
+  <div style="text-align:center; border-bottom:2px solid #222; padding-bottom:16px; margin-bottom:24px;">
+    <h1 style="font-size:20pt; font-weight:700; letter-spacing:1px; margin-bottom:4px;">VATS APARTMENT</h1>
+    <p style="font-size:10pt; color:#555;">{{.PropertyAddress}}</p>
+    <h2 style="font-size:15pt; font-weight:700; margin-top:18px; letter-spacing:0.5px;">RENT AGREEMENT</h2>
+    <p style="font-size:9pt; color:#666; margin-top:4px;">
+      Agreement No: {{.AgreementNo}} &nbsp;|&nbsp; Date: {{.GeneratedAt}}
+    </p>
+  </div>
+
+  <!-- Party Details -->
+  <h3 style="font-size:12pt; font-weight:700; border-bottom:1px solid #ddd; padding-bottom:4px; margin-bottom:12px;">PARTIES</h3>
+
+  <p style="margin-bottom:10px; text-align:justify;">
+    <strong>THIS RENTAL AGREEMENT</strong> is made on <strong>{{.GeneratedAt}}</strong> between:
+  </p>
+
+  <div style="margin-bottom:16px; padding-left:16px;">
+    <p style="margin-bottom:8px;">
+      <strong>LANDLORD / OWNER:</strong><br>
+      Vats Apartment, represented by its authorized management<br>
+      {{.PropertyAddress}}
+    </p>
+    <p style="margin-bottom:8px;">
+      <strong>TENANT:</strong><br>
+      {{.TenantName}}<br>
+      {{if .TenantPhone}}Phone: {{.TenantPhone}}{{end}}{{if .TenantEmail}} &nbsp;|&nbsp; Email: {{.TenantEmail}}{{end}}
+    </p>
+  </div>
+
+  <p style="margin-bottom:16px; text-align:justify;">
+    <strong>PROPERTY:</strong> Room No. <strong>{{.RoomNumber}}</strong>, Vats Apartment, {{.PropertyAddress}}.
+  </p>
+
+  <!-- Financial Terms -->
+  <h3 style="font-size:12pt; font-weight:700; border-bottom:1px solid #ddd; padding-bottom:4px; margin-bottom:12px; margin-top:20px;">TERMS OF TENANCY</h3>
+
+  <table style="width:100%; border-collapse:collapse; margin-bottom:16px; font-size:10.5pt;">
+    <tr>
+      <td style="padding:6px 12px; border:1px solid #ddd; background:#f9f9f9; width:40%; font-weight:600;">Monthly Rent</td>
+      <td style="padding:6px 12px; border:1px solid #ddd;">Rs. {{printf "%.0f" .RentAmount}} per month</td>
+    </tr>
+    <tr>
+      <td style="padding:6px 12px; border:1px solid #ddd; background:#f9f9f9; font-weight:600;">Security Deposit</td>
+      <td style="padding:6px 12px; border:1px solid #ddd;">Rs. {{printf "%.0f" .SecurityDeposit}} (refundable, subject to terms)</td>
+    </tr>
+    <tr>
+      <td style="padding:6px 12px; border:1px solid #ddd; background:#f9f9f9; font-weight:600;">Lock-in Period</td>
+      <td style="padding:6px 12px; border:1px solid #ddd;">{{.LockInPeriod}} months from check-in date</td>
+    </tr>
+    <tr>
+      <td style="padding:6px 12px; border:1px solid #ddd; background:#f9f9f9; font-weight:600;">Check-in Date</td>
+      <td style="padding:6px 12px; border:1px solid #ddd;">{{.CheckInDate}}{{if .EndDate}} &nbsp;to&nbsp; {{.EndDate}}{{else}} (ongoing){{end}}</td>
+    </tr>
+    <tr>
+      <td style="padding:6px 12px; border:1px solid #ddd; background:#f9f9f9; font-weight:600;">Maintenance</td>
+      <td style="padding:6px 12px; border:1px solid #ddd;">{{if .HasMaintenance}}Rs. {{printf "%.0f" .MaintenanceAmount}} per month{{else}}Included in rent{{end}}</td>
+    </tr>
+    <tr>
+      <td style="padding:6px 12px; border:1px solid #ddd; background:#f9f9f9; font-weight:600;">Electricity</td>
+      <td style="padding:6px 12px; border:1px solid #ddd;">Rs. {{printf "%.0f" .ElectricityRate}} per unit as per meter reading</td>
+    </tr>
+  </table>
+
+  <!-- Terms and Conditions -->
+  <h3 style="font-size:12pt; font-weight:700; border-bottom:1px solid #ddd; padding-bottom:4px; margin-bottom:12px; margin-top:20px;">TERMS AND CONDITIONS</h3>
+
+  <div style="font-size:10.5pt; text-align:justify;">
+    {{.AgreementTerms | safeHTML}}
+  </div>
+
+  <!-- Signatures -->
+  <div style="margin-top:48px; display:flex; justify-content:space-between;">
+    <div style="width:42%;">
+      <div style="border-top:1px solid #333; margin-top:60px; padding-top:6px; font-size:10pt; text-align:center;">
+        <strong>MANAGEMENT</strong><br>
+        <span style="font-size:9pt; color:#666;">(Authorized Signatory)</span>
+        <br><br>
+        <span style="font-size:9pt;">Vats Apartment</span><br>
+        <span style="font-size:9pt;">Date: __________________</span><br>
+        <span style="font-size:9pt;">Place: Jalandhar, Punjab</span>
+      </div>
+    </div>
+    <div style="width:42%;">
+      <div style="border-top:1px solid #333; margin-top:60px; padding-top:6px; font-size:10pt; text-align:center;">
+        <strong>TENANT</strong><br>
+        <span style="font-size:9pt; color:#666;">({{.TenantName}})</span>
+        <br><br>
+        <span style="font-size:9pt;">Date: __________________</span><br>
+        <span style="font-size:9pt;">Place: Jalandhar, Punjab</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="margin-top:40px; padding-top:12px; border-top:1px solid #ddd; text-align:center; font-size:8.5pt; color:#999;">
+    This is a system-generated agreement for reference purposes. The original signed copy shall prevail in case of any dispute.
+  </div>
+
+</div><!-- .agreement-container -->
+
+<div class="no-print">
+  <button class="btn-print" onclick="window.print()">🖨 Print / Download as PDF</button>
+  <a href="javascript:history.back()" class="btn-back">← Go Back</a>
+</div>
+
+<script>
+  // Auto-trigger print dialog on load
+  window.onload = function() { window.print(); };
+</script>
+
+</body>
+</html>

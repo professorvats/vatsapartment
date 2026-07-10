@@ -124,6 +124,10 @@ func main() {
 	mux.HandleFunc("GET /admin/api-keys", handleAdminAPIKeys)
 	mux.HandleFunc("POST /admin/api-keys", handleAdminAPIKeys)
 
+	// Admin agreements
+	mux.HandleFunc("GET /admin/tenants/agreement", handleAdminTenantAgreement)
+	mux.HandleFunc("GET /admin/tenants/agreement/print", handleAgreementPrint)
+
 	// Admin complaints & maintenance log
 	mux.HandleFunc("GET /admin/complaints", handleAdminComplaints)
 	mux.HandleFunc("POST /admin/complaints/save", handleAdminComplaintsSave)
@@ -141,6 +145,10 @@ func main() {
 	mux.HandleFunc("POST /tenant/payments/proofs/delete", handleTenantDeleteProof)
 	mux.HandleFunc("GET /tenant/meter-details", handleTenantMeterDetails)
 	mux.HandleFunc("GET /tenant/logout", handleTenantLogout)
+
+	// Tenant agreement
+	mux.HandleFunc("GET /tenant/agreement", handleTenantAgreement)
+	mux.HandleFunc("GET /tenant/agreement/print", handleAgreementPrint)
 
 	// Tenant complaints
 	mux.HandleFunc("GET /tenant/complaints", handleTenantComplaints)
