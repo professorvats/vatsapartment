@@ -1,22 +1,18 @@
 {{template "admin_header" .}}
 
 <!-- Screenshot Gallery Modal -->
-<div id="screenshot-modal" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onclick="closeScreenshotGallery()">
+<div id="screenshot-modal" class="hidden fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4" onclick="closeScreenshotGallery()">
   <div class="relative max-w-2xl w-full" onclick="event.stopPropagation()">
     <button onclick="closeScreenshotGallery()" class="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-100 z-10">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
     </button>
     <p id="gallery-counter" class="text-white/80 text-sm text-center mb-2 font-medium"></p>
-    <div class="relative">
-      <button id="gallery-prev" onclick="galleryNav(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white hidden">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-      </button>
-      <img id="screenshot-img" src="" class="w-full rounded-xl" alt="Payment Screenshot" style="max-height:70vh; object-fit:contain;">
-      <button id="gallery-next" onclick="galleryNav(1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white hidden">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-      </button>
-    </div>
+    <img id="screenshot-img" src="" class="w-full rounded-xl" alt="Payment Screenshot" style="max-height:70vh; object-fit:contain;">
     <div id="gallery-thumbnails" class="flex gap-2 mt-3 justify-center overflow-x-auto pb-2"></div>
+    <div id="gallery-actions" class="flex gap-3 mt-4 justify-center">
+      <button onclick="closeScreenshotGallery()" class="bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-xl text-sm font-semibold transition-colors">Close</button>
+      <button id="gallery-decline-btn" onclick="declineFromGallery()" class="hidden bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl text-sm font-semibold transition-colors">Decline</button>
+    </div>
   </div>
 </div>
 
@@ -69,7 +65,7 @@
       </span>
       {{else if eq .PaymentStatus "paid_by_user"}}
       {{if gt (len .Screenshots) 0}}
-      <button type="button" onclick="openScreenshotGallery('{{.Screenshot}}')"
+      <button type="button" onclick="openScreenshotGallery('{{.Screenshot}}','{{.PaymentID}}','{{.BillID}}','{{$.Month}}',true)"
         class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-500 text-white flex items-center gap-1 hover:bg-amber-400 transition-colors cursor-pointer border-0">
         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         Review ({{len .Screenshots}})
@@ -82,7 +78,7 @@
       {{end}}
       {{else}}
       {{if gt (len .Screenshots) 0}}
-      <button type="button" onclick="openScreenshotGallery('{{.Screenshot}}')"
+      <button type="button" onclick="openScreenshotGallery('{{.Screenshot}}','','','',false)"
         class="text-xs font-semibold px-3 py-1 rounded-full bg-red-500 text-white flex items-center gap-1 hover:bg-red-400 transition-colors cursor-pointer border-0">
         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         Images ({{len .Screenshots}})
@@ -220,11 +216,25 @@ document.querySelectorAll('input[name="discount_amount"]').forEach(function(inpu
 
 var galleryUrls = [];
 var galleryIndex = 0;
+var galleryPaymentId = '';
+var galleryBillId = '';
+var galleryMonth = '';
 
-function openScreenshotGallery(raw) {
+function openScreenshotGallery(raw, paymentId, billId, month, showDecline) {
   galleryUrls = (raw || '').split(',').map(function(u) { return u.trim(); }).filter(function(u) { return u !== ''; });
   galleryIndex = 0;
   if (galleryUrls.length === 0) return;
+  galleryPaymentId = paymentId || '';
+  galleryBillId = billId || '';
+  galleryMonth = month || '';
+
+  var declineBtn = document.getElementById('gallery-decline-btn');
+  if (showDecline && galleryPaymentId) {
+    declineBtn.classList.remove('hidden');
+  } else {
+    declineBtn.classList.add('hidden');
+  }
+
   showGalleryImage();
   document.getElementById('screenshot-modal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
@@ -233,14 +243,10 @@ function openScreenshotGallery(raw) {
 function showGalleryImage() {
   var img = document.getElementById('screenshot-img');
   var counter = document.getElementById('gallery-counter');
-  var prevBtn = document.getElementById('gallery-prev');
-  var nextBtn = document.getElementById('gallery-next');
   var thumbs = document.getElementById('gallery-thumbnails');
 
   img.src = galleryUrls[galleryIndex];
   counter.textContent = (galleryIndex + 1) + ' / ' + galleryUrls.length;
-  prevBtn.style.display = galleryIndex > 0 ? 'flex' : 'none';
-  nextBtn.style.display = galleryIndex < galleryUrls.length - 1 ? 'flex' : 'none';
 
   thumbs.innerHTML = '';
   galleryUrls.forEach(function(url, i) {
@@ -253,12 +259,18 @@ function showGalleryImage() {
   });
 }
 
-function galleryNav(delta) {
-  var newIdx = galleryIndex + delta;
-  if (newIdx >= 0 && newIdx < galleryUrls.length) {
-    galleryIndex = newIdx;
-    showGalleryImage();
-  }
+function declineFromGallery() {
+  if (!galleryPaymentId) return;
+  if (!confirm('Decline this payment? The tenant will need to re-submit.')) return;
+  var form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/admin/payments/save';
+  form.innerHTML = '<input type="hidden" name="action" value="reject_payment">' +
+    '<input type="hidden" name="payment_id" value="' + galleryPaymentId + '">' +
+    '<input type="hidden" name="bill_id" value="' + galleryBillId + '">' +
+    '<input type="hidden" name="month" value="' + galleryMonth + '">';
+  document.body.appendChild(form);
+  form.submit();
 }
 
 function closeScreenshotGallery() {
