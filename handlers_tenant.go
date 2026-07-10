@@ -387,7 +387,7 @@ func handleTenantPayments(w http.ResponseWriter, r *http.Request) {
 		for billRows.Next() {
 			var pb PendingBill
 			billRows.Scan(&pb.Month, &pb.TotalAmount, &pb.Status,
-				&pb.RentAmount, &pb.MaintenanceAmt, &pb.ElectricityAmt,
+				&pb.RentAmount, &pb.RoomPrice, &pb.MaintenanceAmt, &pb.ElectricityAmt,
 				&pb.WaterAmt, &pb.DiscountAmount, &pb.DiscountNote)
 			pendingBills = append(pendingBills, pb)
 		}
