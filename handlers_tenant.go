@@ -620,28 +620,18 @@ func handleTenantMarkPaid(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Handle screenshot upload
-	screenshotFile, screenshotHeader, scrErr := r.FormFile("screenshot")
-	var screenshotPath string
-	if screenshotFile != nil && scrErr == nil {
-		defer screenshotFile.Close()
-		ext := ".jpg"
-		if screenshotHeader != nil {
-			ct := screenshotHeader.Header.Get("Content-Type")
-			if strings.Contains(ct, "png") {
-				ext = ".png"
-			} else if strings.Contains(ct, "webp") {
-				ext = ".webp"
-			}
-		}
-		filename := fmt.Sprintf("pay_%s_%d%s", tenantID, time.Now().UnixNano(), ext)
-		dst, err := os.Create(filepath.Join("uploads", filename))
-		if err == nil {
-			defer dst.Close()
-			io.Copy(dst, screenshotFile)
-			screenshotPath = "/uploads/" + filename
+	// Collect proof images from payment_proofs table
+	proofRows, _ := db.DB.Query(`SELECT file_path FROM payment_proofs WHERE tenant_id = $1 AND billing_month = $2 ORDER BY created_at ASC`, tenantID, monthCovered)
+	var proofPaths []string
+	if proofRows != nil {
+		defer proofRows.Close()
+		for proofRows.Next() {
+			var p string
+			proofRows.Scan(&p)
+			proofPaths = append(proofPaths, p)
 		}
 	}
+	screenshotPath := strings.Join(proofPaths, ",")
 
 	// Create payment record
 	paymentID := fmt.Sprintf("PAY%d", time.Now().UnixNano())
