@@ -94,7 +94,19 @@ func buildAgreementData(tenantID string) agreementData {
 	terms = strings.ReplaceAll(terms, "[DEPOSIT_AMOUNT]", fmt.Sprintf("%.0f", d.SecurityDeposit))
 	terms = strings.ReplaceAll(terms, "[LOCK_IN_PERIOD]", fmt.Sprintf("%d", d.LockInPeriod))
 	terms = strings.ReplaceAll(terms, "[ELECTRICITY_RATE]", fmt.Sprintf("%.0f", d.ElectricityRate))
-	d.AgreementTerms = terms
+
+	// Format terms for HTML: split on blank lines into paragraphs,
+	// then replace single newlines with <br> within each paragraph
+	var paragraphs []string
+	for _, para := range strings.Split(terms, "\n\n") {
+		para = strings.TrimSpace(para)
+		if para == "" {
+			continue
+		}
+		para = strings.ReplaceAll(para, "\n", "<br>")
+		paragraphs = append(paragraphs, "<p>"+para+"</p>")
+	}
+	d.AgreementTerms = strings.Join(paragraphs, "\n")
 
 	// Agreement number
 	d.AgreementNo = fmt.Sprintf("VATS/AG/%s/%s", time.Now().Format("2006-01"), tenantID)
