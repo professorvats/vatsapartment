@@ -221,7 +221,7 @@ func withCache(next http.Handler, maxAge time.Duration) http.Handler {
 func render(w http.ResponseWriter, name string, data interface{}) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	// Short public cache for edges (CDN), browser revalidates
-	w.Header().Set("Cache-Control", "public, max-age=0, s-maxage=300, must-revalidate")
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if err := tmpl.ExecuteTemplate(w, name, data); err != nil {
 		log.Printf("Template error (%s): %v", name, err)
 		http.Error(w, "Render error", 500)

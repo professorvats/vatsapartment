@@ -433,6 +433,7 @@ func SeedRooms() error {
 		{"202", "202", "Standard Double", 2, 10000},
 		{"301", "301", "Standard Double", 3, 9000},
 		{"302", "302", "Standard Double", 3, 9000},
+		{"402", "402", "Deluxe Double", 4, 14000},
 	}
 	for _, r := range rooms {
 		_, err := DB.Exec(
@@ -443,8 +444,7 @@ func SeedRooms() error {
 			return err
 		}
 	}
-	_, err := DB.Exec(`DELETE FROM rooms WHERE id NOT IN ('101', '102', '201', '202', '301', '302', 'BUILDING')`)
-	return err
+	return nil
 }
 
 func SeedAdmin() error {

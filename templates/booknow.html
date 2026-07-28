@@ -100,8 +100,8 @@ window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
             <p class="text-xs text-outline mb-2 font-semibold">{{.Label}}</p>
             <div class="grid gap-3 {{if eq (len .Rooms) 1}}grid-cols-1{{else}}grid-cols-2{{end}}">
               {{range .Rooms}}
-              <button onclick="selectRoom('{{.ID}}')" id="room-{{.ID}}" class="room-card text-left p-3 md:p-4 rounded-lg border-2 {{if eq .Status "active"}}border-gray-300 opacity-60 cursor-not-allowed{{else}}border-ol-variant hover:border-secondary{{end}} transition-colors relative" {{if eq .Status "active"}}disabled{{end}}>
-                <span class="absolute top-2 right-2 text-[10px] md:text-xs font-bold px-2 py-0.5 rounded {{if eq .Status "active"}}bg-sf-high text-on-sf-variant{{else}}bg-sec-container text-on-sec-container{{end}}">{{if eq .Status "active"}}OCCUPIED{{else}}AVAILABLE{{end}}</span>
+              <button onclick="selectRoom('{{.ID}}')" id="room-{{.ID}}" class="room-card text-left p-3 md:p-4 rounded-lg border-2 {{if eq .Status "occupied"}}border-gray-300 opacity-60 cursor-not-allowed{{else}}border-ol-variant hover:border-secondary{{end}} transition-colors relative" {{if eq .Status "occupied"}}disabled{{end}}>
+                <span class="absolute top-2 right-2 text-[10px] md:text-xs font-bold px-2 py-0.5 rounded {{if eq .Status "occupied"}}bg-sf-high text-on-sf-variant{{else}}bg-sec-container text-on-sec-container{{end}}">{{if eq .Status "occupied"}}OCCUPIED{{else}}AVAILABLE{{end}}</span>
                 <p class="font-bold text-sm md:text-base text-on-surface">{{.ID}}</p>
                 <p class="text-xs text-on-sf-variant">{{.Type}}</p>
                 <p class="text-xs font-semibold mt-1 text-on-surface">₹{{printf "%.0f" .Price}}/mo</p>
@@ -194,7 +194,7 @@ function sendInquiry(e) {
   var dateStr=d.getDate()+' '+months[d.getMonth()];
   var el=document.getElementById('urgency-text');
   if(el) {
-    var text = '⚡️ High Demand • Only 2 rooms left • Book before 11 Jul • All rooms are fully occupied please check after 1st August';
+    var text = '⚡️ Limited Availability — Rooms fill quickly near LPU campus. Book a visit today!';
     el.innerHTML = text.repeat(15);
   }
 })();

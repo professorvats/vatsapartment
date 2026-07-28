@@ -190,7 +190,7 @@ func handleLoginPost(w http.ResponseWriter, r *http.Request) {
 func getRooms() ([]Room, error) {
 	rows, err := db.DB.Query(`SELECT r.id, r.room_number, r.floor, r.type, r.price,
 		CASE WHEN EXISTS (
-			SELECT 1 FROM tenants t2 WHERE t2.room_id = r.id AND (t2.end_date IS NULL OR t2.end_date = '')
+			SELECT 1 FROM tenants t2 WHERE t2.room_id = r.id AND t2.status = 'active' AND (t2.end_date IS NULL OR t2.end_date = '')
 		) THEN 'occupied' ELSE 'vacant' END as status
 		FROM rooms r WHERE r.id != 'BUILDING'
 		ORDER BY r.floor, r.id`)

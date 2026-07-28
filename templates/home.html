@@ -240,28 +240,185 @@ window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
 </section>
 
 <!-- Lightbox -->
-<div id="gallery-lightbox" class="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-sm hidden flex-col items-center justify-center" onclick="closeGallery()">
-  <button onclick="event.stopPropagation();closeGallery()" aria-label="Close gallery" class="absolute top-4 right-4 z-10 grid place-items-center w-10 h-10 rounded-full bg-white/10 text-white/80 hover:text-white hover:bg-white/20 transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
-  <button onclick="event.stopPropagation();prevImage()" aria-label="Previous photo" class="absolute left-2 md:left-6 z-10 grid place-items-center w-11 h-11 rounded-full bg-white/10 text-white/80 hover:text-white hover:bg-white/20 transition-colors disabled:opacity-30" id="gallery-prev"><svg class="w-6 h-6 md:w-7 md:h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
-  <button onclick="event.stopPropagation();nextImage()" aria-label="Next photo" class="absolute right-2 md:right-6 z-10 grid place-items-center w-11 h-11 rounded-full bg-white/10 text-white/80 hover:text-white hover:bg-white/20 transition-colors disabled:opacity-30" id="gallery-next"><svg class="w-6 h-6 md:w-7 md:h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
-  <img id="gallery-img" src="" alt="Vats Apartment photo" class="max-w-[95vw] max-h-[82vh] object-contain rounded-lg select-none shadow-2xl" onclick="event.stopPropagation()">
-  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-white/10 text-white/80 text-xs font-medium" id="gallery-counter"></div>
+<div id="gallery-lightbox" class="fixed inset-0 z-[9999] bg-black/98 hidden" role="dialog" aria-modal="true" aria-label="Photo gallery">
+  <!-- Top bar: close + counter + zoom -->
+  <div class="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-3 md:px-5 py-3 bg-gradient-to-b from-black/70 to-transparent pointer-events-none">
+    <div class="flex items-center gap-3 pointer-events-auto">
+      <button onclick="closeGallery()" aria-label="Close gallery" class="grid place-items-center w-10 h-10 rounded-full bg-white/15 text-white hover:bg-white/30 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+      <span class="text-white/90 text-sm font-medium tabular-nums" id="gallery-counter">1 / 24</span>
+    </div>
+    <div class="flex items-center gap-2 pointer-events-auto">
+      <button onclick="event.stopPropagation();toggleZoom()" aria-label="Toggle zoom" id="gallery-zoom-btn" class="grid place-items-center w-10 h-10 rounded-full bg-white/15 text-white hover:bg-white/30 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/></svg>
+      </button>
+      <button onclick="closeGallery()" aria-label="Close gallery" class="grid place-items-center w-10 h-10 rounded-full bg-white/15 text-white hover:bg-white/30 transition-colors md:hidden">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Image area -->
+  <div class="absolute inset-x-0 top-12 bottom-[88px] md:bottom-[104px] flex items-center justify-center" id="gallery-image-area">
+    <!-- Prev button — large clickable zone on left -->
+    <button onclick="event.stopPropagation();prevImage()" aria-label="Previous photo" class="absolute left-0 top-0 bottom-0 w-[18%] max-w-[120px] z-10 flex items-center justify-start pl-2 md:pl-4 group cursor-pointer bg-transparent border-0" id="gallery-prev" disabled>
+      <span class="grid place-items-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/50 text-white group-hover:bg-black/75 group-active:scale-95 transition-all duration-150 backdrop-blur-sm shadow-lg">
+        <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      </span>
+    </button>
+
+    <img id="gallery-img" src="" alt="Vats Apartment photo" class="max-w-full max-h-full object-contain select-none transition-transform duration-300 ease-out cursor-grab" draggable="false" ondragstart="return false">
+
+    <!-- Next button — large clickable zone on right -->
+    <button onclick="event.stopPropagation();nextImage()" aria-label="Next photo" class="absolute right-0 top-0 bottom-0 w-[18%] max-w-[120px] z-10 flex items-center justify-end pr-2 md:pr-4 group cursor-pointer bg-transparent border-0" id="gallery-next">
+      <span class="grid place-items-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/50 text-white group-hover:bg-black/75 group-active:scale-95 transition-all duration-150 backdrop-blur-sm shadow-lg">
+        <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+      </span>
+    </button>
+  </div>
+
+  <!-- Thumbnail strip -->
+  <div class="absolute bottom-0 inset-x-0 z-20 bg-gradient-to-t from-black/90 via-black/75 to-transparent pt-6 pb-3 md:pb-4 safe-bottom">
+    <div class="flex items-center justify-center gap-1.5 md:gap-2 px-4 overflow-x-auto scrollbar-none" id="gallery-thumbs" role="tablist" aria-label="Photo thumbnails">
+    </div>
+  </div>
 </div>
 
+<style>
+#gallery-thumbs::-webkit-scrollbar{display:none;}
+#gallery-thumbs{scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;}
+.gal-thumb{flex:0 0 auto;width:56px;height:40px;border-radius:6px;overflow:hidden;border:2px solid transparent;cursor:pointer;opacity:.55;transition:opacity .2s,border-color .2s,transform .15s;background:#333;}
+.gal-thumb:hover{opacity:.85;transform:translateY(-2px);}
+.gal-thumb.active{border-color:#fff;opacity:1;transform:translateY(-3px);box-shadow:0 4px 12px rgba(0,0,0,.5);}
+.gal-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+@media(min-width:768px){.gal-thumb{width:72px;height:52px;border-radius:8px;}}
+#gallery-img.zoomed{cursor:zoom-out;transform:scale(1.8);}
+@media(min-width:768px){#gallery-img.zoomed{transform:scale(2.2);}}
+</style>
+
 <script>
+(function(){
 const galleryImages=["/static/gallery/Snapshot_4.webp","/static/gallery/Snapshot_5.webp","/static/gallery/Snapshot_6.webp","/static/gallery/Snapshot_7.webp","/static/gallery/Snapshot_8.webp","/static/gallery/Snapshot_9.webp","/static/gallery/Snapshot_10.webp","/static/gallery/Snapshot_11.webp","/static/gallery/Snapshot_12.webp","/static/gallery/Snapshot_13.webp","/static/gallery/Snapshot_14.webp","/static/gallery/Snapshot_15.webp","/static/gallery/Snapshot_16.webp","/static/gallery/Snapshot_17.webp","/static/gallery/Snapshot_18.webp","/static/gallery/Snapshot_19.webp","/static/gallery/Snapshot_20.webp","/static/gallery/Snapshot_21.webp","/static/gallery/Snapshot_22.webp","/static/gallery/Snapshot_23.webp","/static/gallery/Snapshot_24.webp","/static/gallery/Snapshot_25.webp","/static/gallery/Snapshot_26.webp","/static/gallery/Snapshot_27.webp"];
-let gIdx=0;
-const glb=document.getElementById("gallery-lightbox"),gimg=document.getElementById("gallery-img"),gcnt=document.getElementById("gallery-counter"),gprv=document.getElementById("gallery-prev"),gnxt=document.getElementById("gallery-next");
+let gIdx=0,zoomed=false;
+const glb=document.getElementById("gallery-lightbox"),
+      gimg=document.getElementById("gallery-img"),
+      gcnt=document.getElementById("gallery-counter"),
+      gprv=document.getElementById("gallery-prev"),
+      gnxt=document.getElementById("gallery-next"),
+      gthumbs=document.getElementById("gallery-thumbs"),
+      gzoomBtn=document.getElementById("gallery-zoom-btn"),
+      gImgArea=document.getElementById("gallery-image-area");
+
+// Build thumbnail strip
+const thumbFrag=document.createDocumentFragment();
+galleryImages.forEach(function(src,i){
+  const btn=document.createElement("button");
+  btn.className="gal-thumb";
+  btn.setAttribute("role","tab");
+  btn.setAttribute("aria-label","Photo "+(i+1)+" of "+galleryImages.length);
+  btn.setAttribute("aria-selected","false");
+  btn.innerHTML='<img src="'+src+'" alt="" loading="lazy" draggable="false">';
+  btn.onclick=function(e){e.stopPropagation();goToImage(i);};
+  thumbFrag.appendChild(btn);
+});
+gthumbs.appendChild(thumbFrag);
+const thumbs=gthumbs.querySelectorAll(".gal-thumb");
+
 function preload(i){if(i>=0&&i<galleryImages.length){const im=new Image();im.src=galleryImages[i];}}
-function showImage(){gimg.src=galleryImages[gIdx];gcnt.textContent=(gIdx+1)+" / "+galleryImages.length;updateButtons();preload(gIdx+1);preload(gIdx-1);}
-function openGallery(i){gIdx=i;glb.classList.remove("hidden");glb.classList.add("flex");document.body.style.overflow="hidden";showImage();}
-function closeGallery(){glb.classList.add("hidden");glb.classList.remove("flex");document.body.style.overflow="";}
-function prevImage(){if(gIdx>0){gIdx--;showImage();}}
-function nextImage(){if(gIdx<galleryImages.length-1){gIdx++;showImage();}}
-function updateButtons(){gprv.disabled=gIdx===0;gnxt.disabled=gIdx===galleryImages.length-1;}
+
+function scrollThumbIntoView(i){
+  const t=thumbs[i];if(!t)return;
+  const containerLeft=gthumbs.scrollLeft;
+  const containerRight=containerLeft+gthumbs.offsetWidth;
+  const thumbLeft=t.offsetLeft;
+  const thumbRight=thumbLeft+t.offsetWidth;
+  if(thumbLeft<containerLeft+20)gthumbs.scrollTo({left:thumbLeft-20,behavior:"smooth"});
+  else if(thumbRight>containerRight-20)gthumbs.scrollTo({left:thumbRight-gthumbs.offsetWidth+20,behavior:"smooth"});
+}
+
+function showImage(){
+  if(gimg.src!==galleryImages[gIdx]){
+    gimg.classList.add("opacity-0");
+    gimg.src=galleryImages[gIdx];
+    gimg.onload=function(){gimg.classList.remove("opacity-0");gimg.onload=null;};
+    gimg.style.transition="opacity .15s ease-out";
+    setTimeout(function(){gimg.style.transition="transform .3s ease-out";},200);
+  }
+  gcnt.textContent=(gIdx+1)+" / "+galleryImages.length;
+  gprv.disabled=gIdx===0;
+  gnxt.disabled=gIdx===galleryImages.length-1;
+  if(zoomed){zoomOff(true);}
+  updateThumbs();
+  scrollThumbIntoView(gIdx);
+  preload(gIdx+1);preload(gIdx-1);
+}
+
+function updateThumbs(){
+  thumbs.forEach(function(t,i){t.classList.toggle("active",i===gIdx);t.setAttribute("aria-selected",i===gIdx?"true":"false");});
+}
+
+function goToImage(i){
+  if(i<0||i>=galleryImages.length)return;
+  gIdx=i;showImage();
+}
+
+window.openGallery=function(i){gIdx=i;glb.classList.remove("hidden");document.body.style.overflow="hidden";gimg.style.transition="transform .3s ease-out";showImage();updateThumbs();scrollThumbIntoView(gIdx);};
+window.closeGallery=function(){glb.classList.add("hidden");document.body.style.overflow="";};
+window.prevImage=function(){if(gIdx>0){gIdx--;showImage();}};
+window.nextImage=function(){if(gIdx<galleryImages.length-1){gIdx++;showImage();}};
+
+window.toggleZoom=function(){
+  if(zoomed){zoomOff(false);}else{zoomOn();}
+};
+function zoomOn(){gimg.classList.add("zoomed");gimg.style.cursor="zoom-out";zoomed=true;}
+function zoomOff(silent){gimg.classList.remove("zoomed");gimg.style.cursor="grab";zoomed=false;if(!silent)setTimeout(function(){showImage();},50);}
+// Click on image toggles zoom
+gimg.addEventListener("click",function(e){e.stopPropagation();toggleZoom();});
+
+// Keyboard
+document.addEventListener("keydown",function(e){if(glb.classList.contains("hidden"))return;
+  if(e.key==="Escape"){if(zoomed){zoomOff(false);}else{closeGallery();}}
+  if(e.key==="ArrowLeft")prevImage();
+  if(e.key==="ArrowRight")nextImage();
+  if(e.key==="Home"){e.preventDefault();goToImage(0);}
+  if(e.key==="End"){e.preventDefault();goToImage(galleryImages.length-1);}
+});
+
+// Touch swipe on image area
+let tsX=0,tsY=0;
+gImgArea.addEventListener("touchstart",function(e){if(e.target.closest("button"))return;tsX=e.changedTouches[0].screenX;tsY=e.changedTouches[0].screenY;}, {passive:true});
+gImgArea.addEventListener("touchend",function(e){
+  if(e.target.closest("button"))return;
+  const dx=tsX-e.changedTouches[0].screenX;
+  const dy=tsY-e.changedTouches[0].screenY;
+  if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){dx>0?nextImage():prevImage();}
+});
+
+// Mouse drag / swipe on desktop
+let mdX=0,mdY=0,dragging=false;
+gImgArea.addEventListener("mousedown",function(e){if(e.target.closest("button")||e.target.closest("img")&&zoomed)return;mdX=e.screenX;mdY=e.screenY;dragging=true;gimg.style.cursor="grabbing";gimg.style.transition="none";});
+window.addEventListener("mousemove",function(e){
+  if(!dragging)return;
+  const dx=e.screenX-mdX;
+  gimg.style.transform="translateX("+dx+"px)";
+});
+window.addEventListener("mouseup",function(e){
+  if(!dragging)return;
+  dragging=false;
+  const dx=e.screenX-mdX;
+  gimg.style.transform="";gimg.style.transition="transform .3s ease-out";gimg.style.cursor="grab";
+  if(Math.abs(dx)>60)dx<0?nextImage():prevImage();
+});
+
+// Prevent drag on thumbnail imgs
+gthumbs.addEventListener("dragstart",function(e){e.preventDefault();});
+
+// Close on background click (but not on buttons or image)
+glb.addEventListener("click",function(e){if(e.target===glb||e.target===gImgArea){closeGallery();}});
+})();
+
 function carouselScroll(dir){const tr=document.getElementById("carousel-track");const w=tr.querySelector(".vcar-item").offsetWidth+8;tr.scrollBy({left:dir*(w*Math.floor(tr.offsetWidth/w)),behavior:"smooth"});}
-document.addEventListener("keydown",function(e){if(glb.classList.contains("hidden"))return;if(e.key==="Escape")closeGallery();if(e.key==="ArrowLeft")prevImage();if(e.key==="ArrowRight")nextImage();});
-let tsX=0;glb.addEventListener("touchstart",function(e){tsX=e.changedTouches[0].screenX;});glb.addEventListener("touchend",function(e){let d=tsX-e.changedTouches[0].screenX;if(Math.abs(d)>50)d>0?nextImage():prevImage();});
 </script>
 
   <!-- CTA -->
