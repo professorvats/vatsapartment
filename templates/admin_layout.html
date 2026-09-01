@@ -9,9 +9,6 @@
 <style>
   .admin-sidebar { transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
   .admin-overlay { transition: opacity 0.25s ease, visibility 0.25s ease; }
-  .bottom-nav-item.active { color: #111111; font-weight: 700; }
-  .bottom-nav-item.active .nav-icon-wrapper { background-color: rgba(17, 17, 17, 0.08); color: #111111; }
-  .bottom-nav-item.active svg { stroke-width: 2.2; }
   @media (max-width: 1023px) {
     .admin-sidebar { transform: translateX(-100%); }
     .admin-sidebar.open { transform: translateX(0); }
@@ -133,59 +130,13 @@
 </header>
 
 <!-- Main content container -->
-<main class="lg:ml-64 pt-16 lg:pt-6 pb-24 lg:pb-8 min-h-screen">
+<main class="lg:ml-64 pt-16 lg:pt-6 pb-12 lg:pb-8 min-h-screen">
   <div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6">
 {{end}}
 
 {{define "admin_footer"}}
   </div>
 </main>
-
-<!-- Mobile Bottom Navigation Bar (High Frequency Actions) -->
-<nav class="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-sf-lowest/95 backdrop-blur-md border-t border-ol-variant pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 px-2 shadow-lg">
-  {{$active := .Active}}
-  <div class="grid grid-cols-5 gap-1 items-center max-w-md mx-auto">
-    <!-- 1. Dashboard -->
-    <a href="/admin/dashboard" class="bottom-nav-item flex flex-col items-center justify-center py-1 rounded-xl text-on-sf-variant transition-all active:scale-95 {{if eq $active "dashboard"}}active{{end}}">
-      <div class="nav-icon-wrapper p-1 rounded-lg transition-colors">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zm10-3a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1h-4a1 1 0 01-1-1v-5z"/></svg>
-      </div>
-      <span class="text-[10px] tracking-tight leading-tight mt-0.5 font-medium">Home</span>
-    </a>
-
-    <!-- 2. Rooms -->
-    <a href="/admin/rooms" class="bottom-nav-item flex flex-col items-center justify-center py-1 rounded-xl text-on-sf-variant transition-all active:scale-95 {{if eq $active "rooms"}}active{{end}}">
-      <div class="nav-icon-wrapper p-1 rounded-lg transition-colors">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M3 7h18M3 17h18M7 3v18"/></svg>
-      </div>
-      <span class="text-[10px] tracking-tight leading-tight mt-0.5 font-medium">Rooms</span>
-    </a>
-
-    <!-- 3. Tenants -->
-    <a href="/admin/tenants" class="bottom-nav-item flex flex-col items-center justify-center py-1 rounded-xl text-on-sf-variant transition-all active:scale-95 {{if eq $active "tenants"}}active{{end}}">
-      <div class="nav-icon-wrapper p-1 rounded-lg transition-colors">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/></svg>
-      </div>
-      <span class="text-[10px] tracking-tight leading-tight mt-0.5 font-medium">Tenants</span>
-    </a>
-
-    <!-- 4. Payments -->
-    <a href="/admin/payments" class="bottom-nav-item flex flex-col items-center justify-center py-1 rounded-xl text-on-sf-variant transition-all active:scale-95 {{if eq $active "payments"}}active{{end}}">
-      <div class="nav-icon-wrapper p-1 rounded-lg transition-colors">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      </div>
-      <span class="text-[10px] tracking-tight leading-tight mt-0.5 font-medium">Payments</span>
-    </a>
-
-    <!-- 5. More Menu -->
-    <button onclick="toggleSidebar()" type="button" class="bottom-nav-item flex flex-col items-center justify-center py-1 rounded-xl text-on-sf-variant transition-all active:scale-95 {{if or (eq $active "meters") (eq $active "complaints") (eq $active "blog") (eq $active "api_keys")}}active{{end}}">
-      <div class="nav-icon-wrapper p-1 rounded-lg transition-colors">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
-      </div>
-      <span class="text-[10px] tracking-tight leading-tight mt-0.5 font-medium">Menu</span>
-    </button>
-  </div>
-</nav>
 
 <script>
 function toggleSidebar() {
