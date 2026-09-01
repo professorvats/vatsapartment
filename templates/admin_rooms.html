@@ -1,80 +1,157 @@
 {{template "admin_header" .}}
-<div class="flex items-center justify-between mb-6">
-  <h1 class="text-xl font-bold">Manage Rooms</h1>
-  <button onclick="document.getElementById('add-form').classList.toggle('hidden')" class="bg-primary text-on-primary px-4 py-2 rounded-lg text-sm font-semibold">+ Add Room</button>
+
+<!-- Header & Add Button -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 sm:mb-6">
+  <div>
+    <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-on-surface">Manage Rooms</h1>
+    <p class="text-xs sm:text-sm text-on-sf-variant mt-0.5">Configure room inventory, types, pricing & availability</p>
+  </div>
+  <button onclick="toggleAddForm()" class="bg-primary text-on-primary px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 shadow-sm">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+    <span>Add New Room</span>
+  </button>
 </div>
 
-<div id="add-form" class="hidden bg-sf-lowest border border-ol-variant rounded-lg p-6 mb-6">
-  <h3 class="font-semibold mb-4">Add New Room</h3>
-  <form method="POST" action="/admin/rooms/add" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <div><label class="block text-xs text-on-sf-variant mb-1">Room Number</label><input name="room_number" placeholder="e.g. 201" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
-    <div><label class="block text-xs text-on-sf-variant mb-1">Type</label><select name="type" class="w-full border border-ol-variant rounded px-3 py-2 text-sm"><option>Standard Single</option><option>Deluxe Single</option><option>Standard Double</option><option>Deluxe Double</option></select></div>
-    <div><label class="block text-xs text-on-sf-variant mb-1">Floor</label><input name="floor" type="number" value="1" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
-    <div><label class="block text-xs text-on-sf-variant mb-1">Monthly Rent</label><input name="price" type="number" placeholder="9000" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm"></div>
-    <div class="col-span-full"><button type="submit" class="bg-secondary text-white px-6 py-2 rounded-lg text-sm font-semibold">Save Room</button></div>
+<!-- Add Room Accordion / Form -->
+<div id="add-form" class="hidden bg-sf-lowest border border-ol-variant rounded-2xl p-4 sm:p-6 mb-6 shadow-sm">
+  <div class="flex items-center justify-between mb-4 border-b border-ol-variant/60 pb-3">
+    <h3 class="font-bold text-base text-on-surface">Add New Room</h3>
+    <button type="button" onclick="toggleAddForm()" class="p-1 rounded-lg text-on-sf-variant hover:text-on-surface hover:bg-sf-low">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <form method="POST" action="/admin/rooms/add" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+    <div>
+      <label class="block text-xs font-semibold text-on-sf-variant uppercase tracking-wider mb-1.5">Room Number *</label>
+      <input name="room_number" placeholder="e.g. 201" required class="w-full border border-ol-variant rounded-xl px-3.5 py-2.5 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary">
+    </div>
+    <div>
+      <label class="block text-xs font-semibold text-on-sf-variant uppercase tracking-wider mb-1.5">Room Type</label>
+      <select name="type" class="w-full border border-ol-variant rounded-xl px-3.5 py-2.5 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary">
+        <option>Standard Single</option>
+        <option>Deluxe Single</option>
+        <option>Standard Double</option>
+        <option>Deluxe Double</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-semibold text-on-sf-variant uppercase tracking-wider mb-1.5">Floor *</label>
+      <input name="floor" type="number" value="1" required class="w-full border border-ol-variant rounded-xl px-3.5 py-2.5 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary">
+    </div>
+    <div>
+      <label class="block text-xs font-semibold text-on-sf-variant uppercase tracking-wider mb-1.5">Monthly Rent (₹) *</label>
+      <input name="price" type="number" placeholder="9000" required class="w-full border border-ol-variant rounded-xl px-3.5 py-2.5 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary">
+    </div>
+    <div class="col-span-full pt-2 flex gap-2">
+      <button type="submit" class="bg-secondary text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-secondary/90 active:scale-[0.98] transition-all">Save Room</button>
+      <button type="button" onclick="toggleAddForm()" class="border border-ol-variant px-5 py-2.5 rounded-xl text-sm text-on-sf-variant hover:bg-sf-low">Cancel</button>
+    </div>
   </form>
 </div>
 
+<!-- Rooms List -->
 {{if .Rooms}}
 <div class="space-y-3">
   {{range .Rooms}}
-  <div class="bg-sf-lowest border border-ol-variant rounded-lg p-4 flex flex-wrap items-center gap-3">
-    <div class="min-w-[60px]"><span class="font-semibold text-sm">{{.RoomNumber}}</span><span class="text-xs text-on-sf-variant ml-2">{{.RoomType}}</span></div>
-    <div class="text-xs text-on-sf-variant">Floor {{.Floor}}</div>
-    <form method="POST" action="/admin/rooms/save" class="inline-flex items-center gap-2">
-      <input type="hidden" name="id" value="{{.ID}}">
-      <span class="text-xs text-on-sf-variant">Rent: ₹</span>
-      <input name="price" type="number" value="{{printf "%.0f" .Price}}" class="w-20 border border-ol-variant rounded px-2 py-1 text-sm">
-      <select name="status" class="border border-ol-variant rounded px-2 py-1 text-xs">
-        <option value="">Status</option>
-        <option value="available">Available</option>
-        <option value="occupied">Occupied</option>
-      </select>
-      <button type="submit" class="text-xs bg-primary text-on-primary px-3 py-1 rounded font-semibold hover:bg-primary/90">Update</button>
-    </form>
-    <span class="text-xs {{if eq .Status "occupied"}}text-secondary{{else}}text-on-sf-variant{{end}}">
-      {{if eq .Status "occupied"}}Occupied{{else}}Available{{end}}
-    </span>
-    <button onclick="openRoomEdit('{{.ID}}', '{{.RoomNumber}}', '{{.RoomType}}', '{{.Floor}}', '{{printf "%.0f" .Price}}')" class="text-xs text-primary hover:bg-primary/10 rounded px-2 py-1 font-medium ml-auto">Edit</button>
+  <div class="bg-sf-lowest border border-ol-variant/80 rounded-2xl p-4 sm:p-5 shadow-sm hover:border-primary/40 transition-colors">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <!-- Room Info -->
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-primary/5 border border-ol-variant/50 flex flex-col items-center justify-center flex-shrink-0">
+          <span class="text-[10px] text-on-sf-variant uppercase font-semibold">Room</span>
+          <span class="text-base font-bold text-primary leading-none">{{.RoomNumber}}</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-semibold text-sm text-on-surface">{{.RoomType}}</span>
+            <span class="text-xs px-2 py-0.5 rounded-md bg-sf-low text-on-sf-variant font-medium">Floor {{.Floor}}</span>
+          </div>
+          <div class="mt-1 flex items-center gap-2">
+            {{if eq .Status "occupied"}}
+            <span class="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-green-600"></span>
+              Occupied
+            </span>
+            {{else}}
+            <span class="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+              Available
+            </span>
+            {{end}}
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Update Form & Actions -->
+      <div class="flex flex-wrap items-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-ol-variant/40">
+        <form method="POST" action="/admin/rooms/save" class="flex flex-wrap items-center gap-2 flex-1 sm:flex-initial">
+          <input type="hidden" name="id" value="{{.ID}}">
+          <div class="flex items-center gap-1 bg-sf-low rounded-xl px-2.5 py-1.5 border border-ol-variant/60">
+            <span class="text-xs text-on-sf-variant font-medium">₹</span>
+            <input name="price" type="number" value="{{printf "%.0f" .Price}}" class="w-20 bg-transparent text-sm font-semibold focus:outline-none" aria-label="Room Rent">
+          </div>
+          <select name="status" class="border border-ol-variant/80 rounded-xl px-3 py-1.5 text-xs bg-sf-lowest font-medium focus:ring-2 focus:ring-primary/20">
+            <option value="">Status</option>
+            <option value="available" {{if eq .Status "available"}}selected{{end}}>Available</option>
+            <option value="occupied" {{if eq .Status "occupied"}}selected{{end}}>Occupied</option>
+          </select>
+          <button type="submit" class="text-xs bg-primary text-on-primary px-3.5 py-2 rounded-xl font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all">Update</button>
+        </form>
+        <button onclick="openRoomEdit('{{.ID}}', '{{.RoomNumber}}', '{{.RoomType}}', '{{.Floor}}', '{{printf "%.0f" .Price}}')" class="text-xs text-primary hover:bg-primary/10 border border-ol-variant/60 rounded-xl px-3 py-2 font-semibold transition-colors active:scale-[0.98]">Edit</button>
+      </div>
+    </div>
   </div>
   {{end}}
 </div>
 
 <!-- Edit Room Modal -->
-<div id="room-edit-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-md">
-    <h3 class="font-semibold text-lg mb-1">Edit Room</h3>
-    <p class="text-xs text-on-sf-variant mb-4">Update room details</p>
-    <form method="POST" action="/admin/rooms/save" class="space-y-4">
+<div id="room-edit-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto" onclick="closeRoomEdit()">
+  <div class="bg-sf-lowest rounded-2xl p-5 sm:p-6 w-full max-w-md shadow-2xl border border-ol-variant my-8" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between mb-4 border-b border-ol-variant/60 pb-3">
+      <div>
+        <h3 class="font-bold text-lg text-on-surface">Edit Room</h3>
+        <p class="text-xs text-on-sf-variant mt-0.5">Modify room specifications and pricing</p>
+      </div>
+      <button type="button" onclick="closeRoomEdit()" class="p-1.5 rounded-lg text-on-sf-variant hover:text-on-surface hover:bg-sf-low">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <form method="POST" action="/admin/rooms/save" class="space-y-3.5">
       <input type="hidden" name="action" value="edit">
       <input type="hidden" name="id" id="room-edit-id">
       <div>
-        <label class="block text-xs text-on-sf-variant mb-1">Room Number</label>
-        <input name="room_number" id="room-edit-number" required class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+        <label class="block text-xs font-semibold text-on-sf-variant uppercase tracking-wider mb-1">Room Number *</label>
+        <input name="room_number" id="room-edit-number" required class="w-full border border-ol-variant rounded-xl px-3.5 py-2.5 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary">
       </div>
       <div>
-        <label class="block text-xs text-on-sf-variant mb-1">Type</label>
-        <select name="type" id="room-edit-type" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
-          <option>Standard Single</option><option>Deluxe Single</option><option>Standard Double</option><option>Deluxe Double</option>
+        <label class="block text-xs font-semibold text-on-sf-variant uppercase tracking-wider mb-1">Room Type</label>
+        <select name="type" id="room-edit-type" class="w-full border border-ol-variant rounded-xl px-3.5 py-2.5 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary">
+          <option>Standard Single</option>
+          <option>Deluxe Single</option>
+          <option>Standard Double</option>
+          <option>Deluxe Double</option>
         </select>
       </div>
       <div>
-        <label class="block text-xs text-on-sf-variant mb-1">Floor</label>
-        <input name="floor" id="room-edit-floor" type="number" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+        <label class="block text-xs font-semibold text-on-sf-variant uppercase tracking-wider mb-1">Floor</label>
+        <input name="floor" id="room-edit-floor" type="number" class="w-full border border-ol-variant rounded-xl px-3.5 py-2.5 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary">
       </div>
       <div>
-        <label class="block text-xs text-on-sf-variant mb-1">Monthly Rent (₹)</label>
-        <input name="price" id="room-edit-price" type="number" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+        <label class="block text-xs font-semibold text-on-sf-variant uppercase tracking-wider mb-1">Monthly Rent (₹)</label>
+        <input name="price" id="room-edit-price" type="number" class="w-full border border-ol-variant rounded-xl px-3.5 py-2.5 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary">
       </div>
-      <div class="flex gap-3 pt-2">
-        <button type="submit" class="bg-primary text-on-primary px-6 py-2.5 rounded-lg text-sm font-semibold flex-1">Save Changes</button>
-        <button type="button" onclick="closeRoomEdit()" class="border border-ol-variant px-6 py-2.5 rounded-lg text-sm">Cancel</button>
+      <div class="flex gap-3 pt-3">
+        <button type="submit" class="bg-primary text-on-primary px-6 py-2.5 rounded-xl text-sm font-semibold flex-1 hover:bg-primary/90 active:scale-[0.98] transition-all">Save Changes</button>
+        <button type="button" onclick="closeRoomEdit()" class="border border-ol-variant px-5 py-2.5 rounded-xl text-sm text-on-sf-variant hover:bg-sf-low">Cancel</button>
       </div>
     </form>
   </div>
 </div>
 
 <script>
+function toggleAddForm() {
+  document.getElementById('add-form').classList.toggle('hidden');
+}
 function openRoomEdit(id, number, type, floor, price) {
   document.getElementById('room-edit-id').value = id;
   document.getElementById('room-edit-number').value = number;
@@ -82,12 +159,25 @@ function openRoomEdit(id, number, type, floor, price) {
   document.getElementById('room-edit-floor').value = floor;
   document.getElementById('room-edit-price').value = price;
   document.getElementById('room-edit-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
 }
 function closeRoomEdit() {
   document.getElementById('room-edit-modal').classList.add('hidden');
+  document.body.style.overflow = '';
 }
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeRoomEdit();
+});
 </script>
 {{else}}
-<div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-lg"><p class="text-on-sf-variant">No rooms configured.</p></div>
+<div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-2xl p-6">
+  <div class="w-12 h-12 mx-auto bg-sf-low rounded-full flex items-center justify-center mb-3 text-on-sf-variant">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M3 14h18M3 7h18M3 17h18M7 3v18"/></svg>
+  </div>
+  <p class="text-base font-semibold text-on-surface">No rooms configured</p>
+  <p class="text-xs text-on-sf-variant mt-1 mb-4">Add your first room to start managing tenants and billing</p>
+  <button onclick="toggleAddForm()" class="bg-primary text-on-primary px-5 py-2.5 rounded-xl text-sm font-semibold">+ Add Room</button>
+</div>
 {{end}}
+
 {{template "admin_footer" .}}

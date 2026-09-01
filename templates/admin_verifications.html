@@ -1,70 +1,79 @@
 {{template "admin_header" .}}
 
-<h1 class="text-xl font-bold mb-6">Verification Requests</h1>
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 sm:mb-6">
+  <div>
+    <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-on-surface">Verification Requests</h1>
+    <p class="text-xs sm:text-sm text-on-sf-variant mt-0.5">Review student LPU IDs and Government Aadhar proofs</p>
+  </div>
+</div>
 
 {{if .Verifications}}
-<div class="bg-sf-lowest border border-ol-variant rounded-lg overflow-hidden">
+
+<!-- Desktop Table (Visible on md+) -->
+<div class="hidden md:block bg-sf-lowest border border-ol-variant rounded-2xl overflow-hidden shadow-sm">
   <table class="w-full text-sm">
     <thead>
-      <tr class="border-b border-ol-variant bg-sf-low">
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Tenant</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Room</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Documents</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Status</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Submitted</th>
-        <th class="text-right px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Action</th>
+      <tr class="border-b border-ol-variant bg-sf-low/60">
+        <th class="text-left px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-on-sf-variant">Tenant</th>
+        <th class="text-left px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-on-sf-variant">Room</th>
+        <th class="text-left px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-on-sf-variant">Documents</th>
+        <th class="text-left px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-on-sf-variant">Status</th>
+        <th class="text-left px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-on-sf-variant">Submitted</th>
+        <th class="text-right px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-on-sf-variant">Action</th>
       </tr>
     </thead>
     <tbody>
       {{range .Verifications}}
-      <tr class="border-b border-ol-variant last:border-0 hover:bg-sf-low/50">
-        <td class="px-4 py-3">
-          <div class="font-medium">{{.Name}}</div>
-          <div class="text-xs text-on-sf-variant">{{.Phone}}</div>
+      <tr class="border-b border-ol-variant/60 last:border-0 hover:bg-sf-low/40 transition-colors">
+        <td class="px-4 py-3.5">
+          <div class="font-bold text-on-surface">{{.Name}}</div>
+          <a href="tel:{{.Phone}}" class="text-xs text-on-sf-variant hover:text-primary">{{.Phone}}</a>
         </td>
-        <td class="px-4 py-3">{{.Room}}</td>
-        <td class="px-4 py-3">
+        <td class="px-4 py-3.5">
+          <span class="font-bold text-xs bg-primary/5 px-2.5 py-1 rounded-lg">Room {{.Room}}</span>
+        </td>
+        <td class="px-4 py-3.5">
           <div class="flex items-center gap-2">
             {{if .LpuPhoto}}
-            <a href="{{.LpuPhoto}}" target="_blank" class="text-xs text-primary font-semibold hover:underline">LPU ID</a>
+            <a href="{{.LpuPhoto}}" target="_blank" class="text-xs text-primary font-bold hover:underline bg-primary/5 px-2 py-1 rounded-lg border border-primary/20">LPU ID</a>
             {{else}}
-            <span class="text-xs text-on-sf-variant">No LPU ID</span>
+            <span class="text-xs text-on-sf-variant/50">No LPU ID</span>
             {{end}}
             {{if .AadharPhoto}}
-            <a href="{{.AadharPhoto}}" target="_blank" class="text-xs text-primary font-semibold hover:underline">Aadhar</a>
+            <a href="{{.AadharPhoto}}" target="_blank" class="text-xs text-primary font-bold hover:underline bg-primary/5 px-2 py-1 rounded-lg border border-primary/20">Aadhar</a>
             {{else}}
-            <span class="text-xs text-on-sf-variant">No Aadhar</span>
+            <span class="text-xs text-on-sf-variant/50">No Aadhar</span>
             {{end}}
           </div>
         </td>
-        <td class="px-4 py-3">
-          <span class="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full
-            {{if eq .Status "verified"}}bg-green-50 text-success border border-green-200
-            {{else if eq .Status "pending"}}bg-amber-50 text-warning border border-amber-200
+        <td class="px-4 py-3.5">
+          <span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full
+            {{if eq .Status "verified"}}bg-green-50 text-green-700 border border-green-200
+            {{else if eq .Status "pending"}}bg-amber-50 text-amber-700 border border-amber-200
             {{else if eq .Status "rejected"}}bg-red-50 text-error border border-red-200
             {{else}}bg-gray-50 text-on-sf-variant border border-ol-variant{{end}}">
             {{.Status}}
           </span>
         </td>
-        <td class="px-4 py-3 text-xs text-on-sf-variant">{{.SubmittedAt}}</td>
-        <td class="px-4 py-3 text-right">
+        <td class="px-4 py-3.5 text-xs text-on-sf-variant font-medium">{{.SubmittedAt}}</td>
+        <td class="px-4 py-3.5 text-right">
           {{if or (eq .Status "pending") (eq .Status "not_submitted")}}
           <div class="flex items-center justify-end gap-2">
             <form method="POST" action="/admin/verifications/action" class="inline">
               <input type="hidden" name="id" value="{{.ID}}">
               <input type="hidden" name="action" value="verify">
-              <input type="text" name="notes" placeholder="Notes (optional)" class="w-24 text-xs border border-ol-variant rounded px-2 py-1">
-              <button type="submit" class="text-xs text-success font-semibold hover:underline ml-1">Approve</button>
+              <input type="text" name="notes" placeholder="Notes (optional)" class="w-24 text-xs border border-ol-variant rounded-xl px-2 py-1 bg-sf-lowest">
+              <button type="submit" class="text-xs text-green-700 font-bold hover:underline ml-1 bg-green-50 px-2 py-1 rounded-lg">Approve</button>
             </form>
             <form method="POST" action="/admin/verifications/action" class="inline">
               <input type="hidden" name="id" value="{{.ID}}">
               <input type="hidden" name="action" value="reject">
-              <input type="text" name="notes" placeholder="Reason" class="w-24 text-xs border border-ol-variant rounded px-2 py-1">
-              <button type="submit" class="text-xs text-error font-semibold hover:underline ml-1">Reject</button>
+              <input type="text" name="notes" placeholder="Reason" class="w-24 text-xs border border-ol-variant rounded-xl px-2 py-1 bg-sf-lowest">
+              <button type="submit" class="text-xs text-error font-bold hover:underline ml-1 bg-red-50 px-2 py-1 rounded-lg">Reject</button>
             </form>
           </div>
           {{else}}
-          <span class="text-xs text-on-sf-variant">{{.Notes}}</span>
+          <span class="text-xs text-on-sf-variant italic">{{.Notes}}</span>
           {{end}}
         </td>
       </tr>
@@ -72,9 +81,60 @@
     </tbody>
   </table>
 </div>
+
+<!-- Mobile Cards (Visible on < md) -->
+<div class="md:hidden space-y-3">
+  {{range .Verifications}}
+  <div class="bg-sf-lowest border border-ol-variant/80 rounded-2xl p-4 shadow-sm">
+    <div class="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-ol-variant/40">
+      <div>
+        <h3 class="font-bold text-sm text-on-surface">{{.Name}}</h3>
+        <a href="tel:{{.Phone}}" class="text-xs text-primary font-semibold hover:underline">{{.Phone}}</a>
+      </div>
+      <span class="text-xs font-bold bg-primary/5 px-2.5 py-1 rounded-lg border border-ol-variant/60">Room {{.Room}}</span>
+    </div>
+
+    <div class="flex items-center justify-between gap-2 mb-3 text-xs">
+      <div class="flex items-center gap-1.5">
+        {{if .LpuPhoto}}
+        <a href="{{.LpuPhoto}}" target="_blank" class="text-[11px] font-bold text-primary bg-primary/5 px-2 py-1 rounded-lg border border-primary/20">LPU ID</a>
+        {{end}}
+        {{if .AadharPhoto}}
+        <a href="{{.AadharPhoto}}" target="_blank" class="text-[11px] font-bold text-primary bg-primary/5 px-2 py-1 rounded-lg border border-primary/20">Aadhar</a>
+        {{end}}
+      </div>
+      <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full
+        {{if eq .Status "verified"}}bg-green-50 text-green-700 border border-green-200
+        {{else if eq .Status "pending"}}bg-amber-50 text-amber-700 border border-amber-200
+        {{else if eq .Status "rejected"}}bg-red-50 text-error border border-red-200
+        {{else}}bg-gray-50 text-on-sf-variant border border-ol-variant{{end}}">
+        {{.Status}}
+      </span>
+    </div>
+
+    {{if or (eq .Status "pending") (eq .Status "not_submitted")}}
+    <div class="pt-2 border-t border-ol-variant/50 flex items-center justify-between gap-2">
+      <form method="POST" action="/admin/verifications/action" class="flex-1">
+        <input type="hidden" name="id" value="{{.ID}}">
+        <input type="hidden" name="action" value="verify">
+        <button type="submit" class="w-full bg-green-600 text-white font-bold text-xs py-2 rounded-xl active:scale-95 transition-all shadow-sm">Approve</button>
+      </form>
+      <form method="POST" action="/admin/verifications/action" class="flex-1">
+        <input type="hidden" name="id" value="{{.ID}}">
+        <input type="hidden" name="action" value="reject">
+        <button type="submit" class="w-full bg-red-50 text-error border border-red-200 font-bold text-xs py-2 rounded-xl active:scale-95 transition-all">Reject</button>
+      </form>
+    </div>
+    {{else if .Notes}}
+    <div class="pt-1.5 text-[11px] text-on-sf-variant italic">Note: {{.Notes}}</div>
+    {{end}}
+  </div>
+  {{end}}
+</div>
+
 {{else}}
-<div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-lg">
-  <p class="text-on-sf-variant">No verification requests yet.</p>
+<div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-2xl p-6">
+  <p class="text-on-sf-variant font-medium">No verification requests found.</p>
 </div>
 {{end}}
 

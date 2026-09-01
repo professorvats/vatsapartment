@@ -1,72 +1,82 @@
 {{template "admin_header" .}}
-<div class="mb-6">
-  <h1 class="text-2xl font-bold text-primary">Maintenance</h1>
-</div>
 
-<!-- Tab Bar -->
-<div class="flex gap-1 mb-6 bg-sf-low rounded-xl p-1 w-fit">
-  <a href="?tab=complaints{{if .FilterStatus}}&status={{.FilterStatus}}{{end}}{{if .FilterRoom}}&room={{.FilterRoom}}{{end}}"
-     class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{if eq .Tab "complaints"}}bg-sf-lowest shadow-sm text-primary{{else}}text-on-sf-variant hover:text-primary{{end}}">
-    Complaints
-  </a>
-  <a href="?tab=maintenance"
-     class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{if eq .Tab "maintenance"}}bg-sf-lowest shadow-sm text-primary{{else}}text-on-sf-variant hover:text-primary{{end}}">
-    Maintenance Log
-  </a>
+<!-- Header & Tab Bar -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 sm:mb-6">
+  <div>
+    <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-on-surface">Maintenance & Complaints</h1>
+    <p class="text-xs sm:text-sm text-on-sf-variant mt-0.5">Track tenant repair tickets and appliance service schedules</p>
+  </div>
+  <div class="flex bg-sf-low rounded-xl p-1 w-full sm:w-fit border border-ol-variant/50">
+    <a href="?tab=complaints{{if .FilterStatus}}&status={{.FilterStatus}}{{end}}{{if .FilterRoom}}&room={{.FilterRoom}}{{end}}"
+       class="flex-1 sm:flex-initial text-center px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all {{if eq .Tab "complaints"}}bg-sf-lowest shadow-sm text-primary{{else}}text-on-sf-variant hover:text-primary{{end}}">
+      Complaints
+    </a>
+    <a href="?tab=maintenance"
+       class="flex-1 sm:flex-initial text-center px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all {{if eq .Tab "maintenance"}}bg-sf-lowest shadow-sm text-primary{{else}}text-on-sf-variant hover:text-primary{{end}}">
+      Service Log
+    </a>
+  </div>
 </div>
 
 {{if eq .Tab "complaints"}}
 <!-- ═══ COMPLAINTS TAB ═══ -->
 
-<!-- Status Summary -->
-<div class="grid grid-cols-3 gap-4 mb-6">
-  <div class="bg-sf-lowest rounded-xl p-5 shadow-sm border border-ol-variant">
-    <div class="text-2xl font-bold" style="color:#ba1a1a">{{.StatusCounts.Pending}}</div>
-    <div class="text-xs text-on-sf-variant mt-1">Pending</div>
+<!-- Status Counts Summary -->
+<div class="grid grid-cols-3 gap-2.5 sm:gap-4 mb-5 sm:mb-6">
+  <div class="bg-sf-lowest rounded-2xl p-3.5 sm:p-5 shadow-sm border border-ol-variant/70 text-center sm:text-left">
+    <div class="text-xl sm:text-3xl font-bold" style="color:#ba1a1a">{{.StatusCounts.Pending}}</div>
+    <div class="text-[11px] sm:text-xs text-on-sf-variant mt-0.5 font-semibold">Pending</div>
   </div>
-  <div class="bg-sf-lowest rounded-xl p-5 shadow-sm border border-ol-variant">
-    <div class="text-2xl font-bold" style="color:#d97706">{{.StatusCounts.InProgress}}</div>
-    <div class="text-xs text-on-sf-variant mt-1">In Progress</div>
+  <div class="bg-sf-lowest rounded-2xl p-3.5 sm:p-5 shadow-sm border border-ol-variant/70 text-center sm:text-left">
+    <div class="text-xl sm:text-3xl font-bold" style="color:#d97706">{{.StatusCounts.InProgress}}</div>
+    <div class="text-[11px] sm:text-xs text-on-sf-variant mt-0.5 font-semibold">In Progress</div>
   </div>
-  <div class="bg-sf-lowest rounded-xl p-5 shadow-sm border border-ol-variant">
-    <div class="text-2xl font-bold" style="color:#2d6a2e">{{.StatusCounts.Resolved}}</div>
-    <div class="text-xs text-on-sf-variant mt-1">Resolved</div>
+  <div class="bg-sf-lowest rounded-2xl p-3.5 sm:p-5 shadow-sm border border-ol-variant/70 text-center sm:text-left">
+    <div class="text-xl sm:text-3xl font-bold text-green-700">{{.StatusCounts.Resolved}}</div>
+    <div class="text-[11px] sm:text-xs text-on-sf-variant mt-0.5 font-semibold">Resolved</div>
   </div>
 </div>
 
-<!-- Filters -->
-<form method="GET" action="/admin/complaints" class="flex flex-wrap gap-3 mb-6">
+<!-- Filters Form -->
+<form method="GET" action="/admin/complaints" class="flex flex-col sm:flex-row flex-wrap gap-2.5 mb-5 sm:mb-6">
   <input type="hidden" name="tab" value="complaints">
-  <select name="status" class="rounded-xl border border-ol-variant bg-sf-lowest px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30">
-    <option value="">All Status</option>
+  <select name="status" class="rounded-xl border border-ol-variant bg-sf-lowest px-3.5 py-2 text-xs sm:text-sm text-on-surface focus:ring-2 focus:ring-primary/20 font-medium">
+    <option value="">All Statuses</option>
     <option value="pending" {{if eq .FilterStatus "pending"}}selected{{end}}>Pending</option>
     <option value="in_progress" {{if eq .FilterStatus "in_progress"}}selected{{end}}>In Progress</option>
     <option value="resolved" {{if eq .FilterStatus "resolved"}}selected{{end}}>Resolved</option>
   </select>
-  <select name="room" class="rounded-xl border border-ol-variant bg-sf-lowest px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30">
+  <select name="room" class="rounded-xl border border-ol-variant bg-sf-lowest px-3.5 py-2 text-xs sm:text-sm text-on-surface focus:ring-2 focus:ring-primary/20 font-medium">
     <option value="">All Rooms</option>
     {{range .Rooms}}
     <option value="{{.ID}}" {{if eq $.FilterRoom .ID}}selected{{end}}>Room {{.RoomNumber}}</option>
     {{end}}
   </select>
-  <button type="submit" class="px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors">Filter</button>
-  {{if or .FilterStatus .FilterRoom}}
-  <a href="/admin/complaints?tab=complaints" class="px-3 py-2 text-sm text-on-sf-variant hover:text-primary self-center">Clear</a>
-  {{end}}
+  <div class="flex items-center gap-2">
+    <button type="submit" class="px-5 py-2 rounded-xl bg-primary text-white text-xs sm:text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all">Filter</button>
+    {{if or .FilterStatus .FilterRoom}}
+    <a href="/admin/complaints?tab=complaints" class="px-3 py-2 text-xs sm:text-sm text-on-sf-variant hover:text-primary">Clear</a>
+    {{end}}
+  </div>
 </form>
 
 <!-- Complaint Cards -->
 {{if .Complaints}}
-<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4">
   {{range .Complaints}}
-  <div class="rounded-2xl border shadow-sm bg-sf-lowest overflow-hidden {{if eq .Status "pending"}}border-l-4 border-l-red-400{{else if eq .Status "in_progress"}}border-l-4 border-l-amber-400{{else}}border-l-4 border-l-green-400{{end}}">
+  <div class="rounded-2xl border shadow-sm bg-sf-lowest overflow-hidden flex flex-col justify-between hover:border-primary/40 transition-colors {{if eq .Status "pending"}}border-l-4 border-l-red-500{{else if eq .Status "in_progress"}}border-l-4 border-l-amber-500{{else}}border-l-4 border-l-green-600{{end}}">
     <!-- Card Header -->
-    <div class="px-4 py-3 flex items-center justify-between border-b border-ol-variant/60">
-      <div>
-        <span class="font-bold text-sm text-primary">Room {{.RoomNumber}}</span>
-        <span class="text-xs text-on-sf-variant block">{{.TenantName}}</span>
+    <div class="px-4 py-3 flex items-center justify-between border-b border-ol-variant/50 bg-sf-low/30">
+      <div class="flex items-center gap-2">
+        <span class="w-8 h-8 rounded-lg bg-primary/5 text-primary flex items-center justify-center font-bold text-xs">
+          {{.RoomNumber}}
+        </span>
+        <div>
+          <span class="font-bold text-xs sm:text-sm text-on-surface">Room {{.RoomNumber}}</span>
+          <span class="text-[11px] text-on-sf-variant block">{{.TenantName}}</span>
+        </div>
       </div>
-      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold
         {{if eq .Status "pending"}}bg-red-50 text-red-700 border border-red-200
         {{else if eq .Status "in_progress"}}bg-amber-50 text-amber-700 border border-amber-200
         {{else}}bg-green-50 text-green-700 border border-green-200{{end}}">
@@ -77,31 +87,31 @@
     </div>
 
     <!-- Card Body -->
-    <div class="px-4 py-3 space-y-2">
-      <div class="flex items-center gap-2">
-        <span class="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-primary/5 text-primary">{{.Category}}</span>
-        <span class="text-sm font-medium text-on-surface">{{.Subcategory}}</span>
+    <div class="px-4 py-3.5 space-y-2 flex-1">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-primary/5 text-primary uppercase">{{.Category}}</span>
+        <span class="text-xs sm:text-sm font-semibold text-on-surface">{{.Subcategory}}</span>
       </div>
       {{if .Description}}
-      <p class="text-sm text-on-sf-variant leading-relaxed">{{.Description}}</p>
+      <p class="text-xs sm:text-sm text-on-sf-variant leading-relaxed">{{.Description}}</p>
       {{end}}
       {{if .Image}}
       <div class="mt-2">
-        <img src="{{.Image}}" alt="Complaint photo" class="max-h-32 rounded-lg border border-ol-variant object-cover cursor-pointer" onclick="openImage('{{.Image}}')" loading="lazy">
+        <img src="{{.Image}}" alt="Complaint photo" class="max-h-36 rounded-xl border border-ol-variant object-cover cursor-pointer hover:opacity-90 active:scale-95 transition-all shadow-sm" onclick="openImage('{{.Image}}')" loading="lazy">
       </div>
       {{end}}
-      <div class="text-xs text-on-sf-variant/70">{{.CreatedAt}}</div>
+      <div class="text-[10px] text-on-sf-variant/70 pt-1 font-medium">{{.CreatedAt}}</div>
     </div>
 
     <!-- Card Actions -->
-    <div class="px-4 py-3 border-t border-ol-variant/60 bg-sf-low/40 space-y-2">
-      <div class="flex items-center gap-2">
-        <span class="text-xs text-on-sf-variant">Status:</span>
+    <div class="px-4 py-3 border-t border-ol-variant/60 bg-sf-low/40 space-y-2.5">
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-xs font-semibold text-on-sf-variant">Update Status:</span>
         <form method="POST" action="/admin/complaints/save" class="inline-flex">
           <input type="hidden" name="id" value="{{.ID}}">
           <input type="hidden" name="action" value="update_status">
           <select name="status" onchange="this.form.submit()"
-            class="rounded-lg border border-ol-variant bg-sf-lowest px-2 py-1 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary/30 cursor-pointer">
+            class="rounded-xl border border-ol-variant bg-sf-lowest px-3 py-1 text-xs font-bold text-on-surface focus:ring-2 focus:ring-primary/20 cursor-pointer">
             <option value="pending" {{if eq .Status "pending"}}selected{{end}}>Pending</option>
             <option value="in_progress" {{if eq .Status "in_progress"}}selected{{end}}>In Progress</option>
             <option value="resolved" {{if eq .Status "resolved"}}selected{{end}}>Resolved</option>
@@ -111,20 +121,21 @@
 
       <!-- Admin Notes -->
       <div>
-        <button onclick="toggleNotes('{{.ID}}')" class="text-xs text-secondary hover:text-primary font-medium">
-          {{if .AdminNotes}}Edit Notes{{else}}+ Add Notes{{end}}
+        <button onclick="toggleNotes('{{.ID}}')" class="text-xs text-secondary hover:text-primary font-bold flex items-center gap-1">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          {{if .AdminNotes}}Edit Admin Note{{else}}+ Add Admin Note{{end}}
         </button>
         {{if .AdminNotes}}
-        <p class="text-xs text-on-sf-variant mt-1 bg-sf-low p-2 rounded-lg">{{.AdminNotes}}</p>
+        <p class="text-xs text-on-sf-variant mt-1.5 bg-sf-lowest border border-ol-variant/50 p-2.5 rounded-xl">{{.AdminNotes}}</p>
         {{end}}
         <div id="notes-{{.ID}}" class="hidden mt-2">
           <form method="POST" action="/admin/complaints/save">
             <input type="hidden" name="id" value="{{.ID}}">
             <input type="hidden" name="action" value="add_notes">
-            <textarea name="admin_notes" rows="2" class="w-full rounded-lg border border-ol-variant bg-sf-lowest p-2 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary/30 resize-y mb-2">{{.AdminNotes}}</textarea>
+            <textarea name="admin_notes" rows="2" class="w-full rounded-xl border border-ol-variant bg-sf-lowest p-2.5 text-xs text-on-surface focus:ring-2 focus:ring-primary/20 resize-y mb-2" placeholder="e.g. Electrician scheduled for tomorrow...">{{.AdminNotes}}</textarea>
             <div class="flex gap-2">
-              <button type="submit" class="px-3 py-1 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90">Save</button>
-              <button type="button" onclick="toggleNotes('{{.ID}}')" class="px-3 py-1 rounded-lg border border-ol-variant text-xs text-on-sf-variant hover:bg-sf-low">Cancel</button>
+              <button type="submit" class="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90">Save Note</button>
+              <button type="button" onclick="toggleNotes('{{.ID}}')" class="px-3 py-1.5 rounded-lg border border-ol-variant text-xs text-on-sf-variant hover:bg-sf-low">Cancel</button>
             </div>
           </form>
         </div>
@@ -134,19 +145,19 @@
   {{end}}
 </div>
 {{else}}
-<div class="bg-sf-lowest rounded-2xl border border-ol-variant py-16 text-center">
-  <svg class="w-12 h-12 mx-auto text-on-sf-variant/30 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-  <p class="text-sm text-on-sf-variant">No complaints found</p>
-  {{if or .FilterStatus .FilterRoom}}
-  <a href="/admin/complaints?tab=complaints" class="text-sm text-secondary hover:underline mt-1 inline-block">Clear filters</a>
-  {{end}}
+<div class="bg-sf-lowest rounded-2xl border border-ol-variant py-16 text-center p-6">
+  <div class="w-12 h-12 mx-auto bg-green-50 text-green-700 rounded-full flex items-center justify-center mb-3">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+  </div>
+  <p class="text-base font-semibold text-on-surface">No complaints found</p>
+  <p class="text-xs text-on-sf-variant mt-1">All tenant requests have been resolved or no matching tickets exist.</p>
 </div>
 {{end}}
 
 <!-- Image Lightbox -->
-<div id="image-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onclick="closeImage()">
-  <img id="modal-img" src="" alt="Full size" class="max-w-full max-h-[90vh] rounded-xl object-contain" onclick="event.stopPropagation()">
-  <button onclick="closeImage()" class="absolute top-4 right-4 text-white/80 hover:text-white text-2xl">&times;</button>
+<div id="image-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeImage()">
+  <img id="modal-img" src="" alt="Full size complaint image" class="max-w-full max-h-[85vh] rounded-2xl object-contain shadow-2xl" onclick="event.stopPropagation()">
+  <button onclick="closeImage()" class="absolute top-4 right-4 w-9 h-9 bg-white/20 text-white rounded-full flex items-center justify-center text-xl hover:bg-white/40 active:scale-95 transition-all">&times;</button>
 </div>
 
 <script>
@@ -156,9 +167,11 @@ function toggleNotes(id) {
 function openImage(url) {
   document.getElementById('modal-img').src = url;
   document.getElementById('image-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
 }
 function closeImage() {
   document.getElementById('image-modal').classList.add('hidden');
+  document.body.style.overflow = '';
 }
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeImage();
@@ -169,21 +182,22 @@ document.addEventListener('keydown', function(e) {
 <!-- ═══ MAINTENANCE LOG TAB ═══ -->
 
 {{if .Msg}}
-<div class="bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm mb-6">{{.Msg}}</div>
+<div class="bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-xs sm:text-sm mb-5 font-semibold">{{.Msg}}</div>
 {{end}}
 {{if .Error}}
-<div class="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm mb-6">{{.Error}}</div>
+<div class="bg-red-50 border border-red-200 text-error rounded-xl px-4 py-3 text-xs sm:text-sm mb-5 font-semibold">{{.Error}}</div>
 {{end}}
 
-<p class="text-sm text-on-sf-variant mb-4">Track when appliances and fixtures were last serviced in each room.</p>
+<p class="text-xs sm:text-sm text-on-sf-variant mb-4">Track when room appliances and fixtures were last inspected or serviced.</p>
 
-<div class="overflow-x-auto">
-  <table class="w-full bg-sf-lowest rounded-xl border border-ol-variant">
+<!-- Desktop Table Matrix (Visible on md+) -->
+<div class="hidden md:block overflow-x-auto bg-sf-lowest rounded-2xl border border-ol-variant shadow-sm">
+  <table class="w-full text-sm">
     <thead>
-      <tr class="border-b border-ol-variant bg-sf-low/50">
-        <th class="text-left px-4 py-3 text-xs font-semibold text-on-sf-variant uppercase tracking-wider">Room</th>
+      <tr class="border-b border-ol-variant bg-sf-low/60">
+        <th class="text-left px-4 py-3.5 text-xs font-bold text-on-sf-variant uppercase tracking-wider">Room</th>
         {{range .MaintenanceItems}}
-        <th class="text-center px-3 py-3 text-xs font-semibold text-on-sf-variant uppercase tracking-wider">{{index $.MaintenanceLabels .}}</th>
+        <th class="text-center px-3 py-3.5 text-xs font-bold text-on-sf-variant uppercase tracking-wider">{{index $.MaintenanceLabels .}}</th>
         {{end}}
       </tr>
     </thead>
@@ -192,30 +206,30 @@ document.addEventListener('keydown', function(e) {
       {{$roomID := .ID}}
       {{$roomNum := .RoomNumber}}
       {{$rmap := index $.MaintenanceLookup $roomID}}
-      <tr class="border-b border-ol-variant/60 hover:bg-sf-low/30 transition-colors">
-        <td class="px-4 py-3 font-semibold text-sm text-primary whitespace-nowrap">Room {{$roomNum}}</td>
+      <tr class="border-b border-ol-variant/60 last:border-0 hover:bg-sf-low/30 transition-colors">
+        <td class="px-4 py-3.5 font-bold text-sm text-primary whitespace-nowrap">Room {{$roomNum}}</td>
         {{range $.MaintenanceItems}}
         {{$item := .}}
         {{$entry := index $rmap $item}}
-        <td class="px-3 py-3 text-center">
+        <td class="px-3 py-3.5 text-center">
           {{if $entry}}
           {{$date := index $entry "date"}}
           {{$notes := index $entry "notes"}}
           {{if $date}}
-          <span class="text-xs font-medium text-green-700">{{$date}}</span>
+          <span class="text-xs font-semibold text-green-700">{{$date}}</span>
           {{else}}
           <span class="text-xs text-on-sf-variant/40">Never</span>
           {{end}}
           <br>
           <button onclick="openMaintForm('{{$roomID}}','{{$item}}','{{$date}}','{{$notes}}')"
-            class="text-xs text-secondary hover:text-primary font-medium mt-0.5">
+            class="text-[11px] text-secondary hover:text-primary font-bold mt-0.5 hover:underline">
             {{if $date}}Update{{else}}Set Date{{end}}
           </button>
           {{else}}
           <span class="text-xs text-on-sf-variant/40">Never</span>
           <br>
           <button onclick="openMaintForm('{{$roomID}}','{{$item}}','','')"
-            class="text-xs text-secondary hover:text-primary font-medium mt-0.5">
+            class="text-[11px] text-secondary hover:text-primary font-bold mt-0.5 hover:underline">
             Set Date
           </button>
           {{end}}
@@ -227,29 +241,77 @@ document.addEventListener('keydown', function(e) {
   </table>
 </div>
 
+<!-- Mobile Room-by-Room Cards (Visible on < md) -->
+<div class="md:hidden space-y-3">
+  {{range .AllRooms}}
+  {{$roomID := .ID}}
+  {{$roomNum := .RoomNumber}}
+  {{$rmap := index $.MaintenanceLookup $roomID}}
+  <div class="bg-sf-lowest border border-ol-variant/80 rounded-2xl p-4 shadow-sm">
+    <div class="flex items-center gap-2 mb-3 pb-2 border-b border-ol-variant/50">
+      <span class="w-8 h-8 rounded-lg bg-primary/5 text-primary flex items-center justify-center font-bold text-xs">
+        {{$roomNum}}
+      </span>
+      <h3 class="font-bold text-sm text-on-surface">Room {{$roomNum}} Maintenance</h3>
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      {{range $.MaintenanceItems}}
+      {{$item := .}}
+      {{$entry := index $rmap $item}}
+      {{$date := ""}}
+      {{$notes := ""}}
+      {{if $entry}}
+        {{$date = index $entry "date"}}
+        {{$notes = index $entry "notes"}}
+      {{end}}
+      <div class="bg-sf-low/50 rounded-xl p-2.5 border border-ol-variant/40 flex flex-col justify-between">
+        <div class="text-[11px] font-bold text-on-surface truncate">{{index $.MaintenanceLabels $item}}</div>
+        <div class="text-[10px] text-on-sf-variant mt-0.5">
+          {{if $date}}
+          <span class="font-semibold text-green-700">{{$date}}</span>
+          {{else}}
+          <span class="text-on-sf-variant/50">Not Serviced</span>
+          {{end}}
+        </div>
+        <button onclick="openMaintForm('{{$roomID}}','{{$item}}','{{$date}}','{{$notes}}')"
+          class="mt-2 text-[11px] font-bold text-secondary bg-white rounded-lg py-1 px-2 border border-ol-variant text-center active:scale-95">
+          {{if $date}}Update{{else}}+ Set{{end}}
+        </button>
+      </div>
+      {{end}}
+    </div>
+  </div>
+  {{end}}
+</div>
+
 <!-- Maintenance Update Modal -->
-<div id="maint-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-  <div class="bg-sf-lowest rounded-2xl p-6 w-full max-w-sm shadow-lg border border-ol-variant" onclick="event.stopPropagation()">
-    <h3 class="text-lg font-bold text-primary mb-1">Update Maintenance</h3>
-    <p class="text-sm text-on-sf-variant mb-4" id="maint-title"></p>
+<div id="maint-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeMaintForm()">
+  <div class="bg-sf-lowest rounded-2xl p-5 sm:p-6 w-full max-w-sm shadow-2xl border border-ol-variant" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between mb-3 border-b border-ol-variant/50 pb-2.5">
+      <h3 class="text-base font-bold text-primary">Update Service Record</h3>
+      <button type="button" onclick="closeMaintForm()" class="p-1 rounded-lg text-on-sf-variant hover:bg-sf-low">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <p class="text-xs text-on-sf-variant mb-4 font-semibold" id="maint-title"></p>
     <form method="POST" action="/admin/maintenance-log/save">
       <input type="hidden" name="room_id" id="maint-room-id">
       <input type="hidden" name="item_type" id="maint-item-type">
       <div class="space-y-3">
         <div>
-          <label class="block text-xs font-medium text-on-surface mb-1">Last Serviced Date</label>
+          <label class="block text-xs font-semibold text-on-surface mb-1">Last Serviced Date *</label>
           <input type="date" name="last_serviced_date" id="maint-date"
-            class="w-full rounded-xl border border-ol-variant bg-sf-lowest px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30">
+            class="w-full rounded-xl border border-ol-variant bg-sf-lowest px-3.5 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/20">
         </div>
         <div>
-          <label class="block text-xs font-medium text-on-surface mb-1">Notes</label>
-          <input type="text" name="notes" id="maint-notes" placeholder="e.g. Technician name, work done..."
-            class="w-full rounded-xl border border-ol-variant bg-sf-lowest px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30">
+          <label class="block text-xs font-semibold text-on-surface mb-1">Service Notes</label>
+          <input type="text" name="notes" id="maint-notes" placeholder="e.g. Filter cleaned, gas topped up..."
+            class="w-full rounded-xl border border-ol-variant bg-sf-lowest px-3.5 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/20">
         </div>
       </div>
       <div class="flex gap-3 mt-5">
-        <button type="submit" class="flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors">Save</button>
-        <button type="button" onclick="closeMaintForm()" class="flex-1 py-2.5 border border-ol-variant rounded-xl text-sm text-on-sf-variant hover:bg-sf-low transition-colors">Cancel</button>
+        <button type="submit" class="flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all">Save</button>
+        <button type="button" onclick="closeMaintForm()" class="flex-1 py-2.5 border border-ol-variant rounded-xl text-sm text-on-sf-variant hover:bg-sf-low">Cancel</button>
       </div>
     </form>
   </div>
@@ -269,13 +331,12 @@ function openMaintForm(roomID, itemType, date, notes) {
   }
   document.getElementById('maint-title').textContent = 'Room ' + roomNum + ' — ' + (labels[itemType] || itemType);
   document.getElementById('maint-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
 }
 function closeMaintForm() {
   document.getElementById('maint-modal').classList.add('hidden');
+  document.body.style.overflow = '';
 }
-document.getElementById('maint-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeMaintForm();
-});
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeMaintForm();
 });

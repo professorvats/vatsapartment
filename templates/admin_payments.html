@@ -1,38 +1,38 @@
 {{template "admin_header" .}}
 
 <!-- Screenshot Gallery Modal -->
-<div id="screenshot-modal" class="hidden fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4" onclick="closeScreenshotGallery()">
-  <div class="relative max-w-2xl w-full" onclick="event.stopPropagation()">
-    <button onclick="closeScreenshotGallery()" class="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-100 z-10">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+<div id="screenshot-modal" class="hidden fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-3 sm:p-4 backdrop-blur-md" onclick="closeScreenshotGallery()">
+  <div class="relative max-w-2xl w-full max-h-[90vh] flex flex-col items-center justify-center" onclick="event.stopPropagation()">
+    <button onclick="closeScreenshotGallery()" class="absolute -top-3 -right-2 sm:-top-4 sm:-right-4 w-9 h-9 bg-white text-black rounded-full flex items-center justify-center shadow-lg hover:bg-gray-100 active:scale-95 transition-all z-10" aria-label="Close screenshot preview">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
     </button>
-    <p id="gallery-counter" class="text-white/80 text-sm text-center mb-2 font-medium"></p>
-    <img id="screenshot-img" src="" class="w-full rounded-xl" alt="Payment Screenshot" style="max-height:70vh; object-fit:contain;">
-    <div id="gallery-thumbnails" class="flex gap-2 mt-3 justify-center overflow-x-auto pb-2"></div>
-    <div id="gallery-actions" class="flex gap-3 mt-4 justify-center">
-      <button onclick="closeScreenshotGallery()" class="bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-xl text-sm font-semibold transition-colors">Close</button>
-      <button id="gallery-decline-btn" onclick="declineFromGallery()" class="hidden bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl text-sm font-semibold transition-colors">Decline</button>
+    <p id="gallery-counter" class="text-white/90 text-xs sm:text-sm text-center mb-2 font-semibold"></p>
+    <img id="screenshot-img" src="" class="w-full rounded-2xl shadow-2xl" alt="Payment Screenshot" style="max-height:65vh; object-fit:contain;">
+    <div id="gallery-thumbnails" class="flex gap-2 mt-3 justify-center overflow-x-auto max-w-full pb-2 px-2"></div>
+    <div id="gallery-actions" class="flex gap-3 mt-3 justify-center w-full max-w-xs">
+      <button onclick="closeScreenshotGallery()" class="flex-1 bg-white/20 hover:bg-white/30 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors">Close</button>
+      <button id="gallery-decline-btn" onclick="declineFromGallery()" class="hidden flex-1 bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm">Decline</button>
     </div>
   </div>
 </div>
 
 <!-- Page Header with Month Selector -->
-<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-5 sm:mb-6">
   <div>
-    <h1 class="text-xl font-bold">Payments</h1>
-    <p class="text-sm text-on-sf-variant mt-0.5">Manage rent collection & bill payments</p>
+    <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-on-surface">Payments & Billing</h1>
+    <p class="text-xs sm:text-sm text-on-sf-variant mt-0.5">Manage rent collection, discounts & verify proofs</p>
   </div>
-  <div class="flex items-center gap-3">
-    <div class="flex items-center bg-sf-lowest border border-ol-variant rounded-xl overflow-hidden">
-      {{if .PrevMonth}}<a href="?month={{.PrevMonth}}" class="px-3 py-2 text-on-sf-variant hover:text-primary hover:bg-sf-low transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></a>{{end}}
-      <span class="px-4 py-2 text-sm font-semibold min-w-[140px] text-center">{{.MonthLabel}}</span>
-      {{if .NextMonth}}<a href="?month={{.NextMonth}}" class="px-3 py-2 text-on-sf-variant hover:text-primary hover:bg-sf-low transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>{{end}}
+  <div class="flex flex-wrap items-center gap-2.5">
+    <div class="flex items-center bg-sf-lowest border border-ol-variant rounded-xl overflow-hidden shadow-sm">
+      {{if .PrevMonth}}<a href="?month={{.PrevMonth}}" class="px-3 py-2 text-on-sf-variant hover:text-primary hover:bg-sf-low transition-colors" aria-label="Previous Month"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg></a>{{end}}
+      <span class="px-3.5 py-2 text-xs sm:text-sm font-bold min-w-[120px] text-center tracking-tight">{{.MonthLabel}}</span>
+      {{if .NextMonth}}<a href="?month={{.NextMonth}}" class="px-3 py-2 text-on-sf-variant hover:text-primary hover:bg-sf-low transition-colors" aria-label="Next Month"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></a>{{end}}
     </div>
     {{if not .BillsGenerated}}
-    <form method="POST" action="/admin/bills/generate">
+    <form method="POST" action="/admin/bills/generate" class="flex-1 sm:flex-initial">
       <input type="hidden" name="action" value="generate">
       <input type="hidden" name="month" value="{{.Month}}">
-      <button type="submit" class="bg-secondary text-on-secondary px-4 py-2 rounded-xl text-sm font-semibold hover:bg-secondary/90 active:scale-[0.98] transition-all flex items-center gap-1.5">
+      <button type="submit" class="w-full bg-secondary text-on-secondary px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold hover:bg-secondary/90 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 shadow-sm">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
         Generate Bills
       </button>
@@ -45,7 +45,7 @@
 {{if .Cards}}
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
   {{range .Cards}}
-  <form method="POST" action="/admin/payments/save" class="rounded-2xl overflow-hidden border border-ol-variant shadow-sm bg-sf-lowest">
+  <form method="POST" action="/admin/payments/save" class="rounded-2xl overflow-hidden border border-ol-variant shadow-sm bg-sf-lowest flex flex-col justify-between hover:border-primary/40 transition-colors">
 
     <input type="hidden" name="action" value="complete">
     <input type="hidden" name="tenant_id" value="{{.TenantID}}">
@@ -53,110 +53,121 @@
     <input type="hidden" name="month_covered" value="{{$.Month}}">
 
     <!-- Card Header -->
-    <div class="text-white px-5 py-4 flex items-center justify-between" style="background:linear-gradient(to bottom right, #111, #222)">
-      <div>
-        <p class="text-xs text-white/60 uppercase tracking-wide font-medium">Room {{.RoomNumber}}</p>
-        <h3 class="text-lg font-bold mt-0.5">{{.TenantName}}</h3>
+    <div class="text-white px-4 sm:px-5 py-3.5 flex items-center justify-between" style="background:linear-gradient(to bottom right, #111111, #222222)">
+      <div class="min-w-0 pr-2">
+        <p class="text-[11px] text-white/60 uppercase tracking-wider font-semibold">Room {{.RoomNumber}}</p>
+        <h3 class="text-base sm:text-lg font-bold mt-0.5 truncate">{{.TenantName}}</h3>
       </div>
-      {{if .HasPaid}}
-      <span class="text-xs font-semibold px-3 py-1 rounded-full bg-green-600 text-white flex items-center gap-1">
-        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-        Paid
-      </span>
-      {{else if eq .PaymentStatus "paid_by_user"}}
-      {{if gt (len .Screenshots) 0}}
-      <button type="button" onclick="openScreenshotGallery('{{.Screenshot}}','{{.PaymentID}}','{{.BillID}}','{{$.Month}}',true)"
-        class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-500 text-white flex items-center gap-1 hover:bg-amber-400 transition-colors cursor-pointer border-0">
-        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        Review ({{len .Screenshots}})
-      </button>
-      {{else}}
-      <span class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-500 text-white flex items-center gap-1">
-        <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-        Review
-      </span>
-      {{end}}
-      {{else}}
-      {{if gt (len .Screenshots) 0}}
-      <button type="button" onclick="openScreenshotGallery('{{.Screenshot}}','','','',false)"
-        class="text-xs font-semibold px-3 py-1 rounded-full bg-red-500 text-white flex items-center gap-1 hover:bg-red-400 transition-colors cursor-pointer border-0">
-        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        Images ({{len .Screenshots}})
-      </button>
-      {{else}}
-      <span class="text-xs font-semibold px-3 py-1 rounded-full bg-red-600 text-white">Pending</span>
-      {{end}}
-      {{end}}
+      <div class="flex-shrink-0">
+        {{if .HasPaid}}
+        <span class="text-xs font-bold px-3 py-1 rounded-full bg-green-600 text-white flex items-center gap-1 shadow-sm">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          Paid
+        </span>
+        {{else if eq .PaymentStatus "paid_by_user"}}
+        {{if gt (len .Screenshots) 0}}
+        <button type="button" onclick="openScreenshotGallery('{{.Screenshot}}','{{.PaymentID}}','{{.BillID}}','{{$.Month}}',true)"
+          class="text-xs font-bold px-3 py-1 rounded-full bg-amber-500 text-white flex items-center gap-1 hover:bg-amber-400 active:scale-95 transition-all cursor-pointer border-0 shadow-sm">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          Review ({{len .Screenshots}})
+        </button>
+        {{else}}
+        <span class="text-xs font-bold px-3 py-1 rounded-full bg-amber-500 text-white flex items-center gap-1 shadow-sm">
+          <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+          Review
+        </span>
+        {{end}}
+        {{else}}
+        {{if gt (len .Screenshots) 0}}
+        <button type="button" onclick="openScreenshotGallery('{{.Screenshot}}','','','',false)"
+          class="text-xs font-bold px-3 py-1 rounded-full bg-red-500 text-white flex items-center gap-1 hover:bg-red-400 active:scale-95 transition-all cursor-pointer border-0 shadow-sm">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          Images ({{len .Screenshots}})
+        </button>
+        {{else}}
+        <span class="text-xs font-bold px-3 py-1 rounded-full bg-red-600 text-white shadow-sm">Pending</span>
+        {{end}}
+        {{end}}
+      </div>
     </div>
 
     <!-- Amounts Breakdown -->
-    <div class="px-5 py-3 space-y-1.5 text-sm">
+    <div class="px-4 sm:px-5 py-3 space-y-1.5 text-xs sm:text-sm">
       <div class="flex justify-between">
         <span class="text-on-sf-variant">Room Rent</span>
-        <span class="font-medium">₹{{printf "%.0f" .RoomPrice}}</span>
+        <span class="font-bold text-on-surface">₹{{printf "%.0f" .RoomPrice}}</span>
       </div>
       {{if gt .DiscountAmount 0.0}}
       <div class="flex justify-between">
         <span class="text-on-sf-variant">Discount</span>
-        <span class="text-success font-medium">−₹{{printf "%.0f" .DiscountAmount}}</span>
+        <span class="text-green-700 font-bold">−₹{{printf "%.0f" .DiscountAmount}}</span>
       </div>
       {{end}}
       {{if .HasMaintenance}}
       <div class="flex justify-between">
         <span class="text-on-sf-variant">Maintenance</span>
-        <span class="font-medium">₹{{printf "%.0f" .MaintenanceAmt}}</span>
+        <span class="font-bold text-on-surface">₹{{printf "%.0f" .MaintenanceAmt}}</span>
       </div>
       {{end}}
       {{if gt .ElectricityAmt 0.0}}
       <div class="flex justify-between">
         <span class="text-on-sf-variant">Electricity + Water</span>
-        <span class="font-medium">₹{{printf "%.0f" (add .ElectricityAmt .WaterAmt)}}</span>
+        <span class="font-bold text-on-surface">₹{{printf "%.0f" (add .ElectricityAmt .WaterAmt)}}</span>
       </div>
       {{end}}
     </div>
 
     <!-- Discount & Note Row -->
-    <div class="px-5 py-2 bg-sf-low/50 border-t border-ol-variant">
-      <div class="flex items-end gap-2">
-        <div class="flex-1">
-          <label class="block text-[11px] font-medium text-on-sf-variant mb-1">Discount Note</label>
-          <input name="discount_note" type="text" placeholder="e.g. Diwali offer" value="{{.MonthlyDiscountNote}}"
-            class="w-full border border-ol-variant rounded-lg px-2.5 py-1.5 text-sm bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+    <div class="px-4 sm:px-5 py-2.5 bg-sf-low/50 border-t border-ol-variant/60">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div class="sm:col-span-2">
+          <label class="block text-[11px] font-semibold text-on-sf-variant mb-1">Discount Note</label>
+          <input name="discount_note" type="text" placeholder="e.g. Diwali concession" value="{{.MonthlyDiscountNote}}"
+            class="w-full border border-ol-variant rounded-xl px-3 py-1.5 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             {{if or .HasPaid (eq .PaymentStatus "paid_by_user")}}disabled{{end}}>
         </div>
-        <div class="w-24">
-          <label class="block text-[11px] font-medium text-on-sf-variant mb-1">Amount</label>
+        <div>
+          <label class="block text-[11px] font-semibold text-on-sf-variant mb-1">Discount (₹)</label>
           <input name="discount_amount" type="number" value="{{if gt .MonthlyDiscount 0.0}}{{printf "%.0f" .MonthlyDiscount}}{{end}}" placeholder="₹0"
-            class="w-full border border-ol-variant rounded-lg px-2.5 py-1.5 text-sm bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            class="w-full border border-ol-variant rounded-xl px-3 py-1.5 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             {{if or .HasPaid (eq .PaymentStatus "paid_by_user")}}disabled{{end}}>
         </div>
       </div>
     </div>
 
-    <!-- Footer: Total + Actions -->
-    <div class="px-5 py-4 border-t border-ol-variant mt-auto space-y-3">
-      <!-- Method / Date / Paid To -->
-      <div class="flex items-center gap-1.5">
-        <select name="method" class="flex-1 border border-ol-variant rounded-lg px-2.5 py-2 text-sm bg-white focus:ring-2 focus:ring-primary/20" {{if or .HasPaid (eq .PaymentStatus "paid_by_user")}}disabled{{end}}>
-          <option {{if not .HasPaid}}selected{{end}}>Cash</option>
-          <option {{if .HasPaid}}{{if eq .PaymentMethod "UPI"}}selected{{end}}{{end}}>UPI</option>
-          <option {{if .HasPaid}}{{if eq .PaymentMethod "Bank Transfer"}}selected{{end}}{{end}}>Bank Transfer</option>
-        </select>
-        <input name="date" type="date" value="{{if .HasPaid}}{{.PaymentDate}}{{else}}{{$.Month}}-01{{end}}"
-          class="flex-1 border border-ol-variant rounded-lg px-2.5 py-2 text-sm bg-white focus:ring-2 focus:ring-primary/20"
-          {{if or .HasPaid (eq .PaymentStatus "paid_by_user")}}disabled{{end}}>
-        <select name="paid_to" class="flex-1 border border-ol-variant rounded-lg px-2.5 py-2 text-sm bg-white focus:ring-2 focus:ring-primary/20" {{if or .HasPaid (eq .PaymentStatus "paid_by_user")}}disabled{{end}}>
-          <option value="">{{if .HasPaid}}{{.PaidTo}}{{else}}Paid to{{end}}</option>
-          <option value="Owner">Owner</option>
-          <option value="Manager">Manager</option>
-          <option value="Caretaker">Caretaker</option>
-        </select>
+    <!-- Footer: Method / Date / Paid To + Total + Action -->
+    <div class="px-4 sm:px-5 py-4 border-t border-ol-variant mt-auto space-y-3">
+      <!-- Method / Date / Paid To Inputs (Responsive Grid) -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div>
+          <label class="block text-[10px] font-semibold uppercase tracking-wider text-on-sf-variant mb-1">Method</label>
+          <select name="method" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-primary/20" {{if or .HasPaid (eq .PaymentStatus "paid_by_user")}}disabled{{end}}>
+            <option {{if not .HasPaid}}selected{{end}}>Cash</option>
+            <option {{if .HasPaid}}{{if eq .PaymentMethod "UPI"}}selected{{end}}{{end}}>UPI</option>
+            <option {{if .HasPaid}}{{if eq .PaymentMethod "Bank Transfer"}}selected{{end}}{{end}}>Bank Transfer</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold uppercase tracking-wider text-on-sf-variant mb-1">Date</label>
+          <input name="date" type="date" value="{{if .HasPaid}}{{.PaymentDate}}{{else}}{{$.Month}}-01{{end}}"
+            class="w-full border border-ol-variant rounded-xl px-3 py-2 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-primary/20"
+            {{if or .HasPaid (eq .PaymentStatus "paid_by_user")}}disabled{{end}}>
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold uppercase tracking-wider text-on-sf-variant mb-1">Collected By</label>
+          <select name="paid_to" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-primary/20" {{if or .HasPaid (eq .PaymentStatus "paid_by_user")}}disabled{{end}}>
+            <option value="">{{if .HasPaid}}{{.PaidTo}}{{else}}Paid to{{end}}</option>
+            <option value="Owner">Owner</option>
+            <option value="Manager">Manager</option>
+            <option value="Caretaker">Caretaker</option>
+          </select>
+        </div>
       </div>
 
-      <!-- Total Due -->
-      <div class="flex items-center justify-between bg-primary/5 rounded-xl px-4 py-3">
-        <span class="text-sm font-semibold text-on-surface">Total Due</span>
-        <span class="total-due-display text-xl font-bold text-primary">₹{{printf "%.0f" .TotalDue}}</span>
+      <!-- Total Due Display -->
+      <div class="flex items-center justify-between bg-primary/5 rounded-xl px-4 py-2.5 border border-primary/10">
+        <span class="text-xs sm:text-sm font-bold text-on-surface">Total Due</span>
+        <span class="total-due-display text-lg sm:text-xl font-bold text-primary">₹{{printf "%.0f" .TotalDue}}</span>
         <input type="hidden" name="amount" value="{{printf "%.0f" .TotalDue}}">
         <input type="hidden" name="maintenance_amount" value="{{printf "%.0f" .MaintenanceAmt}}">
       </div>
@@ -164,7 +175,7 @@
       <!-- Action Button -->
       {{if .HasPaid}}
       <button type="button" onclick="undoPayment('{{.PaymentID}}', '{{$.Month}}')"
-        class="w-full bg-red-50 text-error border border-red-200 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-100 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5">
+        class="w-full bg-red-50 text-error border border-red-200 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold hover:bg-red-100 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
         Undo Payment
       </button>
@@ -174,13 +185,13 @@
         <input type="hidden" name="payment_id" value="{{.PaymentID}}">
         <input type="hidden" name="bill_id" value="{{.BillID}}">
         <input type="hidden" name="month" value="{{$.Month}}">
-        <button type="submit" class="w-full bg-green-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-green-700 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5">
+        <button type="submit" class="w-full bg-green-600 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold hover:bg-green-700 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 shadow-sm">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
           Mark as Paid
         </button>
       </form>
       {{else}}
-      <button type="submit" class="w-full bg-primary text-on-primary px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5">
+      <button type="submit" class="w-full bg-primary text-on-primary px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold hover:bg-primary/90 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 shadow-sm">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
         Mark as Paid
       </button>
@@ -190,12 +201,12 @@
   {{end}}
 </div>
 {{else}}
-<div class="text-center py-20 bg-sf-lowest border border-ol-variant rounded-2xl">
-  <div class="w-16 h-16 mx-auto bg-sf-low rounded-full flex items-center justify-center mb-4">
-    <svg class="w-8 h-8 text-on-sf-variant" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 2h1"/></svg>
+<div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-2xl p-6">
+  <div class="w-12 h-12 mx-auto bg-sf-low rounded-full flex items-center justify-center mb-3 text-on-sf-variant">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 2h1"/></svg>
   </div>
-  <p class="text-on-sf-variant text-base font-medium">No occupied rooms for this month</p>
-  <p class="text-sm text-on-sf-variant mt-1">Generate bills to start collecting payments</p>
+  <p class="text-base font-semibold text-on-surface">No occupied rooms for this month</p>
+  <p class="text-xs text-on-sf-variant mt-1">Generate bills or assign tenants to start collecting payments</p>
 </div>
 {{end}}
 
@@ -203,6 +214,7 @@
 // Live update Total Due when discount changes
 document.querySelectorAll('input[name="discount_amount"]').forEach(function(input) {
   var form = input.closest('form');
+  if (!form) return;
   var totalEl = form.querySelector('.total-due-display');
   var amountInput = form.querySelector('input[name="amount"]');
   var originalTotal = parseFloat(amountInput.value) || 0;
@@ -210,7 +222,7 @@ document.querySelectorAll('input[name="discount_amount"]').forEach(function(inpu
   input.addEventListener('input', function() {
     var discount = parseFloat(this.value) || 0;
     var newTotal = Math.max(0, originalTotal - discount);
-    totalEl.textContent = '₹' + newTotal.toFixed(0);
+    if (totalEl) totalEl.textContent = '₹' + Math.round(newTotal);
   });
 });
 
@@ -246,14 +258,14 @@ function showGalleryImage() {
   var thumbs = document.getElementById('gallery-thumbnails');
 
   img.src = galleryUrls[galleryIndex];
-  counter.textContent = (galleryIndex + 1) + ' / ' + galleryUrls.length;
+  counter.textContent = (galleryIndex + 1) + ' of ' + galleryUrls.length;
 
   thumbs.innerHTML = '';
   galleryUrls.forEach(function(url, i) {
     var thumb = document.createElement('img');
     thumb.src = url;
-    thumb.className = 'w-12 h-16 object-cover rounded-lg cursor-pointer border-2 ' +
-      (i === galleryIndex ? 'border-white opacity-100' : 'border-transparent opacity-60 hover:opacity-80');
+    thumb.className = 'w-12 h-14 object-cover rounded-lg cursor-pointer border-2 transition-all ' +
+      (i === galleryIndex ? 'border-white opacity-100 scale-105' : 'border-transparent opacity-50 hover:opacity-80');
     thumb.onclick = function() { galleryIndex = i; showGalleryImage(); };
     thumbs.appendChild(thumb);
   });
@@ -261,7 +273,7 @@ function showGalleryImage() {
 
 function declineFromGallery() {
   if (!galleryPaymentId) return;
-  if (!confirm('Decline this payment? The tenant will need to re-submit.')) return;
+  if (!confirm('Decline this payment? The tenant will need to re-submit proof.')) return;
   var form = document.createElement('form');
   form.method = 'POST';
   form.action = '/admin/payments/save';

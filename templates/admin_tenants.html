@@ -1,45 +1,73 @@
 {{template "admin_header" .}}
-<div class="flex items-center justify-between mb-6">
-  <h1 class="text-xl font-bold">Manage Tenants</h1>
-  <button onclick="openAdd()" class="bg-secondary text-on-secondary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-secondary/90">+ Add Tenant</button>
+
+<!-- Header & Add Button -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 sm:mb-6">
+  <div>
+    <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-on-surface">Manage Tenants</h1>
+    <p class="text-xs sm:text-sm text-on-sf-variant mt-0.5">Directory of active & past residents, passes, agreements and ID verifications</p>
+  </div>
+  <button onclick="openAdd()" class="bg-secondary text-on-secondary px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-secondary/90 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 shadow-sm">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+    <span>Add Tenant</span>
+  </button>
 </div>
 
 {{if .Tenants}}
-<div class="bg-sf-lowest border border-ol-variant rounded-lg overflow-x-auto">
-  <table class="w-full text-sm min-w-[900px]">
+
+<!-- ═══ DESKTOP TABLE VIEW (Visible on lg+) ═══ -->
+<div class="hidden lg:block bg-sf-lowest border border-ol-variant rounded-2xl overflow-hidden shadow-sm">
+  <table class="w-full text-sm">
     <thead>
-      <tr class="border-b border-ol-variant bg-sf-low">
-        <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Name</th>
-        <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Contact</th>
-        <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Room</th>
-        <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Pass / Login</th>
-        <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Verification</th>
-        <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Status</th>
-        <th class="text-left px-3 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Actions</th>
+      <tr class="border-b border-ol-variant bg-sf-low/60">
+        <th class="text-left px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-on-sf-variant">Tenant</th>
+        <th class="text-left px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-on-sf-variant">Room</th>
+        <th class="text-left px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-on-sf-variant">Pass / Login</th>
+        <th class="text-left px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-on-sf-variant">Verification</th>
+        <th class="text-left px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-on-sf-variant">Status</th>
+        <th class="text-right px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-on-sf-variant">Actions</th>
       </tr>
     </thead>
     <tbody>
       {{range .Tenants}}
-      <tr class="border-b border-ol-variant last:border-0 hover:bg-sf-low/50">
-        <td class="px-3 py-3 font-medium">{{.Name}}</td>
-        <td class="px-3 py-3 text-xs text-on-sf-variant">{{.Phone}}<br>{{.Email}}</td>
-        <td class="px-3 py-3">{{if .RoomNumber}}{{.RoomNumber}}{{else}}<span class="text-on-sf-variant">—</span>{{end}}</td>
-        <!-- Pass column -->
-        <td class="px-3 py-3 text-xs">
+      <tr class="border-b border-ol-variant/60 last:border-0 hover:bg-sf-low/40 transition-colors">
+        <!-- Tenant Info -->
+        <td class="px-4 py-3.5">
+          <div class="font-bold text-on-surface">{{.Name}}</div>
+          <div class="text-xs text-on-sf-variant mt-0.5 flex items-center gap-2">
+            <a href="tel:{{.Phone}}" class="hover:text-primary">{{.Phone}}</a>
+            {{if .Email}}<span>·</span><span class="truncate max-w-[150px]">{{.Email}}</span>{{end}}
+          </div>
+        </td>
+
+        <!-- Room -->
+        <td class="px-4 py-3.5">
+          {{if .RoomNumber}}
+          <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-primary/5 text-primary text-xs font-bold border border-ol-variant/50">
+            Room {{.RoomNumber}}
+          </span>
+          {{else}}
+          <span class="text-xs text-on-sf-variant italic">Unassigned</span>
+          {{end}}
+        </td>
+
+        <!-- Pass / Login -->
+        <td class="px-4 py-3.5 text-xs">
           {{if .PassNumber}}
           <div class="flex flex-col gap-1">
-            <span class="inline-flex items-center gap-1 text-xs text-success font-medium">
-              <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
+            <span class="inline-flex items-center gap-1.5 text-xs text-green-700 font-semibold">
+              <span class="w-2 h-2 rounded-full bg-green-600"></span>
               {{.PassNumber}}
             </span>
-            <div class="flex items-center gap-1.5">
-              <a href="https://wa.me/91{{.Phone}}?text={{urlquery (printf "\U0001f3e0 *Welcome to Vats Apartment!*\n\nHi %s, your room is ready! \U0001f389\n\n*Room:* %s\n\n\U0001f511 *Login Details:*\nhttps://vatsapartment.com/login\n*Phone:* %s\n*Password:* %s\n\nAccess your dashboard & payments anytime.\n\nEnjoy your stay! \U0001f4cd Near LPU, Jalandhar" .Name .RoomNumber .Phone .PassNumber)}}" target="_blank" class="text-[10px] text-green-600 font-semibold hover:underline">Share</a>
+            <div class="flex items-center gap-2">
+              <a href="https://wa.me/91{{.Phone}}?text={{urlquery (printf "\U0001f3e0 *Welcome to Vats Apartment!*\n\nHi %s, your room is ready! \U0001f389\n\n*Room:* %s\n\n\U0001f511 *Login Details:*\nhttps://vatsapartment.com/login\n*Phone:* %s\n*Password:* %s\n\nAccess your dashboard & payments anytime.\n\nEnjoy your stay! \U0001f4cd Near LPU, Jalandhar" .Name .RoomNumber .Phone .PassNumber)}}" target="_blank" class="text-[11px] text-green-700 font-semibold hover:underline flex items-center gap-0.5">Share</a>
+              <span class="text-on-sf-variant/40">·</span>
               <button onclick="customMsg('{{jsStr .Name}}','{{.Phone}}','{{jsStr .PassNumber}}','{{jsStr .RoomNumber}}')"
-                      class="text-[10px] text-secondary font-semibold hover:underline">Custom</button>
-              <form method="POST" action="/admin/tenants/save" class="inline">
+                      class="text-[11px] text-secondary font-semibold hover:underline">Custom</button>
+              <span class="text-on-sf-variant/40">·</span>
+              <form method="POST" action="/admin/tenants/save" class="inline" onsubmit="return confirm('Revoke pass for {{.Name}}?')">
                 <input type="hidden" name="action" value="revoke_pass">
                 <input type="hidden" name="id" value="{{.ID}}">
-                <button type="submit" class="text-[10px] text-error font-semibold hover:underline">Revoke</button>
+                <button type="submit" class="text-[11px] text-error font-semibold hover:underline">Revoke</button>
               </form>
             </div>
           </div>
@@ -47,81 +75,80 @@
           <form method="POST" action="/admin/tenants/save" class="inline">
             <input type="hidden" name="action" value="generate_pass">
             <input type="hidden" name="id" value="{{.ID}}">
-            <button type="submit" class="text-xs text-primary font-medium hover:underline">Generate</button>
+            <button type="submit" class="text-xs text-primary font-semibold hover:underline py-1 px-2 rounded-lg bg-primary/5 hover:bg-primary/10">Generate Pass</button>
           </form>
           {{end}}
         </td>
-        <!-- Verification column -->
-        <td class="px-3 py-3">
+
+        <!-- Verification -->
+        <td class="px-4 py-3.5">
           <div class="flex flex-col gap-1">
-            <!-- Status badge -->
             {{if eq .VerificationStatus "verified"}}
-            <span class="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full bg-green-50 text-success border border-green-200 w-fit">Verified</span>
+            <span class="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 w-fit">Verified</span>
             {{else if eq .VerificationStatus "pending"}}
-            <span class="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full bg-amber-50 text-warning border border-amber-200 w-fit">Pending</span>
+            <span class="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 w-fit">Pending Review</span>
             {{else if eq .VerificationStatus "rejected"}}
-            <span class="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full bg-red-50 text-error border border-red-200 w-fit">Rejected</span>
+            <span class="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-50 text-error border border-red-200 w-fit">Rejected</span>
             {{else}}
-            <span class="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full bg-gray-50 text-on-sf-variant border border-ol-variant">Not Submitted</span>
+            <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-sf-low text-on-sf-variant border border-ol-variant/60 w-fit">Not Submitted</span>
             {{end}}
 
-            <!-- Document thumbnails — visible for all statuses except not_submitted -->
             {{if or .LpuPhoto .AadharPhoto}}
             <div class="flex items-center gap-1.5 mt-0.5">
               {{if .LpuPhoto}}
               <a href="{{.LpuPhoto}}" target="_blank" class="relative group" title="LPU ID Card">
-                <img src="{{.LpuPhoto}}" class="h-10 w-10 object-cover rounded border border-ol-variant hover:border-primary transition-colors" onerror="this.style.display='none'">
+                <img src="{{.LpuPhoto}}" class="h-8 w-8 object-cover rounded-lg border border-ol-variant hover:border-primary transition-colors" onerror="this.style.display='none'">
               </a>
               {{end}}
               {{if .AadharPhoto}}
               <a href="{{.AadharPhoto}}" target="_blank" class="relative group" title="Aadhar Card">
-                <img src="{{.AadharPhoto}}" class="h-10 w-10 object-cover rounded border border-ol-variant hover:border-primary transition-colors" onerror="this.style.display='none'">
+                <img src="{{.AadharPhoto}}" class="h-8 w-8 object-cover rounded-lg border border-ol-variant hover:border-primary transition-colors" onerror="this.style.display='none'">
               </a>
               {{end}}
             </div>
             {{end}}
 
-            <!-- Notes -->
-            {{if .VerificationNotes}}<span class="text-[10px] text-on-sf-variant italic">{{.VerificationNotes}}</span>{{end}}
-
-            <!-- Actions for pending -->
             {{if eq .VerificationStatus "pending"}}
-            <div class="flex items-center gap-1.5 mt-0.5">
+            <div class="flex items-center gap-2 mt-0.5">
               <form method="POST" action="/admin/tenants/save" class="inline">
                 <input type="hidden" name="action" value="verify_tenant">
                 <input type="hidden" name="id" value="{{.ID}}">
-                <button type="submit" class="text-[10px] text-success font-semibold hover:underline">Approve</button>
+                <button type="submit" class="text-[11px] text-green-700 font-bold hover:underline">Approve</button>
               </form>
-              <form method="POST" action="/admin/tenants/save" class="inline flex items-center gap-0.5">
+              <form method="POST" action="/admin/tenants/save" class="inline flex items-center gap-1">
                 <input type="hidden" name="action" value="reject_tenant">
                 <input type="hidden" name="id" value="{{.ID}}">
                 <input type="text" name="notes" placeholder="Reason" class="w-16 text-[10px] border border-ol-variant rounded px-1 py-0.5">
-                <button type="submit" class="text-[10px] text-error font-semibold hover:underline">Reject</button>
+                <button type="submit" class="text-[11px] text-error font-bold hover:underline">Reject</button>
               </form>
             </div>
             {{end}}
           </div>
         </td>
-        <td class="px-3 py-3">
+
+        <!-- Status Selector -->
+        <td class="px-4 py-3.5">
           <form method="POST" action="/admin/tenants/save" class="inline">
             <input type="hidden" name="action" value="update">
             <input type="hidden" name="id" value="{{.ID}}">
             <input type="hidden" name="name" value="{{.Name}}">
             <input type="hidden" name="phone" value="{{.Phone}}">
             <input type="hidden" name="email" value="{{.Email}}">
-            <select name="status" onchange="this.form.submit()" class="border border-ol-variant rounded px-2 py-1 text-xs bg-sf-lowest">
+            <select name="status" onchange="this.form.submit()" class="border border-ol-variant/80 rounded-xl px-2.5 py-1.5 text-xs font-semibold bg-sf-lowest focus:ring-2 focus:ring-primary/20">
               <option value="active" {{if eq .Status "active"}}selected{{end}}>Active</option>
               <option value="inactive" {{if eq .Status "inactive"}}selected{{end}}>Inactive</option>
             </select>
           </form>
         </td>
-        <td class="px-3 py-3">
-          <div class="flex items-center gap-1">
-            <a href="/admin/tenants/agreement?id={{.ID}}" class="text-purple-600 hover:bg-purple-50 rounded px-2 py-1 text-xs font-medium">Agreement</a>
+
+        <!-- Actions -->
+        <td class="px-4 py-3.5 text-right">
+          <div class="flex items-center justify-end gap-1.5">
+            <a href="/admin/tenants/agreement?id={{.ID}}" class="text-purple-700 hover:bg-purple-50 rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors">Agreement</a>
             <button onclick="openEdit('{{jsStr .ID}}', '{{jsStr .Name}}', '{{jsStr .Phone}}', '{{jsStr .Email}}', '{{jsStr .Status}}', '{{jsStr .RoomID}}', '{{.RentAmount}}', '{{jsStr .StartDate}}', '{{.SecurityDeposit}}', '{{.LockInPeriod}}', {{.HasMaintenance}}, '{{.MaintenanceAmount}}')"
-              class="text-primary hover:bg-primary/10 rounded px-2 py-1 text-xs font-medium">Edit</button>
+              class="text-primary hover:bg-primary/10 rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors">Edit</button>
             <button onclick="confirmDelete('{{.ID}}', '{{.Name}}')"
-              class="text-error hover:bg-error/10 rounded px-2 py-1 text-xs font-medium">Delete</button>
+              class="text-error hover:bg-red-50 rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors">Delete</button>
           </div>
         </td>
       </tr>
@@ -129,226 +156,373 @@
     </tbody>
   </table>
 </div>
+
+<!-- ═══ MOBILE CARDS VIEW (Visible on < lg) ═══ -->
+<div class="lg:hidden space-y-3.5">
+  {{range .Tenants}}
+  <div class="bg-sf-lowest border border-ol-variant/80 rounded-2xl p-4 shadow-sm hover:border-primary/40 transition-colors">
+    <!-- Card Header -->
+    <div class="flex items-start justify-between gap-2 border-b border-ol-variant/50 pb-3 mb-3">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center font-bold text-sm flex-shrink-0">
+          {{if .RoomNumber}}{{.RoomNumber}}{{else}}--{{end}}
+        </div>
+        <div class="min-w-0">
+          <h3 class="font-bold text-sm sm:text-base text-on-surface truncate">{{.Name}}</h3>
+          <div class="flex items-center gap-1.5 text-xs text-on-sf-variant mt-0.5">
+            <a href="tel:{{.Phone}}" class="font-semibold text-primary flex items-center gap-0.5 hover:underline">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+              {{.Phone}}
+            </a>
+            {{if .RoomNumber}}<span>·</span><span>Room {{.RoomNumber}}</span>{{end}}
+          </div>
+        </div>
+      </div>
+
+      <!-- Active / Inactive Badge & Selector -->
+      <form method="POST" action="/admin/tenants/save" class="flex-shrink-0">
+        <input type="hidden" name="action" value="update">
+        <input type="hidden" name="id" value="{{.ID}}">
+        <input type="hidden" name="name" value="{{.Name}}">
+        <input type="hidden" name="phone" value="{{.Phone}}">
+        <input type="hidden" name="email" value="{{.Email}}">
+        <select name="status" onchange="this.form.submit()" class="border border-ol-variant/80 rounded-xl px-2.5 py-1 text-xs font-semibold bg-sf-lowest focus:ring-2 focus:ring-primary/20 {{if eq .Status "active"}}text-green-700 bg-green-50/50 border-green-200{{else}}text-on-sf-variant bg-sf-low{{end}}">
+          <option value="active" {{if eq .Status "active"}}selected{{end}}>Active</option>
+          <option value="inactive" {{if eq .Status "inactive"}}selected{{end}}>Inactive</option>
+        </select>
+      </form>
+    </div>
+
+    <!-- Pass & Verification Section -->
+    <div class="grid grid-cols-2 gap-2.5 bg-sf-low/50 rounded-xl p-3 mb-3 border border-ol-variant/40 text-xs">
+      <!-- Pass Info -->
+      <div>
+        <span class="text-[10px] font-bold uppercase tracking-wider text-on-sf-variant block mb-1">Digital Pass</span>
+        {{if .PassNumber}}
+        <div class="flex items-center gap-1 text-green-700 font-bold mb-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-green-600"></span>
+          {{.PassNumber}}
+        </div>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <a href="https://wa.me/91{{.Phone}}?text={{urlquery (printf "\U0001f3e0 *Welcome to Vats Apartment!*\n\nHi %s, your room is ready! \U0001f389\n\n*Room:* %s\n\n\U0001f511 *Login Details:*\nhttps://vatsapartment.com/login\n*Phone:* %s\n*Password:* %s\n\nAccess your dashboard & payments anytime.\n\nEnjoy your stay! \U0001f4cd Near LPU, Jalandhar" .Name .RoomNumber .Phone .PassNumber)}}" target="_blank" class="px-2 py-1 rounded-lg bg-green-600 text-white font-semibold text-[10px] flex items-center gap-1 shadow-sm">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Share
+          </a>
+          <button onclick="customMsg('{{jsStr .Name}}','{{.Phone}}','{{jsStr .PassNumber}}','{{jsStr .RoomNumber}}')"
+                  class="px-2 py-1 rounded-lg border border-ol-variant bg-white text-secondary font-semibold text-[10px]">
+            Custom
+          </button>
+        </div>
+        {{else}}
+        <form method="POST" action="/admin/tenants/save" class="mt-1">
+          <input type="hidden" name="action" value="generate_pass">
+          <input type="hidden" name="id" value="{{.ID}}">
+          <button type="submit" class="px-2.5 py-1.5 rounded-lg bg-primary text-white font-semibold text-[11px] w-full">Generate</button>
+        </form>
+        {{end}}
+      </div>
+
+      <!-- Verification Info -->
+      <div>
+        <span class="text-[10px] font-bold uppercase tracking-wider text-on-sf-variant block mb-1">ID Verification</span>
+        {{if eq .VerificationStatus "verified"}}
+        <span class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">Verified</span>
+        {{else if eq .VerificationStatus "pending"}}
+        <span class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">Pending Review</span>
+        {{else if eq .VerificationStatus "rejected"}}
+        <span class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-50 text-error border border-red-200">Rejected</span>
+        {{else}}
+        <span class="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full bg-white text-on-sf-variant border border-ol-variant/60">Not Submitted</span>
+        {{end}}
+
+        {{if or .LpuPhoto .AadharPhoto}}
+        <div class="flex items-center gap-1.5 mt-1.5">
+          {{if .LpuPhoto}}
+          <a href="{{.LpuPhoto}}" target="_blank" class="text-[10px] text-primary font-semibold hover:underline bg-white px-1.5 py-0.5 rounded border border-ol-variant">LPU ID</a>
+          {{end}}
+          {{if .AadharPhoto}}
+          <a href="{{.AadharPhoto}}" target="_blank" class="text-[10px] text-primary font-semibold hover:underline bg-white px-1.5 py-0.5 rounded border border-ol-variant">Aadhar</a>
+          {{end}}
+        </div>
+        {{end}}
+
+        {{if eq .VerificationStatus "pending"}}
+        <div class="flex items-center gap-2 mt-2">
+          <form method="POST" action="/admin/tenants/save" class="inline">
+            <input type="hidden" name="action" value="verify_tenant">
+            <input type="hidden" name="id" value="{{.ID}}">
+            <button type="submit" class="px-2 py-1 rounded bg-green-600 text-white text-[10px] font-bold">Approve</button>
+          </form>
+          <form method="POST" action="/admin/tenants/save" class="inline">
+            <input type="hidden" name="action" value="reject_tenant">
+            <input type="hidden" name="id" value="{{.ID}}">
+            <button type="submit" class="px-2 py-1 rounded bg-red-50 text-error border border-red-200 text-[10px] font-bold">Reject</button>
+          </form>
+        </div>
+        {{end}}
+      </div>
+    </div>
+
+    <!-- Quick Action Footer -->
+    <div class="flex items-center justify-between gap-2 pt-1">
+      <a href="/admin/tenants/agreement?id={{.ID}}" class="flex-1 text-center py-2 px-3 rounded-xl bg-purple-50 text-purple-700 font-semibold text-xs border border-purple-200/60 active:scale-[0.98] transition-all">
+        Agreement
+      </a>
+      <button onclick="openEdit('{{jsStr .ID}}', '{{jsStr .Name}}', '{{jsStr .Phone}}', '{{jsStr .Email}}', '{{jsStr .Status}}', '{{jsStr .RoomID}}', '{{.RentAmount}}', '{{jsStr .StartDate}}', '{{.SecurityDeposit}}', '{{.LockInPeriod}}', {{.HasMaintenance}}, '{{.MaintenanceAmount}}')"
+        class="flex-1 text-center py-2 px-3 rounded-xl bg-primary/5 text-primary font-semibold text-xs border border-primary/20 active:scale-[0.98] transition-all">
+        Edit
+      </button>
+      <button onclick="confirmDelete('{{.ID}}', '{{.Name}}')"
+        class="p-2 rounded-xl bg-red-50 text-error border border-red-200 active:scale-[0.98] transition-all" aria-label="Delete Tenant">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      </button>
+    </div>
+  </div>
+  {{end}}
+</div>
+
 {{else}}
-<div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-lg">
-  <p class="text-on-sf-variant">No tenants yet.</p>
+<div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-2xl p-6">
+  <div class="w-12 h-12 mx-auto bg-sf-low rounded-full flex items-center justify-center mb-3 text-on-sf-variant">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/></svg>
+  </div>
+  <p class="text-base font-semibold text-on-surface">No tenants found</p>
+  <p class="text-xs text-on-sf-variant mt-1 mb-4">Add your first tenant to manage room assignments and passes</p>
+  <button onclick="openAdd()" class="bg-secondary text-white px-5 py-2.5 rounded-xl text-sm font-semibold">+ Add Tenant</button>
 </div>
 {{end}}
 
-<!-- Add Tenant Modal -->
-<div id="add-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-4xl my-8">
-    <h3 class="font-semibold text-lg mb-1">Add Tenant</h3>
-    <p class="text-xs text-on-sf-variant mb-4">Fill in the details for the new tenant</p>
+<!-- ═══ ADD TENANT MODAL ═══ -->
+<div id="add-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto" onclick="closeAdd()">
+  <div class="bg-sf-lowest rounded-2xl p-5 sm:p-6 w-full max-w-3xl my-8 shadow-2xl border border-ol-variant max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between mb-4 border-b border-ol-variant/60 pb-3">
+      <div>
+        <h3 class="font-bold text-lg text-on-surface">Add New Tenant</h3>
+        <p class="text-xs text-on-sf-variant mt-0.5">Fill in personal details and initial room assignment</p>
+      </div>
+      <button type="button" onclick="closeAdd()" class="p-1.5 rounded-lg text-on-sf-variant hover:text-on-surface hover:bg-sf-low">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
 
     <form method="POST" action="/admin/tenants/save" class="space-y-4">
       <input type="hidden" name="action" value="add">
 
       <!-- Personal Info -->
-      <div class="bg-sf-low rounded-lg p-4 space-y-3">
-        <h4 class="text-xs font-semibold uppercase tracking-wider text-on-sf-variant">Personal Info</h4>
-        <div class="grid grid-cols-3 gap-3">
+      <div class="bg-sf-low/60 rounded-xl p-4 space-y-3 border border-ol-variant/50">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-on-sf-variant">1. Personal Info</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Name</label>
-            <input name="name" id="add-name" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required>
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Full Name *</label>
+            <input name="name" id="add-name" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20" required>
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Phone</label>
-            <input name="phone" id="add-phone" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required>
-          </div>
-          <div class="col-span-3">
-            <label class="block text-xs text-on-sf-variant mb-1">Email</label>
-            <input name="email" id="add-email" type="email" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Phone Number *</label>
+            <input name="phone" id="add-phone" type="tel" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20" required>
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Status</label>
-            <select name="status" id="add-status" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Email Address</label>
+            <input name="email" id="add-email" type="email" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Status</label>
+            <select name="status" id="add-status" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Password</label>
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Password</label>
             <input name="password" id="add-password" type="text" placeholder="Set password for login"
-              class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+              class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Maintenance</label>
-            <select name="has_maintenance" id="add-maintenance" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
-              <option value="">Off</option>
-              <option value="on">On</option>
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Maintenance Charge</label>
+            <select name="has_maintenance" id="add-maintenance" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
+              <option value="">Off (Included)</option>
+              <option value="on">On (Separate)</option>
             </select>
           </div>
         </div>
       </div>
 
       <!-- Room Assignment -->
-      <div class="bg-sf-low rounded-lg p-4 space-y-3">
-        <h4 class="text-xs font-semibold uppercase tracking-wider text-on-sf-variant">Room Assignment</h4>
-        <div class="grid grid-cols-3 gap-3">
+      <div class="bg-sf-low/60 rounded-xl p-4 space-y-3 border border-ol-variant/50">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-on-sf-variant">2. Room Assignment & Terms</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Room</label>
-            <select name="room_id" id="add-room" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Assigned Room</label>
+            <select name="room_id" id="add-room" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
               <option value="">— No room —</option>
-              {{range .Rooms}}<option value="{{.ID}}">{{.Number}}</option>{{end}}
+              {{range .Rooms}}<option value="{{.ID}}">Room {{.Number}}</option>{{end}}
             </select>
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Rent (₹)</label>
-            <input name="rent" id="add-rent" type="number" value="9000" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Monthly Rent (₹)</label>
+            <input name="rent" id="add-rent" type="number" value="9000" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Start Date</label>
-            <input name="start_date" id="add-start-date" type="date" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Start Date</label>
+            <input name="start_date" id="add-start-date" type="date" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Security Deposit (₹)</label>
-            <input name="security_deposit" id="add-sec-deposit" type="number" step="0.01" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Security Deposit (₹)</label>
+            <input name="security_deposit" id="add-sec-deposit" type="number" step="0.01" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Lock-in Period (months)</label>
-            <input name="lock_in_period" id="add-lock-in" type="number" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Lock-in Period (months)</label>
+            <input name="lock_in_period" id="add-lock-in" type="number" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Maint. Amt (₹)</label>
-            <input name="maintenance_amount" id="add-maint-amt" type="number" value="500" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Maint. Amount (₹)</label>
+            <input name="maintenance_amount" id="add-maint-amt" type="number" value="500" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
           </div>
         </div>
       </div>
 
       <div class="flex gap-3 pt-2">
-        <button type="submit" class="bg-primary text-on-primary px-6 py-2.5 rounded-lg text-sm font-semibold flex-1">Add Tenant</button>
-        <button type="button" onclick="closeAdd()" class="border border-ol-variant px-6 py-2.5 rounded-lg text-sm">Cancel</button>
+        <button type="submit" class="bg-primary text-on-primary px-6 py-2.5 rounded-xl text-sm font-semibold flex-1 hover:bg-primary/90 active:scale-[0.98] transition-all">Add Tenant</button>
+        <button type="button" onclick="closeAdd()" class="border border-ol-variant px-6 py-2.5 rounded-xl text-sm text-on-sf-variant hover:bg-sf-low">Cancel</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Edit Tenant Modal -->
-<div id="edit-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-4xl my-8">
-    <h3 class="font-semibold text-lg mb-1">Edit Tenant</h3>
-    <p class="text-xs text-on-sf-variant mb-4">Update tenant details</p>
+<!-- ═══ EDIT TENANT MODAL ═══ -->
+<div id="edit-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto" onclick="closeEdit()">
+  <div class="bg-sf-lowest rounded-2xl p-5 sm:p-6 w-full max-w-3xl my-8 shadow-2xl border border-ol-variant max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between mb-4 border-b border-ol-variant/60 pb-3">
+      <div>
+        <h3 class="font-bold text-lg text-on-surface">Edit Tenant</h3>
+        <p class="text-xs text-on-sf-variant mt-0.5">Update tenant profile, password, or lease terms</p>
+      </div>
+      <button type="button" onclick="closeEdit()" class="p-1.5 rounded-lg text-on-sf-variant hover:text-on-surface hover:bg-sf-low">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
 
     <form method="POST" action="/admin/tenants/save" class="space-y-4">
       <input type="hidden" name="action" value="edit">
       <input type="hidden" name="id" id="edit-id">
 
       <!-- Personal Info -->
-      <div class="bg-sf-low rounded-lg p-4 space-y-3">
-        <h4 class="text-xs font-semibold uppercase tracking-wider text-on-sf-variant">Personal Info</h4>
-        <div class="grid grid-cols-3 gap-3">
+      <div class="bg-sf-low/60 rounded-xl p-4 space-y-3 border border-ol-variant/50">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-on-sf-variant">1. Personal Info</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Name</label>
-            <input name="name" id="edit-name" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required>
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Full Name *</label>
+            <input name="name" id="edit-name" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20" required>
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Phone</label>
-            <input name="phone" id="edit-phone" class="w-full border border-ol-variant rounded px-3 py-2 text-sm" required>
-          </div>
-          <div class="col-span-3">
-            <label class="block text-xs text-on-sf-variant mb-1">Email</label>
-            <input name="email" id="edit-email" type="email" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Phone Number *</label>
+            <input name="phone" id="edit-phone" type="tel" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20" required>
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Status</label>
-            <select name="status" id="edit-status" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Email Address</label>
+            <input name="email" id="edit-email" type="email" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Status</label>
+            <select name="status" id="edit-status" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">New Password</label>
-            <input name="password" id="edit-password" type="text" placeholder="Leave blank to keep current"
-              class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">New Password</label>
+            <input name="password" id="edit-password" type="text" placeholder="Leave blank to keep"
+              class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Maintenance</label>
-            <select name="has_maintenance" id="edit-maintenance" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
-              <option value="">Off</option>
-              <option value="on">On</option>
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Maintenance Charge</label>
+            <select name="has_maintenance" id="edit-maintenance" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
+              <option value="">Off (Included)</option>
+              <option value="on">On (Separate)</option>
             </select>
           </div>
         </div>
       </div>
 
       <!-- Room Assignment -->
-      <div class="bg-sf-low rounded-lg p-4 space-y-3">
-        <h4 class="text-xs font-semibold uppercase tracking-wider text-on-sf-variant">Room Assignment</h4>
-        <div class="grid grid-cols-3 gap-3">
+      <div class="bg-sf-low/60 rounded-xl p-4 space-y-3 border border-ol-variant/50">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-on-sf-variant">2. Room Assignment & Terms</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Room</label>
-            <select name="room_id" id="edit-room" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Assigned Room</label>
+            <select name="room_id" id="edit-room" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
               <option value="">— No room —</option>
-              {{range .Rooms}}<option value="{{.ID}}">{{.Number}}</option>{{end}}
+              {{range .Rooms}}<option value="{{.ID}}">Room {{.Number}}</option>{{end}}
             </select>
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Rent (₹)</label>
-            <input name="rent" id="edit-rent" type="number" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Monthly Rent (₹)</label>
+            <input name="rent" id="edit-rent" type="number" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Start Date</label>
-            <input name="start_date" id="edit-start-date" type="date" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Start Date</label>
+            <input name="start_date" id="edit-start-date" type="date" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Security Deposit (₹)</label>
-            <input name="security_deposit" id="edit-sec-deposit" type="number" step="0.01" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Security Deposit (₹)</label>
+            <input name="security_deposit" id="edit-sec-deposit" type="number" step="0.01" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Lock-in Period (months)</label>
-            <input name="lock_in_period" id="edit-lock-in" type="number" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Lock-in Period (months)</label>
+            <input name="lock_in_period" id="edit-lock-in" type="number" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
           </div>
           <div>
-            <label class="block text-xs text-on-sf-variant mb-1">Maint. Amt (₹)</label>
-            <input name="maintenance_amount" id="edit-maint-amt" type="number" value="500" class="w-full border border-ol-variant rounded px-3 py-2 text-sm">
+            <label class="block text-xs font-semibold text-on-sf-variant mb-1">Maint. Amount (₹)</label>
+            <input name="maintenance_amount" id="edit-maint-amt" type="number" value="500" class="w-full border border-ol-variant rounded-xl px-3 py-2 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20">
           </div>
         </div>
       </div>
 
       <div class="flex gap-3 pt-2">
-        <button type="submit" class="bg-primary text-on-primary px-6 py-2.5 rounded-lg text-sm font-semibold flex-1">Save Changes</button>
-        <button type="button" onclick="closeEdit()" class="border border-ol-variant px-6 py-2.5 rounded-lg text-sm">Cancel</button>
+        <button type="submit" class="bg-primary text-on-primary px-6 py-2.5 rounded-xl text-sm font-semibold flex-1 hover:bg-primary/90 active:scale-[0.98] transition-all">Save Changes</button>
+        <button type="button" onclick="closeEdit()" class="border border-ol-variant px-6 py-2.5 rounded-xl text-sm text-on-sf-variant hover:bg-sf-low">Cancel</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Delete Confirmation Dialog -->
-<div id="delete-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-sm">
-    <h3 class="font-semibold text-lg mb-2">Delete Tenant</h3>
-    <p class="text-sm text-on-sf-variant mb-4">Are you sure you want to delete <span id="delete-name" class="font-semibold"></span>? This action cannot be undone. All related records (payments, passes, room assignments, verifications) will also be removed.</p>
+<!-- ═══ DELETE CONFIRMATION MODAL ═══ -->
+<div id="delete-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeDelete()">
+  <div class="bg-sf-lowest rounded-2xl p-5 sm:p-6 w-full max-w-sm shadow-2xl border border-ol-variant" onclick="event.stopPropagation()">
+    <div class="w-12 h-12 rounded-full bg-red-50 text-error flex items-center justify-center mb-3">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+    </div>
+    <h3 class="font-bold text-lg text-on-surface mb-1">Delete Tenant</h3>
+    <p class="text-xs sm:text-sm text-on-sf-variant mb-4 leading-relaxed">Are you sure you want to delete <span id="delete-name" class="font-bold text-on-surface"></span>? All related payments, passes, and verifications will be permanently removed.</p>
     <form method="POST" action="/admin/tenants/save">
       <input type="hidden" name="action" value="delete">
       <input type="hidden" name="id" id="delete-id">
       <div class="flex gap-3">
-        <button type="submit" class="bg-error text-white px-4 py-2 rounded-lg text-sm font-semibold flex-1">Delete</button>
-        <button type="button" onclick="closeDelete()" class="border border-ol-variant px-4 py-2 rounded-lg text-sm">Cancel</button>
+        <button type="submit" class="bg-error text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex-1 hover:bg-red-700 active:scale-[0.98] transition-all">Yes, Delete</button>
+        <button type="button" onclick="closeDelete()" class="border border-ol-variant px-4 py-2.5 rounded-xl text-sm text-on-sf-variant hover:bg-sf-low flex-1">Cancel</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Custom Message Modal -->
-<div id="custom-msg-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-  <div class="bg-sf-lowest rounded-xl p-6 w-full max-w-md">
-    <h3 class="font-semibold mb-1">Send Custom Message</h3>
-    <p class="text-xs text-on-sf-variant mb-4">To: <span id="custom-tenant-name" class="font-medium"></span></p>
+<!-- ═══ CUSTOM MESSAGE MODAL ═══ -->
+<div id="custom-msg-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeCustomMsg()">
+  <div class="bg-sf-lowest rounded-2xl p-5 sm:p-6 w-full max-w-md shadow-2xl border border-ol-variant" onclick="event.stopPropagation()">
+    <h3 class="font-bold text-lg text-on-surface mb-1">Send WhatsApp Message</h3>
+    <p class="text-xs text-on-sf-variant mb-4">Recipient: <span id="custom-tenant-name" class="font-bold text-on-surface"></span></p>
     <div class="space-y-3">
       <div>
-        <label class="block text-xs text-on-sf-variant mb-1">Message</label>
-        <textarea id="custom-msg-text" rows="4"
-          class="w-full border border-ol-variant rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          placeholder="Type your message here...">Hello! Here is your digital pass for Vats Apartment.</textarea>
+        <label class="block text-xs font-semibold text-on-sf-variant mb-1">Message Template</label>
+        <textarea id="custom-msg-text" rows="5"
+          class="w-full border border-ol-variant rounded-xl px-3.5 py-2.5 text-sm bg-sf-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          placeholder="Type your message here..."></textarea>
       </div>
       <button onclick="sendCustomMsg()"
-        class="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors">
+        class="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-green-700 active:scale-[0.98] transition-all shadow-sm">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
         Send via WhatsApp
       </button>
-      <button type="button" onclick="document.getElementById('custom-msg-modal').classList.add('hidden')"
-        class="w-full border border-ol-variant py-2 rounded-lg text-sm">Cancel</button>
+      <button type="button" onclick="closeCustomMsg()"
+        class="w-full border border-ol-variant py-2.5 rounded-xl text-sm text-on-sf-variant hover:bg-sf-low">Cancel</button>
     </div>
   </div>
 </div>
@@ -368,12 +542,17 @@ function customMsg(name, phone, pass, room) {
     "Access your dashboard & payments anytime.\n\n" +
     "Enjoy your stay! \u{1F4CD} Near LPU, Jalandhar";
   document.getElementById('custom-msg-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function closeCustomMsg() {
+  document.getElementById('custom-msg-modal').classList.add('hidden');
+  document.body.style.overflow = '';
 }
 function sendCustomMsg() {
   var msg = document.getElementById('custom-msg-text').value;
   var url = "https://wa.me/91" + customPhone + "?text=" + encodeURIComponent(msg);
   window.open(url, '_blank');
-  document.getElementById('custom-msg-modal').classList.add('hidden');
+  closeCustomMsg();
 }
 
 function openAdd() {
@@ -381,7 +560,7 @@ function openAdd() {
   document.getElementById('add-phone').value = '';
   document.getElementById('add-email').value = '';
   document.getElementById('add-status').value = 'active';
-    document.getElementById('add-room').value = '';
+  document.getElementById('add-room').value = '';
   document.getElementById('add-start-date').value = new Date().toISOString().split('T')[0];
   document.getElementById('add-rent').value = '9000';
   document.getElementById('add-sec-deposit').value = '';
@@ -390,9 +569,11 @@ function openAdd() {
   document.getElementById('add-maintenance').value = '';
   document.getElementById('add-maint-amt').value = '500';
   document.getElementById('add-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
 }
 function closeAdd() {
   document.getElementById('add-modal').classList.add('hidden');
+  document.body.style.overflow = '';
 }
 
 function openEdit(id, name, phone, email, status, roomId, rent, startDate, secDeposit, lockIn, hasMaint, maintAmt) {
@@ -401,7 +582,7 @@ function openEdit(id, name, phone, email, status, roomId, rent, startDate, secDe
   document.getElementById('edit-phone').value = phone;
   document.getElementById('edit-email').value = email;
   document.getElementById('edit-status').value = status;
-    document.getElementById('edit-room').value = roomId || '';
+  document.getElementById('edit-room').value = roomId || '';
   document.getElementById('edit-rent').value = (rent && rent !== '0') ? rent : '9000';
   document.getElementById('edit-start-date').value = startDate || '';
   document.getElementById('edit-sec-deposit').value = (secDeposit && secDeposit !== '0') ? secDeposit : '';
@@ -410,19 +591,30 @@ function openEdit(id, name, phone, email, status, roomId, rent, startDate, secDe
   document.getElementById('edit-maint-amt').value = (maintAmt && maintAmt !== '0') ? maintAmt : '500';
   document.getElementById('edit-password').value = '';
   document.getElementById('edit-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
 }
 function closeEdit() {
   document.getElementById('edit-modal').classList.add('hidden');
+  document.body.style.overflow = '';
 }
 
 function confirmDelete(id, name) {
   document.getElementById('delete-id').value = id;
   document.getElementById('delete-name').textContent = name;
   document.getElementById('delete-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
 }
 function closeDelete() {
   document.getElementById('delete-modal').classList.add('hidden');
+  document.body.style.overflow = '';
 }
-
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeAdd();
+    closeEdit();
+    closeDelete();
+    closeCustomMsg();
+  }
+});
 </script>
 {{template "admin_footer" .}}

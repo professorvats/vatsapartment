@@ -1,50 +1,59 @@
 {{template "admin_header" .}}
-<div class="flex items-center justify-between mb-6">
-  <h1 class="text-xl font-bold">API Keys</h1>
-  <form method="POST" action="/admin/api-keys" class="flex gap-2">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 sm:mb-6">
+  <div>
+    <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-on-surface">API Keys & Webhooks</h1>
+    <p class="text-xs sm:text-sm text-on-sf-variant mt-0.5">Generate credentials for n8n, Zapier, and marketing integrations</p>
+  </div>
+  <form method="POST" action="/admin/api-keys" class="flex flex-col sm:flex-row gap-2">
     <input type="hidden" name="action" value="create">
     <input type="text" name="name" placeholder="Key name (e.g. N8n, Zapier)"
-      class="border border-ol-variant rounded-lg px-3 py-2 text-sm bg-sf-lowest focus:border-primary focus:ring-1 focus:ring-primary w-48">
-    <button type="submit" class="bg-primary text-on-primary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90">Generate Key</button>
+      class="border border-ol-variant rounded-xl px-3.5 py-2 text-xs sm:text-sm bg-sf-lowest focus:border-primary focus:ring-2 focus:ring-primary/20 w-full sm:w-56 font-medium">
+    <button type="submit" class="bg-primary text-on-primary px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all whitespace-nowrap shadow-sm">+ Generate Key</button>
   </form>
 </div>
 
 {{if .NewKey}}
-<div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-  <p class="text-sm font-semibold text-green-800 mb-2">New API key generated! Copy it now — you won't see it again.</p>
-  <div class="flex items-center gap-2">
-    <code class="bg-white border border-green-200 rounded px-3 py-2 text-sm font-mono break-all flex-1">{{.NewKey}}</code>
-    <button onclick="navigator.clipboard.writeText('{{.NewKey}}')" class="bg-white border border-green-200 rounded px-3 py-2 text-xs text-green-700 hover:bg-green-50">Copy</button>
+<div class="bg-green-50 border border-green-200 rounded-2xl p-4 sm:p-5 mb-6 shadow-sm">
+  <div class="flex items-center gap-2 text-green-800 font-bold text-sm mb-2">
+    <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    New API Key Created! Copy it now (will not be shown again).
   </div>
-  <p class="text-xs text-green-600 mt-2">Use this key in the <code class="bg-green-100 px-1 rounded">X-API-Key</code> header: <br>
-  <code class="bg-white border border-green-200 rounded px-2 py-1 text-xs mt-1 inline-block">curl -X POST http://localhost:3001/api/blog -H "X-API-Key: {{.NewKey}}" -H "Content-Type: application/json" -d '{"title":"My Post","content":"&lt;p&gt;Hello&lt;/p&gt;"}'</code></p>
+  <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-3">
+    <code class="bg-white border border-green-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-mono break-all flex-1 text-green-900 select-all">{{.NewKey}}</code>
+    <button onclick="navigator.clipboard.writeText('{{.NewKey}}'); this.textContent = 'Copied!'" class="bg-green-700 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold hover:bg-green-800 active:scale-95 transition-all">Copy Key</button>
+  </div>
+  <p class="text-xs text-green-700 font-medium leading-relaxed">
+    Pass this token in the header: <code class="bg-green-100 text-green-900 px-1.5 py-0.5 rounded font-mono">X-API-Key: {{.NewKey}}</code>
+  </p>
 </div>
 {{end}}
 
 {{if .Keys}}
-<div class="bg-sf-lowest border border-ol-variant rounded-lg overflow-hidden">
+
+<!-- Desktop Table (Visible on md+) -->
+<div class="hidden md:block bg-sf-lowest border border-ol-variant rounded-2xl overflow-hidden shadow-sm">
   <table class="w-full text-sm">
     <thead>
-      <tr class="border-b border-ol-variant bg-sf-low">
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Name</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant">Key</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant w-28">Created</th>
-        <th class="text-left px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant w-28">Last Used</th>
-        <th class="text-right px-4 py-3 text-xs uppercase tracking-wider text-on-sf-variant w-20">Actions</th>
+      <tr class="border-b border-ol-variant bg-sf-low/60">
+        <th class="text-left px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-on-sf-variant">Name</th>
+        <th class="text-left px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-on-sf-variant">Key Preview</th>
+        <th class="text-left px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-on-sf-variant w-32">Created</th>
+        <th class="text-left px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-on-sf-variant w-32">Last Used</th>
+        <th class="text-right px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-on-sf-variant w-24">Actions</th>
       </tr>
     </thead>
     <tbody>
       {{range .Keys}}
-      <tr class="border-b border-ol-variant last:border-0 hover:bg-sf-low/50">
-        <td class="px-4 py-3 font-medium">{{.Name}}</td>
-        <td class="px-4 py-3"><code class="text-xs bg-sf-high px-1.5 py-0.5 rounded">{{.KeyPreview}}</code></td>
-        <td class="px-4 py-3 text-xs text-on-sf-variant">{{.CreatedAt}}</td>
-        <td class="px-4 py-3 text-xs text-on-sf-variant">{{.LastUsed}}</td>
-        <td class="px-4 py-3 text-right">
-          <form method="POST" action="/admin/api-keys" class="inline" onsubmit="return confirm('Revoke this key?')">
+      <tr class="border-b border-ol-variant/60 last:border-0 hover:bg-sf-low/40 transition-colors">
+        <td class="px-4 py-3.5 font-bold text-on-surface">{{.Name}}</td>
+        <td class="px-4 py-3.5"><code class="text-xs bg-sf-high px-2 py-1 rounded-lg font-mono">{{.KeyPreview}}</code></td>
+        <td class="px-4 py-3.5 text-xs text-on-sf-variant font-medium">{{.CreatedAt}}</td>
+        <td class="px-4 py-3.5 text-xs text-on-sf-variant font-medium">{{.LastUsed}}</td>
+        <td class="px-4 py-3.5 text-right">
+          <form method="POST" action="/admin/api-keys" class="inline" onsubmit="return confirm('Revoke key &quot;{{.Name}}&quot;?')">
             <input type="hidden" name="action" value="delete">
             <input type="hidden" name="id" value="{{.ID}}">
-            <button class="text-xs text-error hover:underline">Revoke</button>
+            <button class="text-xs text-error font-semibold hover:underline bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded-lg">Revoke</button>
           </form>
         </td>
       </tr>
@@ -52,9 +61,37 @@
     </tbody>
   </table>
 </div>
+
+<!-- Mobile Cards (Visible on < md) -->
+<div class="md:hidden space-y-3">
+  {{range .Keys}}
+  <div class="bg-sf-lowest border border-ol-variant/80 rounded-2xl p-4 shadow-sm">
+    <div class="flex items-center justify-between gap-2 mb-2">
+      <h3 class="font-bold text-sm text-on-surface">{{.Name}}</h3>
+      <code class="text-[11px] bg-sf-high px-2 py-0.5 rounded-lg font-mono">{{.KeyPreview}}</code>
+    </div>
+    <div class="text-[11px] text-on-sf-variant space-y-0.5 mb-3">
+      <div>Created: <span class="font-medium text-on-surface">{{.CreatedAt}}</span></div>
+      <div>Last Used: <span class="font-medium text-on-surface">{{.LastUsed}}</span></div>
+    </div>
+    <div class="pt-2 border-t border-ol-variant/50 flex justify-end">
+      <form method="POST" action="/admin/api-keys" class="inline" onsubmit="return confirm('Revoke key &quot;{{.Name}}&quot;?')">
+        <input type="hidden" name="action" value="delete">
+        <input type="hidden" name="id" value="{{.ID}}">
+        <button class="text-xs font-semibold text-error bg-red-50 px-3.5 py-1.5 rounded-xl border border-red-200">Revoke Key</button>
+      </form>
+    </div>
+  </div>
+  {{end}}
+</div>
+
 {{else}}
-<div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-lg">
-  <p class="text-on-sf-variant">No API keys yet. Generate one above.</p>
+<div class="text-center py-16 bg-sf-lowest border border-ol-variant rounded-2xl p-6">
+  <div class="w-12 h-12 mx-auto bg-sf-low rounded-full flex items-center justify-center mb-3 text-on-sf-variant">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/></svg>
+  </div>
+  <p class="text-base font-semibold text-on-surface">No API keys created</p>
+  <p class="text-xs text-on-sf-variant mt-1">Generate a key above to integrate external apps with your website</p>
 </div>
 {{end}}
 {{template "admin_footer" .}}

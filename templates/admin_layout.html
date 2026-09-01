@@ -1,110 +1,216 @@
 {{define "admin_header"}}<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>{{.Title}} — Vats Apartment Admin</title>
 <link rel="stylesheet" href="/static/app-tailwind.v2.css">
 <link rel="icon" href="/static/favicon.ico">
 <style>
-  .sidebar { transition: transform 0.25s ease; }
-  .overlay { transition: opacity 0.25s ease; }
+  .admin-sidebar { transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
+  .admin-overlay { transition: opacity 0.25s ease, visibility 0.25s ease; }
+  .bottom-nav-item.active { color: #111111; font-weight: 700; }
+  .bottom-nav-item.active .nav-icon-wrapper { background-color: rgba(17, 17, 17, 0.08); color: #111111; }
+  .bottom-nav-item.active svg { stroke-width: 2.2; }
   @media (max-width: 1023px) {
-    .sidebar { transform: translateX(-50%); }
-    .sidebar.open { transform: translateX(0); }
-    .overlay { opacity: 0; pointer-events: none; }
-    .overlay.show { opacity: 1; pointer-events: auto; }
+    .admin-sidebar { transform: translateX(-100%); }
+    .admin-sidebar.open { transform: translateX(0); }
+    .admin-overlay { opacity: 0; visibility: hidden; pointer-events: none; }
+    .admin-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
   }
 </style>
 </head>
-<body class="bg-background text-on-surface min-h-screen">
+<body class="bg-background text-on-surface min-h-screen antialiased">
 
-<!-- Mobile overlay -->
-<div id="overlay" class="overlay fixed inset-0 bg-black/50 z-30 lg:hidden" onclick="closeSidebar()"></div>
+<!-- Mobile Backdrop Overlay -->
+<div id="overlay" class="admin-overlay fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden" onclick="closeSidebar()"></div>
 
-<!-- Sidebar -->
-<aside id="sidebar" class="sidebar fixed top-0 left-0 h-full w-64 bg-primary z-40 flex flex-col overflow-y-auto">
-  <div class="px-5 py-4 border-b border-white/10">
-    <a href="/"><img src="/static/white-logo.webp" alt="Vats Apartment" class="h-10 w-auto"></a>
-    <span class="text-white/35 text-xs mt-1 block">Admin Panel</span>
+<!-- Slide-over Sidebar -->
+<aside id="sidebar" class="admin-sidebar fixed top-0 left-0 h-full w-72 max-w-[85vw] bg-primary text-white z-50 flex flex-col overflow-y-auto shadow-2xl lg:shadow-none lg:w-64">
+  <!-- Sidebar Header -->
+  <div class="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <a href="/admin/dashboard" class="block">
+        <img src="/static/white-logo.webp" alt="Vats Apartment" class="h-9 w-auto">
+      </a>
+      <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-white/15 text-white/90 uppercase tracking-wider">Admin</span>
+    </div>
+    <!-- Mobile Close Button -->
+    <button onclick="closeSidebar()" class="lg:hidden p-1.5 -mr-1 rounded-lg text-white/60 hover:text-white hover:bg-white/10 active:scale-95 transition-all" aria-label="Close sidebar">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
   </div>
 
-  <nav class="flex-1 px-3 py-4 space-y-0.5">
+  <!-- Navigation Links -->
+  <nav class="flex-1 px-3 py-4 space-y-6">
     {{$active := .Active}}
-    <a href="/admin/dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{if eq $active "dashboard"}}bg-white/15 text-white font-semibold{{else}}text-white/65 hover:bg-white/8 hover:text-white{{end}}">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zm10-3a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1h-4a1 1 0 01-1-1v-5z"/></svg>
-      Dashboard
-    </a>
-    <a href="/admin/rooms" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{if eq $active "rooms"}}bg-white/15 text-white font-semibold{{else}}text-white/65 hover:bg-white/8 hover:text-white{{end}}">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M3 14h18M3 7h18M3 17h18M7 3v18"/></svg>
-      Rooms
-    </a>
-    <a href="/admin/tenants" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{if eq $active "tenants"}}bg-white/15 text-white font-semibold{{else}}text-white/65 hover:bg-white/8 hover:text-white{{end}}">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/></svg>
-      Tenants
-    </a>
-    <a href="/admin/payments" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{if eq $active "payments"}}bg-white/15 text-white font-semibold{{else}}text-white/65 hover:bg-white/8 hover:text-white{{end}}">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      Payments
-    </a>
-    <a href="/admin/meters" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{if eq $active "meters"}}bg-white/15 text-white font-semibold{{else}}text-white/65 hover:bg-white/8 hover:text-white{{end}}">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-      Meters
-    </a>
-    <a href="/admin/complaints" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{if eq $active "complaints"}}bg-white/15 text-white font-semibold{{else}}text-white/65 hover:bg-white/8 hover:text-white{{end}}">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
-      Complaints
-    </a>
-    <a href="/admin/blog" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{if eq $active "blog"}}bg-white/15 text-white font-semibold{{else}}text-white/65 hover:bg-white/8 hover:text-white{{end}}">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
-      Blog
-    </a>
-    <a href="/admin/api-keys" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{if eq $active "api_keys"}}bg-white/15 text-white font-semibold{{else}}text-white/65 hover:bg-white/8 hover:text-white{{end}}">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/></svg>
-      API Keys
-    </a>
+    <!-- Section: Operations -->
+    <div>
+      <div class="px-3 mb-2 text-[11px] font-semibold text-white/40 uppercase tracking-wider">Management</div>
+      <div class="space-y-1">
+        <a href="/admin/dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {{if eq $active "dashboard"}}bg-white/15 text-white font-semibold shadow-sm{{else}}text-white/70 hover:bg-white/10 hover:text-white{{end}}">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zm10-3a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1h-4a1 1 0 01-1-1v-5z"/></svg>
+          <span>Dashboard</span>
+        </a>
+        <a href="/admin/rooms" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {{if eq $active "rooms"}}bg-white/15 text-white font-semibold shadow-sm{{else}}text-white/70 hover:bg-white/10 hover:text-white{{end}}">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 10h18M3 14h18M3 7h18M3 17h18M7 3v18"/></svg>
+          <span>Rooms</span>
+        </a>
+        <a href="/admin/tenants" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {{if eq $active "tenants"}}bg-white/15 text-white font-semibold shadow-sm{{else}}text-white/70 hover:bg-white/10 hover:text-white{{end}}">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/></svg>
+          <span>Tenants</span>
+        </a>
+        <a href="/admin/payments" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {{if eq $active "payments"}}bg-white/15 text-white font-semibold shadow-sm{{else}}text-white/70 hover:bg-white/10 hover:text-white{{end}}">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Payments</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Section: Operations & Maintenance -->
+    <div>
+      <div class="px-3 mb-2 text-[11px] font-semibold text-white/40 uppercase tracking-wider">Property & Utilities</div>
+      <div class="space-y-1">
+        <a href="/admin/meters" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {{if eq $active "meters"}}bg-white/15 text-white font-semibold shadow-sm{{else}}text-white/70 hover:bg-white/10 hover:text-white{{end}}">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span>Electricity Meters</span>
+        </a>
+        <a href="/admin/complaints" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {{if eq $active "complaints"}}bg-white/15 text-white font-semibold shadow-sm{{else}}text-white/70 hover:bg-white/10 hover:text-white{{end}}">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
+          <span>Complaints & Log</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Section: Content & System -->
+    <div>
+      <div class="px-3 mb-2 text-[11px] font-semibold text-white/40 uppercase tracking-wider">Website & API</div>
+      <div class="space-y-1">
+        <a href="/admin/blog" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {{if eq $active "blog"}}bg-white/15 text-white font-semibold shadow-sm{{else}}text-white/70 hover:bg-white/10 hover:text-white{{end}}">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+          <span>Blog Posts</span>
+        </a>
+        <a href="/admin/api-keys" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {{if eq $active "api_keys"}}bg-white/15 text-white font-semibold shadow-sm{{else}}text-white/70 hover:bg-white/10 hover:text-white{{end}}">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/></svg>
+          <span>API Keys</span>
+        </a>
+      </div>
+    </div>
   </nav>
 
-  <div class="px-3 py-4 border-t border-white/10 space-y-0.5">
-    <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/50 hover:bg-white/8 hover:text-white">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
-      View Site
+  <!-- Sidebar Footer -->
+  <div class="px-3 py-4 border-t border-white/10 space-y-1">
+    <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors">
+      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+      <span>View Public Site</span>
     </a>
-    <a href="/logout" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/50 hover:bg-white/8 hover:text-red-300">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>
-      Logout
+    <a href="/logout" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-300 hover:bg-red-500/20 hover:text-red-200 transition-colors">
+      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>
+      <span>Logout</span>
     </a>
   </div>
 </aside>
 
-<!-- Mobile header -->
-<div class="lg:hidden fixed top-0 left-0 right-0 h-14 bg-primary z-20 flex items-center px-4 gap-3">
-  <button onclick="toggleSidebar()" class="text-white/80 hover:text-white p-1" aria-label="Menu">
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-  </button>
-  <a href="/"><img src="/static/white-logo.webp" alt="Vats Apartment" class="h-8 w-auto"></a>
-  <span class="text-white/35 text-xs">Admin</span>
-</div>
+<!-- Mobile Sticky Top Header -->
+<header class="lg:hidden fixed top-0 left-0 right-0 h-14 bg-primary text-white z-30 flex items-center justify-between px-3 sm:px-4 shadow-sm">
+  <div class="flex items-center gap-2.5">
+    <button onclick="toggleSidebar()" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20 active:scale-95 transition-all" aria-label="Open Navigation Menu">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <a href="/admin/dashboard" class="flex items-center gap-2">
+      <img src="/static/white-logo.webp" alt="Vats Apartment" class="h-7 w-auto">
+      <span class="text-xs font-semibold px-2 py-0.5 rounded bg-white/15 text-white/90">Admin</span>
+    </a>
+  </div>
+  <div class="flex items-center gap-1">
+    <a href="/" title="View Site" class="p-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 active:scale-95 transition-all">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+    </a>
+    <a href="/logout" title="Logout" class="p-2 rounded-xl text-red-300 hover:text-red-200 hover:bg-white/10 active:scale-95 transition-all">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>
+    </a>
+  </div>
+</header>
 
-<!-- Main content -->
-<main class="lg:ml-64 pt-14 lg:pt-0 min-h-screen">
-  <div class="max-w-7xl mx-auto px-2 md:px-4 py-4 lg:py-6">
+<!-- Main content container -->
+<main class="lg:ml-64 pt-16 lg:pt-6 pb-24 lg:pb-8 min-h-screen">
+  <div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6">
 {{end}}
 
 {{define "admin_footer"}}
   </div>
 </main>
 
+<!-- Mobile Bottom Navigation Bar (High Frequency Actions) -->
+<nav class="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-sf-lowest/95 backdrop-blur-md border-t border-ol-variant pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 px-2 shadow-lg">
+  {{$active := .Active}}
+  <div class="grid grid-cols-5 gap-1 items-center max-w-md mx-auto">
+    <!-- 1. Dashboard -->
+    <a href="/admin/dashboard" class="bottom-nav-item flex flex-col items-center justify-center py-1 rounded-xl text-on-sf-variant transition-all active:scale-95 {{if eq $active "dashboard"}}active{{end}}">
+      <div class="nav-icon-wrapper p-1 rounded-lg transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zm10-3a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1h-4a1 1 0 01-1-1v-5z"/></svg>
+      </div>
+      <span class="text-[10px] tracking-tight leading-tight mt-0.5 font-medium">Home</span>
+    </a>
+
+    <!-- 2. Rooms -->
+    <a href="/admin/rooms" class="bottom-nav-item flex flex-col items-center justify-center py-1 rounded-xl text-on-sf-variant transition-all active:scale-95 {{if eq $active "rooms"}}active{{end}}">
+      <div class="nav-icon-wrapper p-1 rounded-lg transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M3 7h18M3 17h18M7 3v18"/></svg>
+      </div>
+      <span class="text-[10px] tracking-tight leading-tight mt-0.5 font-medium">Rooms</span>
+    </a>
+
+    <!-- 3. Tenants -->
+    <a href="/admin/tenants" class="bottom-nav-item flex flex-col items-center justify-center py-1 rounded-xl text-on-sf-variant transition-all active:scale-95 {{if eq $active "tenants"}}active{{end}}">
+      <div class="nav-icon-wrapper p-1 rounded-lg transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/></svg>
+      </div>
+      <span class="text-[10px] tracking-tight leading-tight mt-0.5 font-medium">Tenants</span>
+    </a>
+
+    <!-- 4. Payments -->
+    <a href="/admin/payments" class="bottom-nav-item flex flex-col items-center justify-center py-1 rounded-xl text-on-sf-variant transition-all active:scale-95 {{if eq $active "payments"}}active{{end}}">
+      <div class="nav-icon-wrapper p-1 rounded-lg transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <span class="text-[10px] tracking-tight leading-tight mt-0.5 font-medium">Payments</span>
+    </a>
+
+    <!-- 5. More Menu -->
+    <button onclick="toggleSidebar()" type="button" class="bottom-nav-item flex flex-col items-center justify-center py-1 rounded-xl text-on-sf-variant transition-all active:scale-95 {{if or (eq $active "meters") (eq $active "complaints") (eq $active "blog") (eq $active "api_keys")}}active{{end}}">
+      <div class="nav-icon-wrapper p-1 rounded-lg transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+      </div>
+      <span class="text-[10px] tracking-tight leading-tight mt-0.5 font-medium">Menu</span>
+    </button>
+  </div>
+</nav>
+
 <script>
 function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('overlay').classList.toggle('show');
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('overlay');
+  if (sidebar && overlay) {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('show');
+    document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+  }
 }
 function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('overlay').classList.remove('show');
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('overlay');
+  if (sidebar && overlay) {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+    document.body.style.overflow = '';
+  }
 }
 document.querySelectorAll('#sidebar a').forEach(function(a) {
   a.addEventListener('click', function() { closeSidebar(); });
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeSidebar();
 });
 </script>
 </body>
