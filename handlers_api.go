@@ -101,10 +101,14 @@ func handleCreateBooking(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := fmt.Sprintf("T%d", time.Now().UnixNano())
+	var checkIn interface{}
+	if body.Date != "" {
+		checkIn = body.Date
+	}
 	res, err := db.DB.Exec(
 		`INSERT INTO tenants (id, name, phone, room_id, rent_amount, check_in_date, status)
 			VALUES ($1, $2, $3, $4, $5, $6, 'pending')`,
-		id, body.Name, body.Phone, body.Room, body.Price, body.Date,
+		id, body.Name, body.Phone, body.Room, body.Price, checkIn,
 	)
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "unique") {
