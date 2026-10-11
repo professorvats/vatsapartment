@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"vatsapartment-go/db"
-	"net/url"
 	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
+	"net/url"
+	"vatsapartment-go/db"
 )
 
 // ─── Dashboard ────────────────────────────────────────────────
@@ -43,7 +43,7 @@ func getDashboardStats() DashboardStats {
 	db.DB.QueryRow(`
 		SELECT
 			(SELECT COUNT(*) FROM rooms),
-			(SELECT COUNT(DISTINCT room_id) FROM tenants WHERE room_id IS NOT NULL AND (end_date IS NULL OR end_date = '')),
+			(SELECT COUNT(DISTINCT room_id) FROM tenants WHERE status = 'active' AND room_id IS NOT NULL AND (end_date IS NULL OR end_date = '')),
 			(SELECT COUNT(*) FROM tenants),
 			(SELECT COUNT(*) FROM tenants WHERE status = 'active')
 	`).Scan(&s.TotalRooms, &s.OccupiedRooms, &s.TotalTenants, &s.ActiveTenants)
@@ -77,7 +77,7 @@ func handleAdminRooms(w http.ResponseWriter, r *http.Request) {
 	}
 	rows, err := db.DB.Query(`SELECT r.id, r.room_number, r.floor, r.type, r.price,
 		CASE WHEN EXISTS (
-			SELECT 1 FROM tenants t2 WHERE t2.room_id = r.id AND (t2.end_date IS NULL OR t2.end_date = '')
+			SELECT 1 FROM tenants t2 WHERE t2.room_id = r.id AND t2.status = 'active' AND (t2.end_date IS NULL OR t2.end_date = '')
 		) THEN 'occupied' ELSE 'vacant' END as status
 		FROM rooms r WHERE r.id != 'BUILDING'
 		ORDER BY r.floor, r.id`)
@@ -171,22 +171,23 @@ func handleAdminTenants(w http.ResponseWriter, r *http.Request) {
 		LEFT JOIN rooms r ON t.room_id = r.id
 		ORDER BY t.name`)
 	if err != nil {
-		log.Printf("ERROR loading tenants: %v", err); renderAdminError(w, "Failed to load tenants")
+		log.Printf("ERROR loading tenants: %v", err)
+		renderAdminError(w, "Failed to load tenants")
 		return
 	}
 	defer rows.Close()
 
 	type TenantAdmin struct {
-		ID, Name, Email, Phone, Status, CheckInDate, RoomID, RoomNumber           string
-		SecurityDeposit                                                            float64
-		LockInPeriod                                                               int
-		RentAmount                                                                 float64
-		StartDate                                                                  string
-		HasPassword                                                                bool
-		HasMaintenance                                                             bool
-		MaintenanceAmount                                                          float64
-		RoomPrice                                                                  float64
-		PassNumber                                                                 string
+		ID, Name, Email, Phone, Status, CheckInDate, RoomID, RoomNumber                       string
+		SecurityDeposit                                                                       float64
+		LockInPeriod                                                                          int
+		RentAmount                                                                            float64
+		StartDate                                                                             string
+		HasPassword                                                                           bool
+		HasMaintenance                                                                        bool
+		MaintenanceAmount                                                                     float64
+		RoomPrice                                                                             float64
+		PassNumber                                                                            string
 		VerificationStatus, LpuPhoto, AadharPhoto, VerificationSubmittedAt, VerificationNotes string
 	}
 	var tenants []TenantAdmin
@@ -252,40 +253,40 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 	action := r.FormValue("action")
 
-		if action == "add" {
-			name := r.FormValue("name")
+	if action == "add" {
+		name := r.FormValue("name")
 		_ = id
-			phone := r.FormValue("phone")
-			email := r.FormValue("email")
-			status := r.FormValue("status")
-			if status == "" {
-				status = "active"
-			}
-			secDeposit, _ := strconv.ParseFloat(r.FormValue("security_deposit"), 64)
-			lockIn, _ := strconv.Atoi(r.FormValue("lock_in_period"))
-			hasMaint := r.FormValue("has_maintenance") == "on"
-			newPass := r.FormValue("password")
+		phone := r.FormValue("phone")
+		email := r.FormValue("email")
+		status := r.FormValue("status")
+		if status == "" {
+			status = "active"
+		}
+		secDeposit, _ := strconv.ParseFloat(r.FormValue("security_deposit"), 64)
+		lockIn, _ := strconv.Atoi(r.FormValue("lock_in_period"))
+		hasMaint := r.FormValue("has_maintenance") == "on"
+		newPass := r.FormValue("password")
 
-			var emailPtr interface{}
-			if email == "" {
-				emailPtr = nil
-			} else {
-				emailPtr = email
-			}
+		var emailPtr interface{}
+		if email == "" {
+			emailPtr = nil
+		} else {
+			emailPtr = email
+		}
 
-			id := fmt.Sprintf("T%03d", time.Now().UnixNano()%100000)
-			roomID := r.FormValue("room_id")
-			rent, _ := strconv.ParseFloat(r.FormValue("rent"), 64)
-			startDate := r.FormValue("start_date")
-			maintAmt, _ := strconv.ParseFloat(r.FormValue("maintenance_amount"), 64)
+		id := fmt.Sprintf("T%03d", time.Now().UnixNano()%100000)
+		roomID := r.FormValue("room_id")
+		rent, _ := strconv.ParseFloat(r.FormValue("rent"), 64)
+		startDate := r.FormValue("start_date")
+		maintAmt, _ := strconv.ParseFloat(r.FormValue("maintenance_amount"), 64)
 
-			_, err := db.DB.Exec(`INSERT INTO tenants (id, name, phone, email, status, security_deposit, security_lock_in_period, has_maintenance, room_id, rent_amount, check_in_date)
+		_, err := db.DB.Exec(`INSERT INTO tenants (id, name, phone, email, status, security_deposit, security_lock_in_period, has_maintenance, room_id, rent_amount, check_in_date)
 				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-				id, name, phone, emailPtr, status, secDeposit, lockIn, hasMaint, roomID, rent, startDate)
-			if err != nil {
-				log.Printf("ERROR adding tenant: %v", err)
-				renderAdminError(w, "Failed to add tenant: "+friendlyDBError(err))
-			}
+			id, name, phone, emailPtr, status, secDeposit, lockIn, hasMaint, roomID, rent, startDate)
+		if err != nil {
+			log.Printf("ERROR adding tenant: %v", err)
+			renderAdminError(w, "Failed to add tenant: "+friendlyDBError(err))
+		}
 
 		if newPass != "" {
 			hash, err := bcrypt.GenerateFromPassword([]byte(newPass), bcrypt.DefaultCost)
@@ -300,7 +301,7 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 
 		http.Redirect(w, r, "/admin/tenants?msg=Tenant+added", http.StatusSeeOther)
 		return
-	} else 	if action == "update" {
+	} else if action == "update" {
 		name := r.FormValue("name")
 		phone := r.FormValue("phone")
 		email := r.FormValue("email")
@@ -448,22 +449,22 @@ func handleAdminTenantsSave(w http.ResponseWriter, r *http.Request) {
 // ─── Payments ──────────────────────────────────────────────────
 
 type RoomPaymentCard struct {
-	RoomID, RoomNumber, TenantID, TenantName              string
-	RentAmount, RoomPrice, DiscountAmount                  float64
-	HasMaintenance                                         bool
-	MaintenanceAmt                                         float64
-	ElectricityAmt                                         float64
-	WaterAmt                                               float64
-	MonthlyDiscount                                        float64
-	MonthlyDiscountNote                                    string
-	TotalDue                                               float64
-	HasPaid                                                bool
-	BillID, BillStatus                                     string
+	RoomID, RoomNumber, TenantID, TenantName                    string
+	RentAmount, RoomPrice, DiscountAmount                       float64
+	HasMaintenance                                              bool
+	MaintenanceAmt                                              float64
+	ElectricityAmt                                              float64
+	WaterAmt                                                    float64
+	MonthlyDiscount                                             float64
+	MonthlyDiscountNote                                         string
+	TotalDue                                                    float64
+	HasPaid                                                     bool
+	BillID, BillStatus                                          string
 	PaymentID, PaymentDate, PaymentMethod, PaymentNotes, PaidTo string
-	PaymentStatus, Screenshot                              string
-	Screenshots                                            []string
-	ScreenshotsJSON                                        htmltpl.JS
-	PaymentAmount                                          float64
+	PaymentStatus, Screenshot                                   string
+	Screenshots                                                 []string
+	ScreenshotsJSON                                             htmltpl.JS
+	PaymentAmount                                               float64
 }
 
 func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
@@ -636,7 +637,7 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 		// Water share
 		var waterPerRoom float64
 		var occCount int
-		db.DB.QueryRow("SELECT COUNT(DISTINCT room_id) FROM tenants WHERE room_id IS NOT NULL AND (end_date IS NULL OR end_date = '')").Scan(&occCount)
+		db.DB.QueryRow("SELECT COUNT(DISTINCT room_id) FROM tenants WHERE status = 'active' AND room_id IS NOT NULL AND (end_date IS NULL OR end_date = '')").Scan(&occCount)
 		if occCount > 0 {
 			var waterUnits float64
 			db.DB.QueryRow(`
@@ -673,14 +674,14 @@ func handleAdminPayments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	renderPrivate(w, "admin_payments.html", map[string]interface{}{
-		"Cards":           cards,
-		"Month":           month,
-		"MonthLabel":      formatMonthLabel(month),
-		"PrevMonth":       prevMonth,
-		"NextMonth":       nextMonth,
-		"BillsGenerated":  billsGenerated,
-		"Active":          "payments",
-		"Title":           "Payments",
+		"Cards":          cards,
+		"Month":          month,
+		"MonthLabel":     formatMonthLabel(month),
+		"PrevMonth":      prevMonth,
+		"NextMonth":      nextMonth,
+		"BillsGenerated": billsGenerated,
+		"Active":         "payments",
+		"Title":          "Payments",
 	})
 }
 
@@ -724,7 +725,9 @@ func handleAdminPaymentsSave(w http.ResponseWriter, r *http.Request) {
 		discount, _ := strconv.ParseFloat(r.FormValue("discount_amount"), 64)
 		discountNote := r.FormValue("discount_note")
 		paidAmount := amount - discount
-		if paidAmount < 0 { paidAmount = 0 }
+		if paidAmount < 0 {
+			paidAmount = 0
+		}
 		date := r.FormValue("date")
 		method := r.FormValue("method")
 		monthCovered := r.FormValue("month_covered")
@@ -932,7 +935,7 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 
 	// Count occupied rooms
 	var occupiedCount int
-	db.DB.QueryRow("SELECT COUNT(DISTINCT room_id) FROM tenants WHERE room_id IS NOT NULL AND (end_date IS NULL OR end_date = '')").Scan(&occupiedCount)
+	db.DB.QueryRow("SELECT COUNT(DISTINCT room_id) FROM tenants WHERE status = 'active' AND room_id IS NOT NULL AND (end_date IS NULL OR end_date = '')").Scan(&occupiedCount)
 
 	// Water calculations
 	waterUnits := waterMeter.CurrentReading - waterMeter.InitialReading
@@ -974,23 +977,23 @@ func handleAdminMeters(w http.ResponseWriter, r *http.Request) {
 	}
 
 	renderPrivate(w, "admin_meters.html", map[string]interface{}{
-		"RoomMeters":        roomGroups,
-		"Meters":            meters,
-		"RatePerUnit":       ratePerUnit,
-		"WaterMeter":        waterMeter,
-		"HasWaterMeter":     hasWaterMeter,
-		"WaterUnits":            waterUnits,
-		"WaterBill":             waterBill,
-		"WaterPerRoomOverride":  waterPerRoomOverride,
-		"OccupiedCount":         occupiedCount,
-		"WaterPerRoom":          waterPerRoom,
-		"WaterUnitsPerRoom":     waterUnitsPerRoom,
-		"Month":             month,
-		"MonthLabel":        formatMonthLabel(month),
-		"PrevMonth":         prevMonth,
-		"NextMonth":         nextMonth,
-		"Active":            "meters",
-		"Title":             "Meters & Utilities",
+		"RoomMeters":           roomGroups,
+		"Meters":               meters,
+		"RatePerUnit":          ratePerUnit,
+		"WaterMeter":           waterMeter,
+		"HasWaterMeter":        hasWaterMeter,
+		"WaterUnits":           waterUnits,
+		"WaterBill":            waterBill,
+		"WaterPerRoomOverride": waterPerRoomOverride,
+		"OccupiedCount":        occupiedCount,
+		"WaterPerRoom":         waterPerRoom,
+		"WaterUnitsPerRoom":    waterUnitsPerRoom,
+		"Month":                month,
+		"MonthLabel":           formatMonthLabel(month),
+		"PrevMonth":            prevMonth,
+		"NextMonth":            nextMonth,
+		"Active":               "meters",
+		"Title":                "Meters & Utilities",
 	})
 }
 
@@ -1200,7 +1203,7 @@ func handleAdminMeterReadings(w http.ResponseWriter, r *http.Request) {
 
 	type Reading struct {
 		ID, MeterID, Date, Period, CreatedAt string
-		Value                                 int
+		Value                                int
 	}
 	var readings []Reading
 	for rows.Next() {
@@ -1236,7 +1239,6 @@ func friendlyDBError(err error) string {
 	return err.Error()
 }
 
-
 // ─── Bill Generation ──────────────────────────────────────────
 
 func handleGenerateBills(w http.ResponseWriter, r *http.Request) {
@@ -1266,7 +1268,7 @@ func generateBillsForMonth(month string) {
 
 	var waterPerRoom float64
 	var occupiedCount int
-	db.DB.QueryRow("SELECT COUNT(DISTINCT room_id) FROM tenants WHERE room_id IS NOT NULL AND (end_date IS NULL OR end_date = '')").Scan(&occupiedCount)
+	db.DB.QueryRow("SELECT COUNT(DISTINCT room_id) FROM tenants WHERE status = 'active' AND room_id IS NOT NULL AND (end_date IS NULL OR end_date = '')").Scan(&occupiedCount)
 	if occupiedCount > 0 {
 		var waterUnits float64
 		db.DB.QueryRow(`

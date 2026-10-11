@@ -2,10 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	"time"
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
+	"time"
 	"vatsapartment-go/db"
 )
 
@@ -24,7 +25,7 @@ func handleAPIRooms(w http.ResponseWriter, r *http.Request) {
 
 func handleAPIBookings(w http.ResponseWriter, r *http.Request) {
 	jsonContent(w)
-	rows, err := db.DB.Query("SELECT id, COALESCE(room_id,''), CASE WHEN (end_date IS NULL OR end_date = '') AND room_id IS NOT NULL THEN 'active' ELSE 'inactive' END as status FROM tenants")
+	rows, err := db.DB.Query("SELECT id, COALESCE(room_id,''), COALESCE(status,'inactive') as status FROM tenants")
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]interface{}{"bookings": []interface{}{}})
 		return
@@ -50,7 +51,7 @@ func handleAPIBookings(w http.ResponseWriter, r *http.Request) {
 
 func handleAPIAssignments(w http.ResponseWriter, r *http.Request) {
 	jsonContent(w)
-	rows, err := db.DB.Query("SELECT id, COALESCE(room_id,''), CASE WHEN (end_date IS NULL OR end_date = '') AND room_id IS NOT NULL THEN 1 ELSE 0 END as is_active FROM tenants")
+	rows, err := db.DB.Query("SELECT id, COALESCE(room_id,''), CASE WHEN status = 'active' AND (end_date IS NULL OR end_date = '') AND room_id IS NOT NULL THEN 1 ELSE 0 END as is_active FROM tenants")
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]interface{}{"assignments": []interface{}{}})
 		return
@@ -79,13 +80,11 @@ func handleAPIAssignments(w http.ResponseWriter, r *http.Request) {
 func handleCreateBooking(w http.ResponseWriter, r *http.Request) {
 	jsonContent(w)
 	var body struct {
-		Room     string  `json:"room"`
-		RoomName string  `json:"roomName"`
-		RoomType string  `json:"roomType"`
-		Price    float64 `json:"price"`
-		Date     string  `json:"date"`
-		Name     string  `json:"name"`
-		Phone    string  `json:"phone"`
+		Room  string  `json:"room"`
+		Price float64 `json:"price"`
+		Date  string  `json:"date"`
+		Name  string  `json:"name"`
+		Phone string  `json:"phone"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		w.WriteHeader(400)
@@ -93,16 +92,36 @@ func handleCreateBooking(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	body.Name = strings.TrimSpace(body.Name)
+	body.Phone = strings.TrimSpace(body.Phone)
+	if body.Room == "" || body.Name == "" || body.Phone == "" {
+		w.WriteHeader(400)
+		fmt.Fprintf(w, `{"error":"room, name and phone are required"}`)
+		return
+	}
+
 	id := fmt.Sprintf("T%d", time.Now().UnixNano())
-	_, err := db.DB.Exec(
-		`INSERT INTO tenants (id, room_id, rent_amount, check_in_date, status) VALUES ($1, $2, $3, $4, 'active')`,
-		id, body.Room, body.Price, body.Date,
+	res, err := db.DB.Exec(
+		`INSERT INTO tenants (id, name, phone, room_id, rent_amount, check_in_date, status)
+			VALUES ($1, $2, $3, $4, $5, $6, 'pending')`,
+		id, body.Name, body.Phone, body.Room, body.Price, body.Date,
 	)
 	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "unique") {
+			w.WriteHeader(409)
+			fmt.Fprintf(w, `{"error":"This phone number is already registered. Please contact us directly."}`)
+			return
+		}
 		log.Printf("Booking insert error: %v", err)
 		w.WriteHeader(500)
 		fmt.Fprintf(w, `{"error":"failed to create booking"}`)
 		return
 	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		w.WriteHeader(409)
+		fmt.Fprintf(w, `{"error":"This phone number is already registered. Please contact us directly."}`)
+		return
+	}
+	log.Printf("Booking request saved: %s room=%s name=%s phone=%s", id, body.Room, body.Name, body.Phone)
 	fmt.Fprintf(w, `{"success":true,"id":"%s"}`, id)
 }
