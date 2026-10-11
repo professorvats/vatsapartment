@@ -23,7 +23,106 @@ func handleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	stats := getDashboardStats()
-	renderPrivate(w, "admin_dashboard.html", map[string]interface{}{"Stats": stats, "Active": "dashboard", "Title": "Dashboard"})
+
+	rows, err := db.DB.Query(`
+		SELECT t.id, t.name, t.phone, COALESCE(t.room_id, ''), COALESCE(r.room_number, ''),
+			COALESCE(t.rent_amount, 0), COALESCE(t.check_in_date::text, ''), t.created_at
+		FROM tenants t
+		LEFT JOIN rooms r ON t.room_id = r.id
+		WHERE t.status = 'pending'
+		ORDER BY t.created_at DESC`)
+	type Inquiry struct {
+		ID, Name, Phone, RoomID, RoomNumber string
+		Rent                                float64
+		CheckInDate, CreatedAt              string
+	}
+	var inquiries []Inquiry
+	if err != nil {
+		log.Printf("ERROR loading inquiries: %v", err)
+	} else {
+		defer rows.Close()
+		for rows.Next() {
+			var in Inquiry
+			var createdAt interface{}
+			if err := rows.Scan(&in.ID, &in.Name, &in.Phone, &in.RoomID, &in.RoomNumber, &in.Rent, &in.CheckInDate, &createdAt); err != nil {
+				log.Printf("ERROR scanning inquiry: %v", err)
+				continue
+			}
+			if createdAt != nil {
+				if t, ok := createdAt.(time.Time); ok {
+					in.CreatedAt = t.Format("Jan 2, 3:04 PM")
+				}
+			}
+			inquiries = append(inquiries, in)
+		}
+	}
+
+	renderPrivate(w, "admin_dashboard.html", map[string]interface{}{
+		"Stats":     stats,
+		"Inquiries": inquiries,
+		"OK":        r.URL.Query().Get("ok"),
+		"Err":       r.URL.Query().Get("err"),
+		"Active":    "dashboard",
+		"Title":     "Dashboard",
+	})
+}
+
+func handleAdminInquiryAction(w http.ResponseWriter, r *http.Request) {
+	if !requireAdmin(w, r) {
+		return
+	}
+	r.ParseForm()
+	id := r.FormValue("id")
+	action := r.FormValue("action")
+	if id == "" {
+		http.Redirect(w, r, "/admin/dashboard?err=Missing+inquiry+ID", http.StatusSeeOther)
+		return
+	}
+
+	switch action {
+	case "approve":
+		var roomID string
+		err := db.DB.QueryRow("SELECT COALESCE(room_id,'') FROM tenants WHERE id = $1 AND status = 'pending'", id).Scan(&roomID)
+		if err != nil {
+			http.Redirect(w, r, "/admin/dashboard?err=Inquiry+not+found", http.StatusSeeOther)
+			return
+		}
+		if roomID != "" {
+			var taken int
+			db.DB.QueryRow(`SELECT COUNT(*) FROM tenants
+				WHERE room_id = $1 AND status = 'active' AND (end_date IS NULL OR end_date = '') AND id != $2`,
+				roomID, id).Scan(&taken)
+			if taken > 0 {
+				http.Redirect(w, r, "/admin/dashboard?err=Room+"+url.QueryEscape(roomID)+"+is+already+occupied", http.StatusSeeOther)
+				return
+			}
+		}
+		_, err = db.DB.Exec("UPDATE tenants SET status = 'active', updated_at = NOW() WHERE id = $1", id)
+		if err != nil {
+			log.Printf("ERROR approving inquiry %s: %v", id, err)
+			http.Redirect(w, r, "/admin/dashboard?err=Failed+to+approve+inquiry", http.StatusSeeOther)
+			return
+		}
+		log.Printf("Inquiry %s approved (status -> active)", id)
+		http.Redirect(w, r, "/admin/dashboard?ok=Inquiry+approved+%E2%80%94+tenant+is+now+active", http.StatusSeeOther)
+
+	case "decline":
+		res, err := db.DB.Exec("DELETE FROM tenants WHERE id = $1 AND status = 'pending'", id)
+		if err != nil {
+			log.Printf("ERROR declining inquiry %s: %v", id, err)
+			http.Redirect(w, r, "/admin/dashboard?err=Failed+to+decline+inquiry", http.StatusSeeOther)
+			return
+		}
+		if n, _ := res.RowsAffected(); n == 0 {
+			http.Redirect(w, r, "/admin/dashboard?err=Inquiry+not+found", http.StatusSeeOther)
+			return
+		}
+		log.Printf("Inquiry %s declined (deleted)", id)
+		http.Redirect(w, r, "/admin/dashboard?ok=Inquiry+declined", http.StatusSeeOther)
+
+	default:
+		http.Redirect(w, r, "/admin/dashboard?err=Unknown+action", http.StatusSeeOther)
+	}
 }
 
 type DashboardStats struct {

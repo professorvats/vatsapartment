@@ -107,6 +107,7 @@ func main() {
 
 	// Admin
 	mux.HandleFunc("GET /admin/dashboard", handleAdminDashboard)
+	mux.HandleFunc("POST /admin/inquiries/action", handleAdminInquiryAction)
 	mux.HandleFunc("GET /admin/rooms", handleAdminRooms)
 	mux.HandleFunc("POST /admin/rooms/save", handleAdminRoomsSave)
 	mux.HandleFunc("POST /admin/rooms/add", handleAdminRoomAdd)
