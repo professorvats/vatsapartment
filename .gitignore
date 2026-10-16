@@ -52,3 +52,7 @@ vatsapartment-go
 .claude/
 .playwright-mcp/
 payments-header.jpg
+
+# Agent workspace
+.zcode/
+.opencode/

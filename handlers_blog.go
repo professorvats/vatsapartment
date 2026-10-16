@@ -52,28 +52,54 @@ func handleBlog(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleBlogPost(w http.ResponseWriter, r *http.Request) {
+	// Legacy query-param URLs (/blog/post?slug=x) 301 to the canonical
+	// /blog/x path so search engines consolidate ranking signals there.
 	slug := r.URL.Query().Get("slug")
+	if slug == "" {
+		http.NotFound(w, r)
+		return
+	}
+	http.Redirect(w, r, siteURL+"/blog/"+slug, http.StatusMovedPermanently)
+}
+
+func handleBlogPostPath(w http.ResponseWriter, r *http.Request) {
+	renderBlogPost(w, r, r.PathValue("slug"))
+}
+
+func renderBlogPost(w http.ResponseWriter, r *http.Request, slug string) {
 	if slug == "" {
 		http.NotFound(w, r)
 		return
 	}
 
 	var post BlogPost
+	var createdISO string
 	err := db.DB.QueryRow(
-		`SELECT id, title, slug, COALESCE(excerpt,''), content, COALESCE(image_url,''), 
-		 COALESCE(author,'Vats Apartment'), status, 
-		 TO_CHAR(created_at, 'Mon DD, YYYY'), TO_CHAR(updated_at, 'Mon DD, YYYY')
+		`SELECT id, title, slug, COALESCE(excerpt,''), content, COALESCE(image_url,''),
+		 COALESCE(author,'Vats Apartment'), status,
+		 TO_CHAR(created_at, 'Mon DD, YYYY'), TO_CHAR(updated_at, 'Mon DD, YYYY'),
+		 TO_CHAR(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
 		 FROM blog_posts WHERE slug = $1 AND status = 'published'`,
 		slug,
 	).Scan(&post.ID, &post.Title, &post.Slug, &post.Excerpt, &post.Content,
-		&post.ImageURL, &post.Author, &post.Status, &post.CreatedAt, &post.UpdatedAt)
+		&post.ImageURL, &post.Author, &post.Status, &post.CreatedAt, &post.UpdatedAt, &createdISO)
 
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
 
-	render(w, "blog_post.html", map[string]interface{}{"Post": post})
+	metaDescription := post.Excerpt
+	if metaDescription == "" {
+		metaDescription = post.Title + " — Vats Apartment near LPU"
+	}
+
+	render(w, "blog_post.html", map[string]interface{}{
+		"Post":            post,
+		"Canonical":       siteURL + "/blog/" + post.Slug,
+		"DateISO":         createdISO,
+		"MetaDescription": metaDescription,
+	})
 }
 
 func handleAdminBlogList(w http.ResponseWriter, r *http.Request) {

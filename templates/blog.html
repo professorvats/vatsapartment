@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Blog — Vats Apartment</title>
+<meta name="description" content="Guides for LPU students: rooms, PGs and hostels near Lovely Professional University, rents, booking tips and student life in Jalandhar.">
+<link rel="canonical" href="https://vatsapartment.com/blog">
 <link rel="stylesheet" href="/static/app-tailwind.v2.css">
 <link rel="icon" href="/static/favicon.ico">
 <style>
@@ -88,7 +90,7 @@ window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
   {{if .Posts}}
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {{range .Posts}}
-    <a href="/blog/post?slug={{.Slug}}" class="bg-sf-lowest border border-ol-variant rounded-lg overflow-hidden hover:border-primary transition-colors group">
+    <a href="/blog/{{.Slug}}" class="bg-sf-lowest border border-ol-variant rounded-lg overflow-hidden hover:border-primary transition-colors group">
       {{if .ImageURL}}
       <div class="h-48 overflow-hidden">
         <img src="{{.ImageURL}}" alt="{{.Title}}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">

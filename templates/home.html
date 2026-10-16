@@ -657,7 +657,7 @@ function carouselScroll(dir){const tr=document.getElementById("carousel-track");
       if (!data || !data.posts || data.posts.length === 0) return;
       var html = '';
       data.posts.forEach(function(post) {
-        html += '<a href="/blog/post?slug=' + post.slug + '" class="bg-sf-lowest border border-ol-variant rounded-lg p-5 hover:border-primary transition-colors group">' +
+        html += '<a href="/blog/' + post.slug + '" class="bg-sf-lowest border border-ol-variant rounded-lg p-5 hover:border-primary transition-colors group">' +
           '<h3 class="font-semibold text-sm mb-2 group-hover:text-primary transition-colors">' + post.title + '</h3>' +
           (post.excerpt ? '<p class="text-xs text-on-sf-variant leading-relaxed mb-2">' + post.excerpt + '</p>' : '') +
           '<span class="text-xs text-on-sf-variant">' + post.created_at + '</span>' +

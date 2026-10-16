@@ -3,6 +3,27 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{.Post.Title}} — Vats Apartment Blog</title>
+<meta name="description" content="{{.MetaDescription}}">
+<link rel="canonical" href="{{.Canonical}}">
+<meta property="og:type" content="article">
+<meta property="og:title" content="{{.Post.Title}}">
+<meta property="og:description" content="{{.MetaDescription}}">
+<meta property="og:url" content="{{.Canonical}}">
+<meta property="og:site_name" content="Vats Apartment">
+{{if .Post.ImageURL}}<meta property="og:image" content="{{.Post.ImageURL}}">{{end}}
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": {{.Post.Title}},
+  "description": {{.MetaDescription}},
+  "datePublished": "{{.DateISO}}",
+  "author": {"@type": "Organization", "name": {{.Post.Author}}},
+  "publisher": {"@type": "Organization", "name": "Vats Apartment"},
+  "mainEntityOfPage": {{.Canonical}}
+}
+</script>
 <link rel="stylesheet" href="/static/app-tailwind.v2.css">
 <link rel="icon" href="/static/favicon.ico">
 <style>
